@@ -11,7 +11,7 @@ export const Navbar = () => {
     <div className='navbar'>
         <div className='nav-logo'>
             <img src={navLogo} alt="PapBakery Logo"/>
-            <p>PapBakery</p>
+            <p>Paws & Palms Bakery</p>
         </div>
         
         <ul className="nav-menu">
