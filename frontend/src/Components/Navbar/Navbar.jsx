@@ -5,7 +5,7 @@ import cart_icon from '../Assets/img/shopping-cart.png'
 
 export const Navbar = () => {
 
-    const [menu, setMenu] = useState("home"); //Initialize the menu selection
+    const [menu, setMenu] = useState("shop"); //Initialize the menu selection
 
   return (
     <div className='navbar'>
@@ -15,9 +15,8 @@ export const Navbar = () => {
         </div>
         
         <ul className="nav-menu">
-            <li onClick={()=>{setMenu("home")}}>Home{menu==="home"?<hr/>:<></>}</li>
-            <li onClick={()=>{setMenu("about")}}>About{menu==="about"?<hr/>:<></>}</li>
-            <li onClick={()=>{setMenu("shop")}}>Shop{menu==="shop"?<hr/>:<></>}</li>
+            <li onClick={()=>{setMenu("shop")}}>Shop{menu==="shop"?<hr/>:<></>}</li> {/**The setMenu() will change the menu value to the value in its parameter. The <hr/> tag is added to the li if menu is equal to the current menu item. */}
+            <li onClick={()=>{setMenu("biscuits")}}>About{menu==="biscuits"?<hr/>:<></>}</li>
         </ul>
         <div className="nav-login-cart">
             <button>Login</button>
