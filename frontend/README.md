@@ -68,3 +68,13 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+
+
+### Notes
+
+The `Context` folder will be used for context API
+The `Pages` folder will be used for creating E-Commerce pages
+The `Assests` folder will be used to store images
+
+Type out `rafc` to convert a file into a component.
