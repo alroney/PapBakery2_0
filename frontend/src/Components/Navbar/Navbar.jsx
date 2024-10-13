@@ -12,14 +12,17 @@ export const Navbar = () => {
     <div className='navbar'>
         <div className='nav-logo'>
             <img src={navLogo} alt="PapBakery Logo"/>
-            <p>Paws & Palms Bakery</p>
+            <div className="logo-text">
+                <p>Andrew's</p>
+                <p>Paws & Palms Bakery</p>
+            </div>
+            
         </div>
-
+        
         <ul className="nav-menu">
-            <li onClick={()=>{setMenu("shop")}}><Link style={{ textDecoration: 'none' }} to='/'>Shop</Link>{menu==="shop"?<hr/>:<></>}</li> {/**The setMenu() will change the menu value to the value in its parameter. The <hr/> tag is added to the li if menu is equal to the current menu item. */}
-            <li onClick={()=>{setMenu("biscuits")}}><Link style={{ textDecoration: 'none' }} to='/biscuits'>Biscuits</Link>{menu==="biscuits"?<hr/>:<></>}</li>
-            <li onClick={()=>{setMenu("trainingTreats")}}><Link style={{ textDecoration: 'none' }} to='/trainingTreats'>Training Treats</Link>{menu==="trainingTreats"?<hr/>:<></>}</li>
-            <li onClick={()=>{setMenu("aboutUs")}}><Link style={{ textDecoration: 'none' }} to='/aboutUs'>About Us</Link>{menu==="aboutUs"?<hr/>:<></>}</li>
+            <li onClick={()=>{setMenu("shop")}}><Link className="nav-item"  to='/'>Shop</Link>{menu==="shop"?<hr/>:<></>}</li> {/**The setMenu() will change the menu value to the value in its parameter. The <hr/> tag is added to the li if menu is equal to the current menu item. */}
+            <li onClick={()=>{setMenu("biscuits")}}><Link className="nav-item" to='/biscuits'>Biscuits</Link>{menu==="biscuits"?<hr/>:<></>}</li>
+            <li onClick={()=>{setMenu("trainingTreats")}}><Link className="nav-item" to='/trainingTreats'>Training Treats</Link>{menu==="trainingTreats"?<hr/>:<></>}</li>
         </ul>
 
         <div className="nav-login-cart">

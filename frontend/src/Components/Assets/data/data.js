@@ -19,7 +19,7 @@ let data_product = [
         image: bisSm,
         new_price: 0.00,
         old_price: 0.00,
-    }
-]
+    },
+];
 
 export default data_product;

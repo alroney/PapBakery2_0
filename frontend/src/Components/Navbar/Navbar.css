@@ -2,7 +2,9 @@
     display: flex;
     justify-content: space-around;
     padding: 16px;
+    background: linear-gradient(#f7b100 0%, #fdf5eb 20%);
     box-shadow: 0 1px 3px -2px #000000;
+    box-sizing: border-box;
 }
 
 .nav-logo {
@@ -16,9 +18,13 @@
     height: 75px;
 }
 
-.nav-logo p {
+.nav-logo .logo-text {
+    line-height: 1px;
+}
+
+.nav-logo .logo-text p {
     color: #171717;
-    font-size: 38px;
+    font-size: 30px;
     font-weight: 600;
 }
 
@@ -39,6 +45,11 @@
     justify-content: center;
     gap: 3px;
     cursor: pointer;
+}
+
+.nav-menu li .nav-item {
+    color: black;
+    text-decoration: none;
 }
 
 .nav-menu hr {
@@ -91,3 +102,5 @@
     background: red;
     color: white;   
 }
+
+

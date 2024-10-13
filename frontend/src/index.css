@@ -12,7 +12,10 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
   font-family: 'alice';
+  background: #FDF5EB;
+  box-sizing: border-box;
 }
 
 code {
