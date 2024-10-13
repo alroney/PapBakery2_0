@@ -3,6 +3,7 @@ import bisSm from '../img/product/dog/biscuits/biscuit_sm.png'
 import bisLgLong from '../img/product/dog/biscuits/biscuit_lg_long.png'
 import bisLg from '../img/product/dog/biscuits/biscuit_lg.png'
 
+//The id should be the same as one of the id's in all_product.js
 
 let data_product = [
     {
