@@ -1,7 +1,7 @@
 import React, {useState} from 'react'
 import './Navbar.css'
 import navLogo from '../Assets/img/logo/papbakery_logo_dark.png'
-import cart_icon from '../Assets/img/shopping-cart.png'
+import cart_icon from '../Assets/img/icon/cart_icon.png'
 import { Link } from 'react-router-dom'
 
 export const Navbar = () => {

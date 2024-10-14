@@ -10,16 +10,14 @@ let data_product = [
         id:1,
         name: "Small Long Pumpkin Biscuit",
         image: bisSmLong,
-        new_price: 0.00,
-        old_price: 0.00,
+        price: 10,
     },
 
     {
         id:2,
         name: "Small Pumpkin Biscuit",
         image: bisSm,
-        new_price: 0.00,
-        old_price: 0.00,
+        price: 10,
     },
 ];
 

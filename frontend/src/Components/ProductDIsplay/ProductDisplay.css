@@ -59,12 +59,12 @@
     font-weight: 700;
 }
 
-.productdisplay-right-price-old {
+/* .productdisplay-right-price-old {
     color: #818181;
     text-decoration: line-through;
-}
+} */
 
-.productdisplay-right-price-new {
+.productdisplay-right-price {
     color: #ff4141;
 }
 

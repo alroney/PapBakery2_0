@@ -5,8 +5,9 @@ export const ShopContext = createContext(null);
 
 const getDefaultCart = () => {
     let cart = {}; //let cart = empty object.
-    for (let index = 0; index < all_product.length + 1; index++) {
-        cart[index] = 0;
+    //Add all the products into the cart with a quantity of 0 per item.
+    for (let i = 0; i < all_product.length + 1; i++) {
+        cart[i] = 0;
     }
 
     return cart;
@@ -18,13 +19,13 @@ const ShopContextProvider = (props) => {
     
     //Add to Cart.
     const addToCart = (itemId) => {
-        setCartItems((prev) => ({...prev, [itemId]:prev[itemId]+1}))
+        setCartItems((prev) => ({...prev, [itemId]:prev[itemId] + 1})) //'prev[itemId]' will provide the key for that item.
         console.log("addToCart after press: ", cartItems);
     }
 
     //Remove from cart.
     const removeFromCart = (itemId) => {
-        setCartItems((prev) => ({...prev, [itemId]:prev[itemId]-1}))
+        setCartItems((prev) => ({...prev, [itemId]:prev[itemId] - 1}))
     }
     
     const contextValue = {all_product, cartItems, addToCart, removeFromCart};
