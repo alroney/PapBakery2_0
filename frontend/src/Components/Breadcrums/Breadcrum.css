@@ -10,6 +10,45 @@
 }
 
 .breadcrum img {
-    height: 15px;
-    width: 15px;
+    height: 20px;
+    width: auto;
+}
+
+
+@media(max-width: 1280px) {
+    .breadcrum {
+        margin: 30px 50px;
+        font-size: 14px;
+    }
+
+    .breadcrum img {
+        height: 15px;
+    }
+}
+
+
+@media(max-width: 1024px) {
+    .breadcrum {
+        margin: 30px 30px;
+        font-size: 13px;
+    }
+}
+
+
+@media(max-width: 800px) {
+    .breadcrum {
+        margin: 30px 10px;
+        font-size: 12px;
+    }
+
+    .breadcrum img {
+        height: 10px;
+    }
+}
+
+
+@media(max-width: 500px) {
+    .breadcrum {
+        font-size: 10px;
+    }
 }
