@@ -3,8 +3,8 @@
 }
 
 .item img {
-    width: 280px;
-    height: auto;
+    width: auto;
+    height: 280px;
 }
 
 .item p {
@@ -42,8 +42,7 @@
     }
 
     .item img {
-        width: 220px;
-        height: auto;
+        height: 220px;
     }
 
     .item-price {
@@ -59,8 +58,7 @@
     }
 
     .item img {
-        width: 170px;
-        height: auto;
+        height: 180px
     }
 
     .item-price {
@@ -76,8 +74,7 @@
     }
 
     .item img {
-        width: 120px;
-        height: auto;
+        height: 120px;
     }
 
     .item-price {
@@ -92,6 +89,6 @@
     }
 
     .item img {
-        width: 160px;
+        height: 160px;
     }
 }
