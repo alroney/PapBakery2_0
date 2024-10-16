@@ -130,7 +130,7 @@ app.post('/removeproduct', async (req,res) => {
 app.get('/allproducts', async (req,res) => {
     let products = await Product.find({}); //Await the server and get all products.
     console.log("All Products Fetched");
-    res.send(products); //Respond with display all products on page.
+    res.send(products); //Respond with display of all products.
 })
 
 
