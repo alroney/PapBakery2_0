@@ -59,7 +59,7 @@ const Product = mongoose.model("Product", {
     },
     image:{
         type: String,
-        required: true,
+        required: false,
     },
     category:{
         type: String,
@@ -76,8 +76,32 @@ const Product = mongoose.model("Product", {
     available:{
         type: Boolean,
         default: true,
-    }
+    },
 })
+
+//Endpoint named addproduct with an asynchronous arrow function.
+app.post('/addproduct', async (req,res) => {
+    const product = new Product({
+        id: req.body.id,
+        name: req.body.name,
+        image: req.body.image,
+        category: req.body.category,
+        price: req.body.price,
+    });
+    //Log and save.
+    console.log(product);
+    await product.save();//Save to database.
+    console.log("Saved");
+    res.json({ //Create response with the keys success and name.
+        success: true,
+        name: req.body.name,
+    })
+})
+
+
+
+
+
 
 app.listen(port, (error) => {
     if(!error) {
