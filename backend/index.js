@@ -49,6 +49,7 @@ app.post("/upload", upload.single('product'), (req,res) => {//field name is prod
 
 //Schema for creating products
 const Product = mongoose.model("Product", {
+    //key: object -> { key: value,}.
     id:{
         type: Number,
         required: true,
@@ -79,7 +80,7 @@ const Product = mongoose.model("Product", {
     },
 })
 
-//Endpoint named addproduct with an asynchronous arrow function.
+//API Endpoint named addproduct with an asynchronous arrow function.
 app.post('/addproduct', async (req,res) => {
     let products = await Product.find({}); //Get all existing products into one array.
     let id;
@@ -91,9 +92,12 @@ app.post('/addproduct', async (req,res) => {
     else {
         id = 1;
     }
+
+    //Create a product for Product using values requested from body.
     const product = new Product({
+        //key: value
         id: id,
-        name: req.body.name,
+        name: req.body.name, //request name from the body.
         image: req.body.image,
         category: req.body.category,
         price: req.body.price,
@@ -109,6 +113,15 @@ app.post('/addproduct', async (req,res) => {
 })
 
 
+//API Endpoint used to remove product from database.
+app.post('/removeproduct', async (req,res) => {
+    await Product.findOneAndDelete({id:req.body.id});
+    console.log("Removed");
+    res.json({
+        success: true,
+        name: req.body.name,
+    });
+})
 
 
 
