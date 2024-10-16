@@ -30,9 +30,9 @@ app.get("/", (req, res) => {
 
 //Image Storage Engine
 const storage = multer.diskStorage({
-    destination: './upload/images',
-    filename: (req, file, cb) => {
-        return cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`)
+    destination: './upload/images', //Path of upload folder.
+    filename: (req, file, cb) => { //(require, file, )
+        return cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`)//cb(null, `(template literal)` )
     }
 })
 
@@ -40,8 +40,10 @@ const upload = multer({storage:storage})
 
 //Creating upload endpoint for images
 app.use('/images', express.static('upload/images'))
+
+//API Endpoint named upload used to allow upload of images.
 app.post("/upload", upload.single('product'), (req,res) => {//field name is product
-    res.json({
+    res.json({ //Respond with success and img url.
         success:1,
         image_url:`http://localhost:${port}/images/${req.file.filename}`
     })
@@ -124,8 +126,15 @@ app.post('/removeproduct', async (req,res) => {
 })
 
 
+//API Endpoint used to get all products.
+app.get('/allproducts', async (req,res) => {
+    let products = await Product.find({}); //Await the server and get all products.
+    console.log("All Products Fetched");
+    res.send(products); //Respond with display all products on page.
+})
 
 
+//API Endpoint for listening to port.
 app.listen(port, (error) => {
     if(!error) {
         console.log("Server Running on Port "+ port)
