@@ -59,7 +59,7 @@ const Product = mongoose.model("Product", {
     },
     image:{
         type: String,
-        required: false,
+        required: true,
     },
     category:{
         type: String,
