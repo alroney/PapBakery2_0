@@ -24,10 +24,30 @@ app.use(cors()); //This will allow the reactjs project to connect to express app
 mongoose.connect(uri);
 
 //API creation
-
 app.get("/", (req, res) => {
-    res.send("Express App is Running")
+    res.send("Express App is Running")//response.send displays the text on to web page.
 })
+
+//Image Storage Engine
+const storage = multer.diskStorage({
+    destination: './upload/images',
+    filename: (req, file, cb) => {
+        return cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`)
+    }
+})
+
+const upload = multer({storage:storage})
+
+//Creating upload endpoint for images
+app.use('/images', express.static('upload/images'))
+app.post("/upload", upload.single('product'), (req,res) => {//field name is product
+    res.json({
+        success:1,
+        image_url:`http://localhost:${port}/images/${req.file.filename}`
+    })
+})
+
+
 
 app.listen(port, (error) => {
     if(!error) {
