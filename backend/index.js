@@ -81,12 +81,15 @@ const Product = mongoose.model("Product", {
 
 //Endpoint named addproduct with an asynchronous arrow function.
 app.post('/addproduct', async (req,res) => {
-    let products = await Product.find({}); //Get all existing products in one array.
+    let products = await Product.find({}); //Get all existing products into one array.
     let id;
     if(products.legnth > 0) {
-        let last_product_array = products.slice(-1); //Get the last object(product) only from the array of objects(products).
+        let last_product_array = products.slice(-1); //Get only the last object(product) from the array of objects(products).
         let last_product = last_product_array[0]; //Access the (last)product with the index 0 since their is only 1 object in the array.
         id = last_product.id+1; //Get id of last product, then add 1 to it to create the id for the new product.
+    }
+    else {
+        id = 1;
     }
     const product = new Product({
         id: id,
