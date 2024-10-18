@@ -136,6 +136,64 @@ const upload = multer({storage:storage})
     })
 
 
+    //Schema for creating User model.
+    const Users = mongoose.model('Users', {
+        name: {
+            type: String,
+        },
+        email: {
+            type: String,
+            unique: true,
+        },
+        password: {
+            type: String,
+        },
+        cartData: {
+            type: Object,
+        },
+        date: {
+            type: Date,
+            default: Date.now,
+        },
+    })
+
+    //API Endpoint for registering a user.
+    app.post('/signup', async (req,res) => {
+        //Check for existing user.
+        let check = await Users.findOne({email:req.body.email});
+        if(check) {
+            return res.status(400).json({success: false, errors: "Exisiting user found with that email!"})
+        }
+
+        //Create an empty cart.
+        let cart = {}; 
+        for(let i = 0; i < 300; i++) { //Create empty object with keys from 1 to 300.
+            cart[i] = 0;
+        }
+
+        //Create a new user with details from the body.
+        const user = new Users({
+            name: req.body.name,
+            email: req.body.email,
+            password: req.body.password,
+            cartData: cart,
+        })
+
+        await user.save(); //Save the new user to the database
+
+        const data = {
+            user: {
+                id: user.id,
+            }
+        }
+
+        //Create a token for the data object.
+        const token = jwt.sign(data, 'secret_ecom'); //jwt.sign(object, salt);
+        res.json({success: true, token})
+
+    })
+
+
     //API Endpoint for listening to port.
     app.listen(port, (error) => {
         if(!error) {
