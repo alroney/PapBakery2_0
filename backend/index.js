@@ -51,7 +51,7 @@ const upload = multer({storage:storage})
     })
 
     //Schema for creating products
-    const Product = mongoose.model("Product", {
+    const Product = mongoose.model("Product", { //This creates a new table name products in the mongoose database.
         //key: object -> { key: value,}.
         id:{
             type: Number,
@@ -137,7 +137,7 @@ const upload = multer({storage:storage})
 
 
     //Schema for creating User model.
-    const Users = mongoose.model('Users', {
+    const Users = mongoose.model('Users', { //This creates the table users in the mongoose database.
         name: {
             type: String,
         },
@@ -191,6 +191,33 @@ const upload = multer({storage:storage})
         const token = jwt.sign(data, 'secret_ecom'); //jwt.sign(object, salt);
         res.json({success: true, token})
 
+    })
+
+
+    //API Endpoint for user login.
+    app.post('/login', async (req,res) => {
+        let user = await Users.findOne({email: req.body.email}); //Get the user related to the specified email.
+        if(user) {
+            const passCompare = req.body.password === user.password; //Compare the password from the form input to the password in the database.
+            if(passCompare) {
+                //If password comparison is true, then create a user object.
+                const data = {
+                    user: {
+                        id: user.id
+                    }
+                }
+
+                //Create a token using JWT for the user data object and respond with success true and the token.
+                const token = jwt.sign(data, 'secret_ecom');
+                res.json({success: true, token});
+            }
+            else {
+                res.json({success: false, errors: "Password Incorrect!"});
+            }
+        }
+        else {
+            res.json({success: false, errors: "Email does not exist!"});
+        }
     })
 
 
