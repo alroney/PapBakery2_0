@@ -5,6 +5,13 @@ import upload_area from '../../assets/img/icon/upload_area.svg'
 const AddProduct = () => {
     //const [variableName, setterFunction] = useState(initialState);
     const [image, setImage] = useState(false);
+    const [productDetails, setProductDetails] = useState({
+        name: "",
+        image: "",
+        category: "biscuit",
+        price: "",
+    });
+
 
     //Image handler gets called from the activation of the input field with the onChange property that specifies imageHandler.
     const imageHandler = (e) => {
@@ -15,23 +22,37 @@ const AddProduct = () => {
      * Create feature for drag'n'drop of images.
      */
 
+    
+    const changeHandler = (e) => {
+        //Create a new object with all the existing product details, then update the specific field (e.target.name) with its new value (e.target.value).
+        setProductDetails({
+            ...productDetails, //Spread the current product details (keep the other properties).
+             [e.target.name]:e.target.value //Update the property that matches the input's name.
+        });
+    }
+
+    //Function used to check the change handler function. It will wait for the server to finish (async).
+    const Add_Product = async () => {
+        console.log(productDetails);
+    }
+
   return (
     <div className="add-product">
         <div className="addproduct-itemfield">
             <p>Product title</p>
-            <input type="text" name='name' placeholder='Type here' />
+            <input value={productDetails.name} onChange={changeHandler} type="text" name='name' placeholder='Type here' />
         </div>
 
         <div className="addproduct-price">
             <div className="addproduct-itemfield">
                 <p>Price</p>
-                <input type="text" name="price" placeholder='Type here'/>
+                <input value={productDetails.price} onChange={changeHandler} type="text" name="price" placeholder='Type here'/>
             </div>
         </div>
         
         <div className="addproduct-itemfield">
             <p>Product Category</p>
-            <select name="category" className="add-product-selector">
+            <select value={productDetails.category} onChange={changeHandler} name="category" className="add-product-selector">
                 <option value="biscuit">Biscuit</option>
                 <option value="training_treat">Training Treat</option>
             </select>
@@ -45,7 +66,7 @@ const AddProduct = () => {
             <input onChange={imageHandler} type="file" name="image" id="file-input" hidden/>
         </div>
         
-        <button className="addproduct-btn">ADD</button>
+        <button onClick={() => (Add_Product())} className="addproduct-btn">ADD</button>
     </div>
   )
 }
