@@ -33,8 +33,29 @@ const AddProduct = () => {
 
     //Function used to check the change handler function. It will wait for the server to finish (async).
     const Add_Product = async () => {
-        console.log(productDetails);
+        console.log(productDetails);//LOG
+        let responseData;
+        let product = productDetails;
+
+        let formData = new FormData(); //Create empty formData.
+        formData.append('product', image); //Add the image to the new empty FormData object.
+
+        //Send the formData to the API. fetch('[backendURL]/[uploadEndpoint]')
+        await fetch('http://localhost:4000/upload', {
+            method:'POST',
+            headers: {
+                Accept: 'application/json',
+            },
+            body: formData,
+        }).then((resp) => resp.json()).then((data) => {responseData=data});
+
+        if(responseData.success) {
+            product.image = responseData.image_url; //Set product image to image url given by the backend.
+            console.log(product);
+        }
     }
+
+
 
   return (
     <div className="add-product">
