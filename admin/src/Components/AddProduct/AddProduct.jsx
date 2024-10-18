@@ -1,8 +1,20 @@
-import React from 'react'
+import React, { useState } from 'react'
 import './AddProduct.css'
 import upload_area from '../../assets/img/icon/upload_area.svg'
 
 const AddProduct = () => {
+    //const [variableName, setterFunction] = useState(initialState);
+    const [image, setImage] = useState(false);
+
+    //Image handler gets called from the activation of the input field with the onChange property that specifies imageHandler.
+    const imageHandler = (e) => {
+        setImage(e.target.files[0]); //Set the image to the first([0]) selected image from the target of files (chosen from a popup window).
+    }
+
+    /**TODO:
+     * Create feature for drag'n'drop of images.
+     */
+
   return (
     <div className="add-product">
         <div className="addproduct-itemfield">
@@ -27,9 +39,10 @@ const AddProduct = () => {
 
         <div className="addproduct-itemfield">
             <label htmlFor="file-input">
-                <img src={upload_area} className="addproduct-thumbnail-img" alt="" />
+                {/*If image is TRUE create an image url and display it : ELSE display default image */}
+                <img src={image?URL.createObjectURL(image):upload_area} className="addproduct-thumbnail-img" alt="" />
             </label>
-            <input type="file" name="image" id="file-input" hidden/>
+            <input onChange={imageHandler} type="file" name="image" id="file-input" hidden/>
         </div>
         
         <button className="addproduct-btn">ADD</button>
