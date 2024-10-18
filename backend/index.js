@@ -86,11 +86,12 @@ const upload = multer({storage:storage})
     //API Endpoint named addproduct with an asynchronous arrow function.
     app.post('/addproduct', async (req,res) => {
         let products = await Product.find({}); //Get all existing products into one array.
+        console.log("Product Length: "+ products.length)
         let id;
-        if(products.legnth > 0) {
+        if(products.length > 0) {
             let last_product_array = products.slice(-1); //Get only the last object(product) from the array of objects(products).
             let last_product = last_product_array[0]; //Access the (last)product with the index 0 since their is only 1 object in the array.
-            id = last_product.id+1; //Get id of last product, then add 1 to it to create the id for the new product.
+            id = last_product.id + 1; //Get id of last product, then add 1 to it to create the id for the new product.
         }
         else {
             id = 1;
