@@ -34,13 +34,16 @@ const ListProduct = () => {
             {/* Create an array of products from mapping allproducts. Pass on individual 'product' and 'index'. */}
             {allproducts.map((product, index) => {
                 //Template to map each product according to its key (index).
-                return <div key={index} className="listproduct-format-main listproduct-format">
-                    <img src={product.image} alt="" className="listproduct-product-icon" />
-                    <p>{product.name}</p>
-                    <p>${product.price}</p>
-                    <p>{product.category}</p>
-                    <img src={cross_icon} alt="X" className="listproduct-remove-icon" />
-                </div>
+                return <>
+                    <div key={index} className="listproduct-format-main listproduct-format">
+                        <img src={product.image} alt="" className="listproduct-product-icon" />
+                        <p>{product.name}</p>
+                        <p>${product.price}</p>
+                        <p>{product.category}</p>
+                        <img src={cross_icon} alt="X" className="listproduct-remove-icon" />
+                    </div>
+                    <hr />
+                </>
             })}
         </div>
     </div>
