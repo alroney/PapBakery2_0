@@ -18,6 +18,19 @@ const ListProduct = () => {
     }, [])//The '[]' are placed so the function is only executed once.
 
 
+    //Remove product from database and allproducts list.
+    const remove_product = async (id) => {
+        await fetch('http://localhost:4000/removeProduct', {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({id:id}),
+        })
+        await fetchInfo();
+    }
+
   return (
     <div className="list-product">
         <h1>All Products List</h1>
@@ -40,7 +53,7 @@ const ListProduct = () => {
                         <p>{product.name}</p>
                         <p>${product.price}</p>
                         <p>{product.category}</p>
-                        <img src={cross_icon} alt="X" className="listproduct-remove-icon" />
+                        <img onClick={() => {remove_product(product.id)}} src={cross_icon} alt="X" className="listproduct-remove-icon" />
                     </div>
                     <hr />
                 </>
