@@ -221,11 +221,11 @@ const upload = multer({storage:storage})
     })
 
     //API Endpoint for newest items.
-    app.get('/newestitems', async (req,res) => {
+    app.get('/newitems', async (req,res) => {
         let products = await Product.find({});
-        let newestItems = products.slice(1).slice(-8); //Retrieve the last 8 most recently added products.
-        console.log("Newest Items Fetched");
-        res.send(newestItems);
+        let newItems = products.slice(1).slice(-8); //Retrieve the last 8 most recently added products.
+        console.log("New Items Fetched");
+        res.send(newItems);
     })
 
     //API Endpoint for listening to port.
