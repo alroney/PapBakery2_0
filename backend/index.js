@@ -273,6 +273,13 @@ const upload = multer({storage:storage})
         res.send("Removed");
     })
 
+    //API Endpoint for getting cartdata per the user.
+    app.post('/getcart', fetchUser, async (req,res) => {
+        console.log("GetCart");
+        let userData = await Users.findOne({_id: req.user.id});
+        res.json(userData.cartData);
+    })
+
     //API Endpoint for listening to port.
     app.listen(port, (error) => {
         if(!error) {
