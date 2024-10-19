@@ -236,6 +236,13 @@ const upload = multer({storage:storage})
         res.send(popular_flavors);
     })
 
+    
+
+    //API Endpoint for adding cartdata
+    app.post('/addtocart', async (req,res) => {
+        console.log(req.body);
+    })
+
     //API Endpoint for listening to port.
     app.listen(port, (error) => {
         if(!error) {

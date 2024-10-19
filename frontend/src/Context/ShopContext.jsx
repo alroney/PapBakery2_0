@@ -20,12 +20,26 @@ const ShopContextProvider = (props) => {
     useEffect(() => {
         fetch('http://localhost:4000/allproducts')
             .then((response) => response.json())
-            .then((data) => setAll_Product(data))
+            .then((data) => setAll_Product(data));
     }, []) // [] instructs the backend to load only one time when the component is mounted.
     
     //Add to Cart.
     const addToCart = (itemId) => {
         setCartItems((prev) => ({...prev, [itemId]:prev[itemId] + 1})) //'prev[itemId]' will provide the key for that item.
+        //Check if user is logged-in.
+        if(localStorage.getItem('auth-token')){
+            fetch('http://localhost:4000/addtocart', {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/form-data',
+                    'auth-token': `${localStorage.getItem('auth-token')}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({"itemId": itemId})
+            })
+            .then((response) => response.json())
+            .then((data) => console.log(data));
+        }
     }
 
     //Remove from cart.
