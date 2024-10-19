@@ -222,7 +222,7 @@ const upload = multer({storage:storage})
 
     //API Endpoint for newest items.
     app.get('/newitems', async (req,res) => {
-        let products = await Product.find({});
+        let products = await Product.find({}); //Get all products.
         let newItems = products.slice(1).slice(-8); //Retrieve the last 8 most recently added products.
         console.log("New Items Fetched.");
         res.send(newItems);
@@ -230,7 +230,7 @@ const upload = multer({storage:storage})
 
     //API Endpoint for popular flavors
     app.get('/popularflavors', async (req,res) => {
-        let products = await Product.find({}); //Get all products
+        let products = await Product.find({}); //Get all products.
         let popular_flavors = products.slice(0,4);
         console.log("Popular Flavors Fetched.");
         res.send(popular_flavors);
