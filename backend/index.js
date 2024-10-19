@@ -257,7 +257,10 @@ const upload = multer({storage:storage})
 
     //API Endpoint for adding cartdata
     app.post('/addtocart', fetchUser, async (req,res) => {
-        console.log(req.body, req.user);
+        let userData = await Users.findOne({_id: req.user.id}); //Wait for server to find a single user.
+        userData.cartData[req.body.itemId] += 1;
+        await Users.findOneAndUpdate({_id: req.user.id}, {cartData: userData.cartData});
+        res.send("Added");
     })
 
     //API Endpoint for listening to port.
