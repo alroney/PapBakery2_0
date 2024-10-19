@@ -36,8 +36,8 @@ export const Navbar = () => {
 
         <div className="nav-login-cart">
             {localStorage.getItem('auth-token')
-                ? <button onClick={() => {localStorage.removeItem('autho-token'); window.location.replace('/')}}>Logout</button>
-                : <Link to='/login'><button>Login</button></Link>
+                ? <button onClick={() => {localStorage.removeItem('auth-token'); window.location.replace('/')}}>Logout</button> //If true, remove the auth-token and send user to home page.
+                : <Link to='/login'><button>Login</button></Link> //If false, display the login button.
             }
             
             <Link to='/cart'><img src={cart_icon} alt="Cart"/></Link>
