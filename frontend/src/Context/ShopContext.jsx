@@ -1,12 +1,11 @@
-import React, { createContext, useState } from "react";
-import all_product from '../Components/Assets/data/all_product';
+import React, { createContext, useEffect, useState } from "react";
 
 export const ShopContext = createContext(null);
 
 const getDefaultCart = () => {
     let cart = {}; //let cart = empty object.
     //Add all the products into the cart with a quantity of 0 per item.
-    for (let i = 0; i < all_product.length + 1; i++) {
+    for (let i = 0; i < 300 + 1; i++) {
         cart[i] = 0;
     }
 
@@ -14,13 +13,19 @@ const getDefaultCart = () => {
 }
 
 const ShopContextProvider = (props) => {
+
+    const [all_product, setAll_Product] = useState([]);
     const [cartItems, setCartItems] = useState(getDefaultCart());
-    console.log("Current Cart:", cartItems);
+    
+    useEffect(() => {
+        fetch('http://localhost:4000/allproducts')
+            .then((response) => response.json())
+            .then((data) => setAll_Product(data))
+    }, []) // [] instructs the backend to load only one time when the component is mounted.
     
     //Add to Cart.
     const addToCart = (itemId) => {
         setCartItems((prev) => ({...prev, [itemId]:prev[itemId] + 1})) //'prev[itemId]' will provide the key for that item.
-        console.log("addToCart after press: ", cartItems);
     }
 
     //Remove from cart.
