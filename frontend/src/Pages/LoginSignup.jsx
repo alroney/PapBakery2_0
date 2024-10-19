@@ -13,6 +13,23 @@ export const LoginSignup = () => {
 
   const login = async () => {
     console.log("login funtion executed: ", formData);
+    let responseData;
+    await fetch('http://localhost:4000/login', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/form-data',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    }).then((response) => response.json()).then((data) => responseData = data)
+
+    if(responseData.success) {
+      localStorage.setItem('auth-token', responseData.token); //Save auth token.
+      window.location.replace("/"); //Send the user to home page.
+    }
+    else {
+      alert(responseData.errors)
+    }
   }
 
   const signup = async () => {
@@ -29,7 +46,10 @@ export const LoginSignup = () => {
 
     if(responseData.success) {
       localStorage.setItem('auth-token', responseData.token); //Save auth token.
-      window.location.replace("/"); //Replace the path of home page.
+      window.location.replace("/"); //Send the user to home page.
+    }
+    else {
+      alert(responseData.errors)
     }
   }
 
