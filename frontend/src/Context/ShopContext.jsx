@@ -26,8 +26,8 @@ const ShopContextProvider = (props) => {
     //Add to Cart.
     const addToCart = (itemId) => {
         setCartItems((prev) => ({...prev, [itemId]:prev[itemId] + 1})) //'prev[itemId]' will provide the key for that item.
-        //Check if user is logged-in.
-        if(localStorage.getItem('auth-token')){
+        
+        if(localStorage.getItem('auth-token')){ //If user is logged-in.
             fetch('http://localhost:4000/addtocart', {
                 method: 'POST',
                 headers: {
@@ -44,7 +44,22 @@ const ShopContextProvider = (props) => {
 
     //Remove from cart.
     const removeFromCart = (itemId) => {
-        setCartItems((prev) => ({...prev, [itemId]:prev[itemId] - 1}))
+        setCartItems((prev) => ({...prev, [itemId]:prev[itemId] - 1}));
+        if(localStorage.getItem('auth-token')) { //If user is logged-in.
+            fetch('http://localhost:4000/removefromcart', {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/form-data',
+                    'auth-token': `${localStorage.getItem('auth-token')}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({"itemId": itemId})
+            })
+            .then((response) => response.json())
+            .then((data) => console.log(data));
+
+            console.log("Product removed from cart db");
+        }
     }
 
     const getTotalCartAmount = () => {
