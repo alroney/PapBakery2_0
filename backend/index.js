@@ -3,12 +3,11 @@ const port = 4000;
 //const [name of variable] = require("[name of package]");
 const express = require("express");
 const app = express();
-const mongoose = require("mongoose");
-const jwt = require("jsonwebtoken");
-const multer = require("multer");
+const mongoose = require("mongoose"); //Allow the use mongoDB
+const jwt = require("jsonwebtoken"); //Used to generate and verify tokens.
+const multer = require("multer"); //Allow to create image storage system.
 const path = require("path");
-const cors = require("cors");
-const { error } = require("console");
+const cors = require("cors"); //Allow for access to the react project (frontend).
 
 //Database variables
 const username = "alrpapb";
@@ -50,6 +49,7 @@ const upload = multer({storage:storage})
         })
     })
 
+
     //Schema for creating products
     const Product = mongoose.model("Product", { //This creates a new table name products in the mongoose database.
         //key: object -> { key: value,}.
@@ -83,6 +83,7 @@ const upload = multer({storage:storage})
         },
     })
 
+//#region - PRODUCT RELATED API ENDPOINTS
     //API Endpoint named addproduct with an asynchronous arrow function.
     app.post('/addproduct', async (req,res) => {
         let products = await Product.find({}); //Get all existing products into one array.
@@ -116,7 +117,6 @@ const upload = multer({storage:storage})
         })
     })
 
-
     //API Endpoint used to remove product from database.
     app.post('/removeproduct', async (req,res) => {
         await Product.findOneAndDelete({id:req.body.id});
@@ -127,13 +127,30 @@ const upload = multer({storage:storage})
         });
     })
 
-
     //API Endpoint used to get all products.
     app.get('/allproducts', async (req,res) => {
         let products = await Product.find({}); //Await the server and get all products.
         console.log("All Products Fetched");
         res.send(products); //Respond with display of all products.
     })
+
+    //API Endpoint for newest items.
+    app.get('/newitems', async (req,res) => {
+        let products = await Product.find({}); //Get all products.
+        let newItems = products.slice(1).slice(-8); //Retrieve the last 8 most recently added products.
+        console.log("New Items Fetched.");
+        res.send(newItems);
+    })
+
+    //API Endpoint for popular flavors
+    app.get('/popularflavors', async (req,res) => {
+        let products = await Product.find({}); //Get all products.
+        let popular_flavors = products.slice(0,4);
+        console.log("Popular Flavors Fetched.");
+        res.send(popular_flavors);
+    })
+
+//#endregion
 
 
     //Schema for creating User model.
@@ -156,7 +173,7 @@ const upload = multer({storage:storage})
             default: Date.now,
         },
     })
-
+//#region - USER RELATED API ENDPOINTS
     //API Endpoint for registering a user.
     app.post('/signup', async (req,res) => {
         //Check for existing user.
@@ -218,22 +235,6 @@ const upload = multer({storage:storage})
         else {
             res.json({success: false, errors: "Email does not exist!"});
         }
-    })
-
-    //API Endpoint for newest items.
-    app.get('/newitems', async (req,res) => {
-        let products = await Product.find({}); //Get all products.
-        let newItems = products.slice(1).slice(-8); //Retrieve the last 8 most recently added products.
-        console.log("New Items Fetched.");
-        res.send(newItems);
-    })
-
-    //API Endpoint for popular flavors
-    app.get('/popularflavors', async (req,res) => {
-        let products = await Product.find({}); //Get all products.
-        let popular_flavors = products.slice(0,4);
-        console.log("Popular Flavors Fetched.");
-        res.send(popular_flavors);
     })
 
     //Creating Middleware to fetch user.
