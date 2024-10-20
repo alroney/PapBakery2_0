@@ -40,7 +40,7 @@ const AddProduct = () => {
         let formData = new FormData(); //Create empty formData.
         formData.append('product', image); //Add the image to the new empty FormData object.
 
-        //Send the formData to the API. fetch('[backendURL]/[uploadEndpoint]')
+        //Send the formData to the API. fetch('backendURL/uploadEndpoint')
         await fetch('http://localhost:4000/upload', {
             method:'POST',
             headers: {

@@ -165,7 +165,7 @@ app.listen(port, (error) => {
         })
 
         /**
-         * TODO: Create algorithm that compares the likes of 1 product to other products and shows the 3 most popular.
+         * @TODO Create algorithm that compares the likes of 1 product to other products and shows the 3 most popular.
          */
         //API endpoint to fetch popular flavors (first 4 items).
         app.get('/popularflavors', async (req,res) => {
@@ -386,5 +386,10 @@ app.listen(port, (error) => {
             res.json(userData.cartData);
         })
         //#endregion
+
+
+
+        /**@TODO Create emailing APIs done with Zoho Mail*/
+
 
 //#endregion
