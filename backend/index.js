@@ -49,9 +49,9 @@ app.listen(port, (error) => {
 
 
 //#region - API
-    /**
-     * req = request
-     * res = respond
+    /** Abbreviations
+     * req = request.
+     * res = respond.
      */
     //API creation for the root route.
     app.get("/", (req, res) => {
