@@ -42,7 +42,7 @@ const upload = multer({storage:storage})
     app.use('/images', express.static('upload/images'))
 
     //API Endpoint named upload used to allow upload of images.
-    app.post("/upload", upload.single('product'), (req,res) => {//field name is product
+    app.post("/upload", upload.single('product'), (req,res) => {//field name is product.
         res.json({ //Respond with success and img url.
             success:1,
             image_url:`http://localhost:${port}/images/${req.file.filename}`
