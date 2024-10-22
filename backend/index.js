@@ -9,6 +9,7 @@ const multer = require("multer"); //Allows for image storage handling.
 const path = require("path");
 const cors = require("cors"); //Allows frontend (React) to access the backend.
 const axios = require("axios"); //Used to make HTTP requests to external APIs.
+require('dotenv').config(); //Load environment variables.
 
 //Middleware setup
 app.use(express.json()); //Automatically parse incoming requests as JSON.
@@ -16,11 +17,7 @@ app.use(cors()); //Allow React app to connect to the Express app.
 
 
 //Database credentials and connection string.
-const username = "alrpapb";
-const password = "c3ZVpLGPJ4kCXC";
-const cluster = "cluster0";
-const project = "Papbakery";
-let uri = `mongodb+srv://${username}:${password}@${cluster}.ci6fw.mongodb.net/${project}`;
+let uri = process.env.MONGO_URI;
 
 
 
@@ -249,11 +246,11 @@ app.listen(port, (error) => {
              * 
              * The function takes two main arguments:
              * - @argument Payload (`data`): This is the object that contains the information to be included in the token (in this case, the 'data' object created earlier with the user's ID).
-             * - @argument Secret (`secret_ecom`): The secret key is used to digitally sign the token.
+             * - @argument Secret (process.env.JWT_SECRET): The secret key is used to digitally sign the token. The key is secured in the .env file where it it retrieved.
              *      - When creating or verifying the token, the server uses this secret key to ensure that the token hasn't been tampered with.
              *      - In production environments, it is important to use a strong and unpredictable secret key for security purposes.
              */
-            const token = jwt.sign(data, 'secret_ecom'); //jwt.sign(object, secret);
+            const token = jwt.sign(data, process.env.JWT_SECRET); //jwt.sign(object, secret);
 
             //Respond with success and the JWT token that was generated.
             res.json({success: true, token})
@@ -281,7 +278,7 @@ app.listen(port, (error) => {
                             id: user.id,
                         },
                     };
-                    const token = jwt.sign(data, 'secret_ecom');
+                    const token = jwt.sign(data, process.env.JWT_SECRET);
                     res.json({success: true, token});
                 }
 
@@ -317,7 +314,7 @@ app.listen(port, (error) => {
                      * Verify JWT token and extract user data.
                      * 
                      * @Verification_Process
-                     * - `jwt.verify(token, 'secret_ecom')`: used to verify the token.
+                     * - `jwt.verify(token, process.env.JWT_SECRET)`: used to verify the token.
                      *      - `token`: The JWT token extracted from the request header.
                      *      - `secret_ecom`: The secret key used to verify the token's integrity.
                      *          - This is the same secret that was used to sign the token when it was originally created.
@@ -334,7 +331,7 @@ app.listen(port, (error) => {
                      * - `next();` is called to pass control to the next middleware function in the stack.
                      * - If the middleware successfully authenticates the user, the request proceeds to the next handler (e.g. a route that handles a request to add a product to a cart).
                      */
-                    const data = jwt.verify(token, 'secret_ecom');
+                    const data = jwt.verify(token, process.env.JWT_SECRET);
                     req.user = data.user;
                     next();
                 }
@@ -393,8 +390,8 @@ app.listen(port, (error) => {
 
 
         /**@TODO Create emailing APIs done with Zoho Mail*/
-        const client_id = "1000.55LCRPGS4KUVQRVPBQHU8XU1WC9K9L";
-        const client_secret = "d3675e0b3091f5147a37229aa6b58e8ae78e019fb0";
+        const client_id = process.env.ZOHO_C_ID;
+        const client_secret = process.env.ZOHO_C_SECRET;
         const grant_type = "authorization_code";
         let auth_code = "1000.d48d151b746f7472e1ded977dde87eea.02be336e6d8060d249832b418cb159eb";
         let accounts_server_url = "https://accounts.zoho.com";
