@@ -402,7 +402,7 @@ app.listen(port, (error) => {
         app.post("/get-access-token", async (req,res) => {
             
             try {
-                console.log("Read userInfo from Zoho");
+                console.log("Getting access_token.");
                 const response = await axios.post(
                     `${accounts_server_url}/oauth/v2/token`,
                     null,
