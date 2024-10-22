@@ -167,6 +167,7 @@ app.listen(port, (error) => {
         /**
          * @TODO Create algorithm that compares the likes of 1 product to other products and shows the 3 most popular.
          */
+
         //API endpoint to fetch popular flavors (first 4 items).
         app.get('/popularflavors', async (req,res) => {
             let products = await Product.find({}); //Get all products.
@@ -390,6 +391,27 @@ app.listen(port, (error) => {
 
 
         /**@TODO Create emailing APIs done with Zoho Mail*/
+
+
+
+
+        /** Explanation of Zoho external API
+         * @Variables
+         * - `client_id` & `client_secret` are both retrieved from the environment variables. `process.env` is used to access environment variables, allowing to securely manage sensitive information without hard-coding it.
+         * - `grant_type` is a paramater required by Zoho's OAuth API to specify the type of OAuth flow. Here it is set to "authorization_code", which is used for obtaining an access token after the user authorizes the app.
+         * - `auth_code` holds the authorization code, which is a temporary code received from Zoho after a user grants application permission to acces their account. This value should be dynamic and not hard coded.
+         * - `accounts_server_url` holds the base URL for Zoho's accounts server.
+         * 
+         * @Express_Post_Route
+         * - Creates a new POST endpoint at the URL "/get-access-token" using Express.
+         * - `response` is a variable that holds the HTTP POST request to Zoho's OAuth endpoint using 'axios'.
+         *      - `${account_server_url}/oauth/v2/token` is the complete URL for Zoho's token endpoint.
+         *      - `null` is passed because there is no request body for this POST request.
+         *      - `params: {...}` specifies the query parameters needed for the POST request.
+         *      - `res.json({...})` if the request is successful, it sends a JSON reponse to the client with a status of success and the access token.
+         *          - `response.data` is the response object from Zoho's server, and `response.data.access_token` is the actual access token.
+         */
+
         const client_id = process.env.ZOHO_C_ID;
         const client_secret = process.env.ZOHO_C_SECRET;
         const grant_type = "authorization_code";
@@ -426,7 +448,13 @@ app.listen(port, (error) => {
                     error: error.response?.data || error.message,
                 });
             }
-            
+            /**SUMMARY
+             * 
+             * This snippet creates an API endpoint that, when called, attempts to obtain an access token from Zoho.
+             * It uses the axios library to make an outgoing POST request to Zoho's OAuth server, passing required credentials and the authorization code.
+             */
         });
+
+        
 
 //#endregion
