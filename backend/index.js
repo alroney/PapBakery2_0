@@ -8,6 +8,11 @@ const jwt = require("jsonwebtoken"); //Used to generate and verify tokens.
 const multer = require("multer"); //Allows for image storage handling.
 const path = require("path");
 const cors = require("cors"); //Allows frontend (React) to access the backend.
+const axios = require("axios"); //Used to make HTTP requests to external APIs.
+
+//Middleware setup
+app.use(express.json()); //Automatically parse incoming requests as JSON.
+app.use(cors()); //Allow React app to connect to the Express app.
 
 
 //Database credentials and connection string.
@@ -17,9 +22,7 @@ const cluster = "cluster0";
 const project = "Papbakery";
 let uri = `mongodb+srv://${username}:${password}@${cluster}.ci6fw.mongodb.net/${project}`;
 
-//Middleware setup
-app.use(express.json()); //Automatically parse incoming requests as JSON.
-app.use(cors()); //Allow React app to connect to the Express app.
+
 
 //Database connection with MongoDB
 mongoose.connect(uri);
@@ -367,7 +370,7 @@ app.listen(port, (error) => {
             userData.cartData[req.body.itemId] += 1;
             await Users.findOneAndUpdate({_id: req.user.id}, {cartData: userData.cartData});
             res.send("Added");
-        })
+        });
 
         //API endpoint to remove a product from user's cart.
         app.post('/removefromcart', fetchUser, async (req,res) => {
@@ -377,19 +380,56 @@ app.listen(port, (error) => {
             }
             await Users.findOneAndUpdate({_id: req.user.id}, {cartData: userData.cartData});
             res.send("Removed");
-        })
+        });
 
         //API endpoint to get user's cart data.
         app.post('/getcart', fetchUser, async (req,res) => {
             console.log("GetCart");
             let userData = await Users.findOne({_id: req.user.id});
             res.json(userData.cartData);
-        })
+        });
         //#endregion
 
 
 
         /**@TODO Create emailing APIs done with Zoho Mail*/
+        const client_id = "1000.55LCRPGS4KUVQRVPBQHU8XU1WC9K9L";
+        const client_secret = "d3675e0b3091f5147a37229aa6b58e8ae78e019fb0";
+        const grant_type = "authorization_code";
+        let auth_code = "1000.d48d151b746f7472e1ded977dde87eea.02be336e6d8060d249832b418cb159eb";
+        let accounts_server_url = "https://accounts.zoho.com";
+        
+        app.post("/get-access-token", async (req,res) => {
+            
+            try {
+                console.log("Read userInfo from Zoho");
+                const response = await axios.post(
+                    `${accounts_server_url}/oauth/v2/token`,
+                    null,
+                    {
+                        params: {
+                            client_id,
+                            client_secret,
+                            grant_type,
+                            code: auth_code,
+                        },
+                    }
+                );
 
+                res.json({
+                    success: true,
+                    access_token: response.data.access_token,
+                });
+            }
+
+            catch(error) {
+                console.error("Error getting access token: ", error.response?.data || error.message);
+                res.status(500).json({
+                    success: false,
+                    error: error.response?.data || error.message,
+                });
+            }
+            
+        });
 
 //#endregion
