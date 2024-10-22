@@ -9,6 +9,7 @@ const multer = require("multer"); //Allows for image storage handling.
 const path = require("path");
 const cors = require("cors"); //Allows frontend (React) to access the backend.
 const axios = require("axios"); //Used to make HTTP requests to external APIs.
+const nodemailer = require("nodemailer"); 
 require('dotenv').config(); //Load environment variables.
 
 //Middleware setup
@@ -455,6 +456,51 @@ app.listen(port, (error) => {
              */
         });
 
+        //API endpoint to send an email.
+        app.post("/send-confirmation-email", async (req,res) => {
+
+            const {to, subject, text} = req.body;
         
+            if (!to || !subject || !text) {
+                res.status(400).json({success: false, message: "Missing required email fields."});
+            }
+        
+            try {
+                //SMTP configuration for Zoho Mail.
+                const transporter = nodemailer.createTransport({
+                    host: "smtp.zoho.com",
+                    port: 465,
+                    secure: true,
+                    auth: {
+                        user: process.env.AUTO_EMAIL_ADR,
+                        pass: process.env.AUTO_EMAIL_PAS,
+                    },
+                });
+        
+                await transporter.sendMail({
+                    from: process.env.AUTO_EMAIL_ADR,
+                    to,
+                    subject,
+                    text,
+                });
+        
+                res.json({
+                    success: true,
+                    message: "Email sent successfully",
+                });
+            }
+            catch(error) {
+                console.log("Error sending email: ", error);
+                res.status(500).json({
+                    success: false,
+                    message: "Failed to send email.",
+                });
+            }
+            
+        });
 
 //#endregion
+
+
+
+
