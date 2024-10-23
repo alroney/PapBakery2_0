@@ -417,6 +417,7 @@ app.listen(port, (error) => {
                     cartSummary += `Price: ${product.price}\n`;
                     cartSummary += `Quantity: ${quantity}\n`;
                     cartSummary += `Total: $${itemTotal}\n`;
+                    cartSummary += `==================================\n\n`
                 });
 
                 if(cartSummary === "Your cart summary includes the following items: \n\n") {
