@@ -141,7 +141,7 @@ app.listen(port, (error) => {
             })
         })
 
-        //API endpoint to remove a product by ID.
+    //API endpoint to remove a product by ID.
         app.post('/removeproduct', async (req,res) => {
             await Product.findOneAndDelete({id:req.body.id});
 
@@ -151,13 +151,13 @@ app.listen(port, (error) => {
             });
         })
 
-        //API endpoint to fetch all products.
+    //API endpoint to fetch all products.
         app.get('/allproducts', async (req,res) => {
             let products = await Product.find({});
             res.send(products); //Respond with list of all products.
         })
 
-        //API endpoint to fetch the newest items (last 8 added).
+    //API endpoint to fetch the newest items (last 8 added).
         app.get('/newitems', async (req,res) => {
             let products = await Product.find({}); //Get all products.
             let newItems = products.slice(-8);
@@ -169,7 +169,7 @@ app.listen(port, (error) => {
          * @TODO Create algorithm that compares the likes of 1 product to other products and shows the 3 most popular.
          */
 
-        //API endpoint to fetch popular flavors (first 4 items).
+    //API endpoint to fetch popular flavors (first 4 items).
         app.get('/popularflavors', async (req,res) => {
             let products = await Product.find({}); //Get all products.
             let popular_flavors = products.slice(0,4);

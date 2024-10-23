@@ -6,6 +6,16 @@ import remove_icon from '../Assets/img/icon/cart_cross_icon.png'
 export const CartItems = () => {
     const {getTotalCartAmount, all_product, cartItems, removeFromCart} = useContext(ShopContext);
 
+    // const confirmation = async () => {
+    //     await fetch("http://localhost:4000/send-confirmation-email", {
+    //         method: 'POST',
+    //         headers: {
+    //             type: 'application/json',
+
+    //         }
+    //     });
+    // }
+
   return (
     <div className="cartitems">
         <div className="cartitems-format-main">
