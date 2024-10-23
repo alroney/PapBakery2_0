@@ -63,7 +63,7 @@ export const CartItems = () => {
                         <h3>${getTotalCartAmount()}</h3>
                     </div>
                 </div>
-                <button onClick={() => {confirmation()}}>PROCEED TO CHECKOUT</button>
+                <button onClick={() => {getTotalCartAmount > 0 ? confirmation() : alert("Your cart is empty.")}}>PROCEED TO CHECKOUT</button>
             </div>
             <div className="cartitems-promocode">
                 <p>If you have a promo code, Enter it here</p>

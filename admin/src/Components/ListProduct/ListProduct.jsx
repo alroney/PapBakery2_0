@@ -31,6 +31,8 @@ const ListProduct = () => {
         await fetchInfo();
     }
 
+    /**@TODO Create a mechanic to allow for editing. */
+
   return (
     <div className="list-product">
         <h1>All Products List</h1>
