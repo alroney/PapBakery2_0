@@ -368,7 +368,6 @@ app.listen(port, (error) => {
             let userData = await Users.findOne({_id: req.user.id}); //Wait for server to find a single user.
             userData.cartData[req.body.itemId] += 1;
             await Users.findOneAndUpdate({_id: req.user.id}, {cartData: userData.cartData});
-            res.send("Added");
         });
 
         //API endpoint to remove a product from user's cart.
@@ -457,13 +456,13 @@ app.listen(port, (error) => {
         });
 
         //API endpoint to send an email.
-        app.post("/send-confirmation-email", async (req,res) => {
+        app.post("/send-confirmation-email", fetchUser, async (req,res) => {
+            console.log("API contacted.")
+            let userData = await Users.findOne({_id: req.user.id});
 
-            const {to, subject, text} = req.body;
-        
-            if (!to || !subject || !text) {
-                res.status(400).json({success: false, message: "Missing required email fields."});
-            }
+            // if (!to || !subject || !text) {
+            //     res.status(400).json({success: false, message: "Missing required email fields."});
+            // }
         
             try {
                 //SMTP configuration for Zoho Mail.
@@ -476,12 +475,12 @@ app.listen(port, (error) => {
                         pass: process.env.AUTO_EMAIL_PAS,
                     },
                 });
-        
+                console.log("Emails sending");
                 await transporter.sendMail({
                     from: process.env.AUTO_EMAIL_ADR,
-                    to,
-                    subject,
-                    text,
+                    to: userData.email,
+                    subject: "Order Confirmation",
+                    text: "Thank you for your order. Your order has been confirmed.",
                 });
         
                 res.json({

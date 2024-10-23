@@ -6,15 +6,16 @@ import remove_icon from '../Assets/img/icon/cart_cross_icon.png'
 export const CartItems = () => {
     const {getTotalCartAmount, all_product, cartItems, removeFromCart} = useContext(ShopContext);
 
-    // const confirmation = async () => {
-    //     await fetch("http://localhost:4000/send-confirmation-email", {
-    //         method: 'POST',
-    //         headers: {
-    //             type: 'application/json',
-
-    //         }
-    //     });
-    // }
+    const confirmation = async () => {
+        await fetch("http://localhost:4000/send-confirmation-email", {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'auth-token': `${localStorage.getItem('auth-token')}`,
+                'Content-Type': 'application/json',
+            }
+        });
+    }
 
   return (
     <div className="cartitems">
@@ -62,7 +63,7 @@ export const CartItems = () => {
                         <h3>${getTotalCartAmount()}</h3>
                     </div>
                 </div>
-                <button>PROCEED TO CHECKOUT</button>
+                <button onClick={() => {confirmation()}}>PROCEED TO CHECKOUT</button>
             </div>
             <div className="cartitems-promocode">
                 <p>If you have a promo code, Enter it here</p>
