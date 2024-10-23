@@ -170,7 +170,7 @@ app.listen(port, (error) => {
          */
 
     //API endpoint to fetch popular flavors (first 4 items).
-        app.get('/popularflavors', async (req,res) => {
+        app.get('/popular', async (req,res) => {
             let products = await Product.find({}); //Get all products.
             let popular_flavors = products.slice(0,4);
             console.log("Popular Flavors Fetched.");
