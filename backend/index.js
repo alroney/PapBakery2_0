@@ -377,7 +377,6 @@ app.listen(port, (error) => {
                 userData.cartData[req.body.itemId] -= 1;
             }
             await Users.findOneAndUpdate({_id: req.user.id}, {cartData: userData.cartData});
-            res.send("Removed");
         });
 
         //API endpoint to get user's cart data.
@@ -395,13 +394,37 @@ app.listen(port, (error) => {
         //API endpoint to send an email.
         app.post("/send-confirmation-email", fetchUser, async (req,res) => {
             console.log("API contacted.")
-            let userData = await Users.findOne({_id: req.user.id});
 
-            // if (!to || !subject || !text) {
-            //     res.status(400).json({success: false, message: "Missing required email fields."});
-            // }
+            let userData = await Users.findOne({_id: req.user.id});
+            let cartData = userData.cartData;
+            
         
             try {
+                //Find all products that are in the cart by querying the Product collection.
+                let cartItemIds = Object.keys(cartData).filter(itemId => cartData[itemId] > 0);
+                let products = await Product.find({id: {$in: cartItemIds} });
+
+                
+                let cartSummary = "Your cart summary includes the following items: \n\n";
+                let totalAmount = 0;
+
+                products.forEach((product) => {
+                    const quantity = cartData[product.id];
+                    const itemTotal = product.price * quantity;
+                    totalAmount += itemTotal;
+
+                    cartSummary += `Product: ${product.name}\n`;
+                    cartSummary += `Price: ${product.price}\n`;
+                    cartSummary += `Quantity: ${quantity}\n`;
+                    cartSummary += `Total: $${itemTotal}\n`;
+                });
+
+                if(cartSummary === "Your cart summary includes the following items: \n\n") {
+                    cartSummary += `No items in your cart.`
+                }
+
+                cartSummary += `\nGrand Total = $${totalAmount}`
+
                 //SMTP configuration for Zoho Mail.
                 const transporter = nodemailer.createTransport({
                     host: "smtp.zoho.com",
@@ -417,12 +440,12 @@ app.listen(port, (error) => {
                     from: process.env.AUTO_EMAIL_ADR,
                     to: userData.email,
                     subject: "Order Confirmation",
-                    text: "Thank you for your order. Your order has been confirmed.",
+                    text: `Your order has been confirmed.\n\n ${cartSummary}`,
                 });
         
                 res.json({
                     success: true,
-                    message: "Email sent successfully",
+                    message: "Email sent successfully"
                 });
             }
             catch(error) {
