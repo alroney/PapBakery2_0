@@ -10,11 +10,88 @@ const path = require("path");
 const cors = require("cors"); //Allows frontend (React) to access the backend.
 const axios = require("axios"); //Used to make HTTP requests to external APIs.
 const nodemailer = require("nodemailer"); 
+const { timeStamp } = require("console");
 require('dotenv').config(); //Load environment variables.
 
-//Middleware setup
+
+
+
+
+
+//#region - MIDDLEWARE SETUP
 app.use(express.json()); //Automatically parse incoming requests as JSON.
 app.use(cors()); //Allow React app to connect to the Express app.
+
+ /** Explanation of Middleware.
+ * Asynchronous Middleware Function.
+ * 
+ * @param {*} req: Represents the request made by the client.
+ * @param {*} res: Represents the response that will be sent to the client.
+ * @param {*} next: A function that, when called, will pass control to the next middleware in the stack.
+ * 
+ * PURPOSE:
+ * - To authenticate the user using the JWT token provided in the request headers.
+ */
+const fetchUser = async (req,res,next) => {
+    const token = req.header('auth-token'); //Extract JWT token value from the key 'auth-token' located in the 'headers' key's object value in the fetch functions object parameter -> fetch(('api_endpoint_url'), {}).
+    if(!token) {
+        //If no token is provided.
+        res.status(401).send({errors: "Please authenticate using valid token."});
+    }
+    else {
+        try {
+            /** Explanation of JWT verification process.
+             * Verify JWT token and extract user data.
+             * 
+             * @Verification_Process
+             * - `jwt.verify(token, process.env.JWT_SECRET)`: used to verify the token.
+             *      - `token`: The JWT token extracted from the request header.
+             *      - `secret_ecom`: The secret key used to verify the token's integrity.
+             *          - This is the same secret that was used to sign the token when it was originally created.
+             *          - If the token has been altered or is not valid, verification will fail.
+             * - If the token is valid, `jwt.verify()` returns the decoded payload from the token, which in this case is assigned to the variable `data`.
+             *      - `data` contains the information embedded when the token was created, specifically `{user: {id: user.id} }`
+             * 
+             * Extract User Data
+             * - `req.user =data.user;` assigns the `user` object (from the decoded token) to `req.user`.
+             * - This allows the information about the user (e.g. user ID) to be available in any subsequent route handler or middleware.
+             * - For example, any route that follows this middleware can use req.user.id to know which user is making the request.
+             * 
+             * Call Next Middleware
+             * - `next();` is called to pass control to the next middleware function in the stack.
+             * - If the middleware successfully authenticates the user, the request proceeds to the next handler (e.g. a route that handles a request to add a product to a cart).
+             */
+            const data = jwt.verify(token, process.env.JWT_SECRET);
+            req.user = data.user;
+            next();
+        }
+        catch (error) {
+            res.status(401).send({errors: "Please authenticate using valid token."});
+        }
+    }
+}
+
+/** Explanation of Middleware Usage.
+ * HOW THE MIDDLEWARE IS USED (fetchUser)
+ * 
+ * @Purpose
+ * - This middleware is used to ensure that the request is coming from an authenticated user.
+ * - It validates the user's identity using the token, making sure that only authorized users can access protected routes.
+ * 
+ * @Usage
+ * - Middleware is added to routes that require authentication.
+ * - For example, in `app.post('/addtocart', fetchUser, async (req, res) => {});`
+ *      - This route will only proceed if the user is authenticated.
+ *      - `fetchUser` will run before this function.
+ * 
+ * @Summary
+ * - The `fetchUser` middleware ensures that users are authenticated before they can access certain routes.
+ * - It extracts the token from the request header and verifies it using a secret key.
+ * - If the token is valid, the user's data is attched to req.user, allowing downstream handlers to know the user's identity.
+ * - If the token is missing or invalid, the user gets a 401 Unauthorized response, preventing access to the route.
+ */
+
+//#endregion
 
 
 //Database credentials and connection string.
@@ -94,7 +171,7 @@ app.listen(port, (error) => {
         description: {
             type: String,
             required: false, //CHANGE LATER
-            default: `Description for `,
+            default: `Product Description`,
         },
         category:{
             type: String,
@@ -106,17 +183,56 @@ app.listen(port, (error) => {
         },
         date:{
             type: Date,
-            default: Date.now,
+            default: Date.now(),
         },
         available:{
             type: Boolean,
             default: true,
         },
-        review: [ //This property is an array since it will hold multiple reviews.
+        reviews: [ //This property is an array since it will hold multiple reviews.
             {
-                //Name of user, title, review text
-            }
-        ]
+                id: {
+                    type: Number,
+                    required: true,
+                },
+                name: {
+                    type: String,
+                    required: true,
+                },
+                rating: {
+                    type: Number,
+                    required: true,
+                },
+                comment: {
+                    type: String,
+                    required: true,
+                },
+                image: { //This property gives the option to add an image to a review.
+                    type: String,
+                    required: false,
+                },
+                user: {//This property is created to assign the user to the review made.
+                    type: mongoose.Schema.Types.ObjectId,
+                    required: true,
+                    ref: "users",
+                },
+                date: {
+                    type: Date,
+                    required: true,
+                    default: Date.now(),
+                },
+            },
+        ],
+        rating: { //This will be the average. It will be retrieved from getting all reviews, adding the rating value for each one, then divide by the number of reviews made, based off the current product id.
+            type: Number,
+            required: true,
+            default: 0,
+        },
+        reviewNumber: { //This will count the number of reviews that have been made.
+            type: Number,
+            required: true,
+            default: 0,
+        }
     })
 
     //#region - PRODUCT RELATED API ENDPOINTS
@@ -151,7 +267,7 @@ app.listen(port, (error) => {
             })
         })
 
-    //API endpoint to remove a product by ID.
+        //API endpoint to remove a product by ID.
         app.post('/removeproduct', async (req,res) => {
             await Product.findOneAndDelete({id:req.body.id});
 
@@ -161,13 +277,13 @@ app.listen(port, (error) => {
             });
         })
 
-    //API endpoint to fetch all products.
+        //API endpoint to fetch all products.
         app.get('/allproducts', async (req,res) => {
             let products = await Product.find({});
             res.send(products); //Respond with list of all products.
         })
 
-    //API endpoint to fetch the newest items (last 8 added).
+        //API endpoint to fetch the newest items (last 8 added).
         app.get('/newitems', async (req,res) => {
             let products = await Product.find({}); //Get all products.
             let newItems = products.slice(-8);
@@ -179,13 +295,60 @@ app.listen(port, (error) => {
          * @TODO Create algorithm that compares the likes of 1 product to other products and shows the 3 most popular.
          */
 
-    //API endpoint to fetch popular flavors (first 4 items).
+        //API endpoint to fetch popular flavors (first 4 items).
         app.get('/popular', async (req,res) => {
             let products = await Product.find({}); //Get all products.
             let popular_flavors = products.slice(0,4);
             console.log("Popular Flavors Fetched.");
             res.send(popular_flavors);
         })
+
+        //API endpoint to add a review to a product
+        app.post('/addreview', fetchUser, async (req,res) => {
+            try {
+                //Fetch the product which the review is being added to.
+                let product = await Product.findById(req.body.productId);
+                if(!product) {
+                    return res.status(404).json({error: "Product not found"});
+                }
+
+                //Generate a new review ID.
+                let reviews = await Product.reviews; 
+                let id = reviews.length > 0 ? reviews.slice(-1)[0].id + 1 : 1; //slice() method is used to return a shallow copy of a portion of an array. So, slice(-1) is used with a negative index, which means "get the last element of the array". This returns an array containing only the last product in the products array.
+                
+                //Extract user ID from request (added by the middleware).
+                let userId = req.user.id;
+
+                //Create a new product with the provided values.
+                const newReview = new Product.reviews({
+                    id: id,
+                    name: req.body.name,
+                    image: req.body.image,
+                    rating: req.body.rating,
+                    comment: req.body.comment,
+                    user: userId,
+                });
+
+                product.review.pus(newReview);
+
+                //Save the product to the database.
+                await newReview.save();
+                console.log("A review as been saved.");
+                //Link saved review to user who created it.
+                await Users.findByIdAndUpdate(userId, {$push: {reviews: product._id}}); //`findByIdAndUpdate(userId, updateObject)`. The `$push` is a MongoDB update operator. The `{reviews:` is the name of the array field within the user's document where reviews are stored. ` product._id}` is the unique ID of the product that was reviewed.
+
+                //Respond with success.
+                res.json({
+                    success: true,
+                    review: newReview,
+                });
+            }
+
+            catch (error) {
+                console.error(error);
+                res.status(500).json({ error: "Server Error" });
+            }
+        });
 
     //#endregion
 
@@ -208,6 +371,12 @@ app.listen(port, (error) => {
             type: Date,
             default: Date.now,
         },
+        reviews: [ //Storage for all reviews made by the user.
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Product',
+            }
+        ],
     })
 
     //#region - USER RELATED API ENDPOINTS
@@ -304,74 +473,7 @@ app.listen(port, (error) => {
             }
         })
 
-        /** Explanation of Middleware.
-         * Asynchronous Middleware Function.
-         * 
-         * @param {*} req: Represents the request made by the client.
-         * @param {*} res: Represents the response that will be sent to the client.
-         * @param {*} next: A function that, when called, will pass control to the next middleware in the stack.
-         * 
-         * PURPOSE:
-         * - To authenticate the user using the JWT token provided in the request headers.
-         */
-        const fetchUser = async (req,res,next) => {
-            const token = req.header('auth-token'); //Extract JWT token value from the key 'auth-token' located in the 'headers' key's object value in the fetch functions object parameter -> fetch(('api_endpoint_url'), {}).
-            if(!token) {
-                //If no token is provided.
-                res.status(401).send({errors: "Please authenticate using valid token."});
-            }
-            else {
-                try {
-                    /** Explanation of JWT verification process.
-                     * Verify JWT token and extract user data.
-                     * 
-                     * @Verification_Process
-                     * - `jwt.verify(token, process.env.JWT_SECRET)`: used to verify the token.
-                     *      - `token`: The JWT token extracted from the request header.
-                     *      - `secret_ecom`: The secret key used to verify the token's integrity.
-                     *          - This is the same secret that was used to sign the token when it was originally created.
-                     *          - If the token has been altered or is not valid, verification will fail.
-                     * - If the token is valid, `jwt.verify()` returns the decoded payload from the token, which in this case is assigned to the variable `data`.
-                     *      - `data` contains the information embedded when the token was created, specifically `{user: {id: user.id} }`
-                     * 
-                     * Extract User Data
-                     * - `req.user =data.user;` assigns the `user` object (from the decoded token) to `req.user`.
-                     * - This allows the information about the user (e.g. user ID) to be available in any subsequent route handler or middleware.
-                     * - For example, any route that follows this middleware can use req.user.id to know which user is making the request.
-                     * 
-                     * Call Next Middleware
-                     * - `next();` is called to pass control to the next middleware function in the stack.
-                     * - If the middleware successfully authenticates the user, the request proceeds to the next handler (e.g. a route that handles a request to add a product to a cart).
-                     */
-                    const data = jwt.verify(token, process.env.JWT_SECRET);
-                    req.user = data.user;
-                    next();
-                }
-                catch (error) {
-                    res.status(401).send({errors: "Please authenticate using valid token."});
-                }
-            }
-        }
-
-        /** Explanation of Middleware Usage.
-         * HOW THE MIDDLEWARE IS USED (fetchUser)
-         * 
-         * @Purpose
-         * - This middleware is used to ensure that the request is coming from an authenticated user.
-         * - It validates the user's identity using the token, making sure that only authorized users can access protected routes.
-         * 
-         * @Usage
-         * - Middleware is added to routes that require authentication.
-         * - For example, in `app.post('/addtocart', fetchUser, async (req, res) => {});`
-         *      - This route will only proceed if the user is authenticated.
-         *      - `fetchUser` will run before this function.
-         * 
-         * @Summary
-         * - The `fetchUser` middleware ensures that users are authenticated before they can access certain routes.
-         * - It extracts the token from the request header and verifies it using a secret key.
-         * - If the token is valid, the user's data is attched to req.user, allowing downstream handlers to know the user's identity.
-         * - If the token is missing or invalid, the user gets a 401 Unauthorized response, preventing access to the route.
-         */
+       
 
         //API endpoint to add a product to user's cart.
         app.post('/addtocart', fetchUser, async (req,res) => {
