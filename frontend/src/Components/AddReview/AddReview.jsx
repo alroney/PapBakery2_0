@@ -1,7 +1,10 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import './AddReview.css'
+import upload_area from '../Assets/img/icon/upload_area.svg'
 
-export const AddReview = () => {
+export const AddReview = (props) => {
+    const {product} = props; //Store the current product object into product
+    const [image, setImage] = useState(false);
     const [reviewDetails, setReviewDetails] = useState({
         name: "",
         rating: 0,
@@ -9,7 +12,12 @@ export const AddReview = () => {
         image: "",
     });
 
+    
 
+    //Image handler gets called from the activation of the input field with the onChange property that specifies imageHandler.
+    const imageHandler = (e) => {
+        setImage(e.target.files[0]); //Set the image to the first([0]) selected image from the target of files (chosen from a popup window).
+    }
 
     const changeHandler = (e) => {
         //Create a new object with all the existing product details, then update the specific field (e.target.name) with its new value (e.target.value).
@@ -19,14 +27,24 @@ export const AddReview = () => {
         });
     }
 
-    const Add_Review = async () => {
+    useEffect(() => {
+        setReviewDetails((prevDetails) => ({
+            ...prevDetails,
+            productId: product.id,
+        }));
+        console.log("Setting productId: ", product.id);
+    }, []);
+
+    const Add_Review = async (productId) => {
         try {
+            console.log(reviewDetails);
             let responseData;
+            let review = reviewDetails;
 
             let formData = new FormData();
 
             if(image) {
-                formData.append('image', image); //Append image separtely if it's provided.
+                formData.append('product', image); //Append image separtely if it's provided.
 
                 await fetch('http://localhost:4000/upload', {
                     method:'POST',
@@ -35,19 +53,28 @@ export const AddReview = () => {
                     },
                     body: formData,
                 }).then((resp) => resp.json()).then((data) => {responseData = data});
+
+                if(responseData.success) {
+                    review.image = responseData.image_url;
+                    console.log("Image success.");
+                }
+                else {
+                    console.log("responseData was not successful.");
+                }
             }
 
             
-
-    
             await fetch('http://localhost:4000/addreview', {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
                     'auth-token': `${localStorage.getItem('auth-token')}`,
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify.formData,
-            }).then((resp) => resp.json()).then((data) => {responseData = data});
+                body: JSON.stringify({...review, productId}),
+            }).then((resp) => resp.json()).then((data) => {
+                data.success?alert("Review Added"):alert("Failed to add Review")
+            });
         }
         catch(error) {
             console.error('An error occurred while adding review: ', error);
@@ -84,10 +111,10 @@ export const AddReview = () => {
             <label htmlFor="file-input">
                 <img src={image?URL.createObjectURL(image):upload_area} className="addreview-itemfield-thumbnail-img" alt="" />
             </label>
-            <input onChange={imageHandler} type="file" name="image" id="file-input" hidden/>
+            <input onChange={imageHandler} type="file" name="product" id="file-input" hidden/>
         </div>
 
-        <button onClick={() => (Add_Review())} className="addreview-btn">Submit Review</button>
+        <button onClick={() => (Add_Review(product.id))} className="addreview-btn">Submit Review</button>
     </div>
   )
 }

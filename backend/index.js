@@ -307,33 +307,37 @@ app.listen(port, (error) => {
         app.post('/addreview', fetchUser, async (req,res) => {
             try {
                 //Fetch the product which the review is being added to.
-                let product = await Product.findById(req.body.productId);
+                let product = await Product.findOne({id:req.body.productId});
+                console.log("product: ", product);
+
                 if(!product) {
+                    console.log("The product: "+ product +" is not found.");
                     return res.status(404).json({error: "Product not found"});
                 }
 
-                //Generate a new review ID.
-                let reviews = await Product.reviews; 
-                let id = reviews.length > 0 ? reviews.slice(-1)[0].id + 1 : 1; //slice() method is used to return a shallow copy of a portion of an array. So, slice(-1) is used with a negative index, which means "get the last element of the array". This returns an array containing only the last product in the products array.
-                
                 //Extract user ID from request (added by the middleware).
                 let userId = req.user.id;
 
+                //Generate a new review ID.
+                let id = product.reviews.length > 0 ? product.reviews.slice(-1)[0].id + 1 : 1; //slice() method is used to return a shallow copy of a portion of an array. So, slice(-1) is used with a negative index, which means "get the last element of the array". This returns an array containing only the last product in the products array.
+                
+
                 //Create a new product with the provided values.
-                const newReview = new Product.reviews({
+                const newReview = {
                     id: id,
                     name: req.body.name,
                     image: req.body.image,
                     rating: req.body.rating,
                     comment: req.body.comment,
                     user: userId,
-                });
+                };
 
-                product.review.pus(newReview);
+                product.reviews.push(newReview);
 
                 //Save the product to the database.
-                await newReview.save();
+                await product.save();
                 console.log("A review as been saved.");
+
                 //Link saved review to user who created it.
                 await Users.findByIdAndUpdate(userId, {$push: {reviews: product._id}}); //`findByIdAndUpdate(userId, updateObject)`. The `$push` is a MongoDB update operator. The `{reviews:` is the name of the array field within the user's document where reviews are stored. ` product._id}` is the unique ID of the product that was reviewed.
 
@@ -345,7 +349,7 @@ app.listen(port, (error) => {
             }
 
             catch (error) {
-                console.error(error);
+                console.error("IN THE CATCH", error);
                 res.status(500).json({ error: "Server Error" });
             }
         });
