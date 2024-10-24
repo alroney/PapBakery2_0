@@ -92,6 +92,11 @@ const AddProduct = () => {
         </div>
 
         <div className="addproduct-itemfield">
+            <p>Product Description</p>
+            <input value={productDetails.description} onChange={changeHandler} type="text" name='description' placeholder='Type here'/> 
+        </div>
+
+        <div className="addproduct-itemfield">
             <label htmlFor="file-input">
                 {/*If image is TRUE create an image url and display it : ELSE display default image */}
                 <img src={image?URL.createObjectURL(image):upload_area} className="addproduct-thumbnail-img" alt="" />
