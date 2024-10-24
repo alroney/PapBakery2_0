@@ -159,6 +159,7 @@ app.listen(port, (error) => {
         id: {
             type: Number,
             required: true,
+            unique: true,
         },
         name: {
             type: String,
@@ -194,6 +195,7 @@ app.listen(port, (error) => {
                 id: {
                     type: Number,
                     required: true,
+                    unique: true,
                 },
                 name: {
                     type: String,
@@ -235,6 +237,10 @@ app.listen(port, (error) => {
         }
     })
 
+
+
+
+    
     //#region - PRODUCT RELATED API ENDPOINTS
         //API endpoint to add a new product.
         app.post('/addproduct', async (req,res) => {
@@ -281,7 +287,7 @@ app.listen(port, (error) => {
         app.get('/allproducts', async (req,res) => {
             let products = await Product.find({});
             res.send(products); //Respond with list of all products.
-        })
+        });
 
         //API endpoint to fetch the newest items (last 8 added).
         app.get('/newitems', async (req,res) => {
@@ -289,7 +295,7 @@ app.listen(port, (error) => {
             let newItems = products.slice(-8);
             console.log("New Items Fetched.");
             res.send(newItems);
-        })
+        });
 
         /**
          * @TODO Create algorithm that compares the likes of 1 product to other products and shows the 3 most popular.
@@ -301,7 +307,7 @@ app.listen(port, (error) => {
             let popular_flavors = products.slice(0,4);
             console.log("Popular Flavors Fetched.");
             res.send(popular_flavors);
-        })
+        });
 
         //API endpoint to add a review to a product
         app.post('/addreview', fetchUser, async (req,res) => {
@@ -352,6 +358,16 @@ app.listen(port, (error) => {
                 console.error("IN THE CATCH", error);
                 res.status(500).json({ error: "Server Error" });
             }
+        });
+
+        app.get('/productreviews/:productId', async (req,res) => {
+            const productId = req.params.productId;
+            let product = await Product.findOne({id:productId});
+
+            res.status(200).json({
+                success: true,
+                reviews: product.reviews,
+            });
         });
 
     //#endregion

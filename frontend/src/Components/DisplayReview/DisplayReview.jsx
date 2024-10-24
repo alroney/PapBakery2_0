@@ -1,0 +1,45 @@
+import React, { useEffect, useState } from 'react'
+import './DisplayReview.css'
+
+export const DisplayReview = (props) => {
+    const {product} = props;
+    const productId = product.id;
+    console.log("Product ID: ", productId);
+    const [allreviews, setAllReviews] = useState([]);//Set default of allReviews to an emtpy array. 
+
+    const fetchReviews = async () => {
+        await fetch(`http://localhost:4000/productreviews/${productId}`)
+        .then((res) => res.json())
+        .then((data) => {
+            if(data && data.reviews) {
+                setAllReviews(data.reviews)
+            }
+            else {
+                setAllReviews([]);
+            }
+        });//Saves data retrieved from productreviews api to allReviews.
+    }
+
+    useEffect(() => {
+        fetchReviews();
+    }, []) //Execute only once when the page is loaded.
+
+  return (
+    <div className="displayreview">
+        <hr />
+        {allreviews.map((review, index) => {
+            console.log("REVIEW: ", review);
+            //Template to map each review according to its key (index).
+            return <>
+                <div key={index} className="displayreview-format-main displayreview-format">
+                    <h1>{review.name}</h1>
+                    <p>{review.date}</p>
+                    <p>{review.user}</p>
+                    <p>{review.rating}</p>
+                    <p>{review.comment}</p>
+                </div>
+            </>
+        })}
+    </div>
+  )
+}

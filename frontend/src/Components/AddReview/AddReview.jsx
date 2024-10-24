@@ -32,12 +32,10 @@ export const AddReview = (props) => {
             ...prevDetails,
             productId: product.id,
         }));
-        console.log("Setting productId: ", product.id);
     }, []);
 
     const Add_Review = async (productId) => {
         try {
-            console.log(reviewDetails);
             let responseData;
             let review = reviewDetails;
 
@@ -79,8 +77,6 @@ export const AddReview = (props) => {
         catch(error) {
             console.error('An error occurred while adding review: ', error);
         }
-
-        
     }
 
   return (

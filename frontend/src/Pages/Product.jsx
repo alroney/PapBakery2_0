@@ -6,6 +6,7 @@ import { ProductDisplay } from '../Components/ProductDIsplay/ProductDisplay';
 import { DescriptionBox } from '../Components/DescriptionBox/DescriptionBox';
 import { RelatedProducts } from '../Components/RelatedProducts/RelatedProducts';
 import { AddReview } from '../Components/AddReview/AddReview';
+import { DisplayReview } from '../Components/DisplayReview/DisplayReview';
 
 export const Product = () => {
   const {all_product} = useContext(ShopContext);
@@ -17,6 +18,7 @@ export const Product = () => {
       <ProductDisplay product={product}/>
       <DescriptionBox/>
       <AddReview product={product}/>
+      <DisplayReview product={product}/>
       <RelatedProducts/>
     </div>
   )
