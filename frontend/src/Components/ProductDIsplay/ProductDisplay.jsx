@@ -37,7 +37,7 @@ export const ProductDisplay = (props) => {
             </div>
 
             <div className="productdisplay-right-description">
-                Product Description Here
+                <p>{product.description} {product.name}</p>
             </div>
 
             <div className="productdisplay-right-size">

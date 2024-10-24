@@ -79,17 +79,22 @@ app.listen(port, (error) => {
      */
     const Product = mongoose.model("Product", {
         //key: object -> { key: value,}.
-        id:{
+        id: {
             type: Number,
             required: true,
         },
-        name:{
+        name: {
             type: String,
             required: true,
         },
-        image:{
+        image: {
             type: String,
             required: true,
+        },
+        description: {
+            type: String,
+            required: false, //CHANGE LATER
+            default: `Description for `,
         },
         category:{
             type: String,
@@ -107,6 +112,11 @@ app.listen(port, (error) => {
             type: Boolean,
             default: true,
         },
+        review: [ //This property is an array since it will hold multiple reviews.
+            {
+                //Name of user, title, review text
+            }
+        ]
     })
 
     //#region - PRODUCT RELATED API ENDPOINTS
