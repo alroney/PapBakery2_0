@@ -180,7 +180,7 @@ app.listen(port, (error) => {
     //#endregion
 
     //Define User schema and create Mongoose model.
-    const Users = mongoose.model('Users', { //This creates the table users in the mongoose database.
+    const Users = mongoose.model('Users', { //This creates the model named 'users' in the mongoose database.
         name: {
             type: String,
         },
