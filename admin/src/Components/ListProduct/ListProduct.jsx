@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import './ListProduct.css'
 import cross_icon from '../../assets/img/icon/cross_icon.png'
+import edit_icon from '../../assets/img/icon/edit_icon.svg'
 
 const ListProduct = () => {
 
@@ -31,7 +32,36 @@ const ListProduct = () => {
         await fetchInfo();
     }
 
-    /**@TODO Create a mechanic to allow for editing. */
+
+
+    const startEditing = (product) => {
+        setEditingProductId(product.id);
+        setEditedProduct({ ...product });
+    }
+
+    const handleEditChange = (e) => {
+        const { name, value } = e.target;
+        setEditedProduct((prev) => ({ ...prev, [name]: value }));
+    }
+
+
+    const saveEdit = async () => {
+        await fetch('http://localhost:4000/editproduct', {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(editedProduct),
+        });
+        setEditingProductId(null);
+        await fetchInfo();
+    };
+
+    const cancelEdit = () => {
+        setEditingProductId(null);
+        setEditedProduct({});
+    };
 
   return (
     <div className="list-product">
@@ -41,6 +71,7 @@ const ListProduct = () => {
             <p>Title</p>
             <p>Price</p>
             <p>Category</p>
+            <p>Edit</p>
             <p>Remove</p>
         </div>
 
@@ -48,14 +79,29 @@ const ListProduct = () => {
             <hr />
             {/* Create an array of products from mapping allproducts. Pass on individual 'product' and 'index'. */}
             {allproducts.map((product, index) => {
+                const isEditing = editingProductId === product.id;
                 //Template to map each product according to its key (index).
                 return <>
                     <div key={index} className="listproduct-format-main listproduct-format">
                         <img src={product.image} alt="" className="listproduct-product-icon" />
-                        <p>{product.name}</p>
-                        <p>${product.price}</p>
-                        <p>{product.category}</p>
-                        <img onClick={() => {remove_product(product.id)}} src={cross_icon} alt="X" className="listproduct-remove-icon" />
+                        {isEditing ? (
+                        <>
+                            <input value={editedProduct.name} onChange={handleEditChange} type="text" name="name" />
+                            <input value={editedProduct.price} onChange={handleEditChange} type="number" name="price" />
+                            <input value={editedProduct.category} onChange={handleEditChange} type="text" name="category" /> {/*Change to selec later*/}
+                            <button onClick={saveEdit}>Save</button>
+                            <button onCLick={cancelEdit}>Cancel</button>
+                        </>
+                        ) : (
+                        <>
+                            <p>{product.name}</p>
+                            <p>${product.price}</p>
+                            <p>{product.category}</p>
+                            <img onClick={() => startEditing(product)} src={edit_icon} alt='edit' className="listproduct-edit-icon"/>
+                            <img onClick={() => {remove_product(product.id)}} src={cross_icon} alt="X" className="listproduct-remove-icon" />                          
+                        </>
+                        )}
+                        
                     </div>
                     <hr />
                 </>
