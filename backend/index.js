@@ -237,9 +237,6 @@ app.listen(port, (error) => {
     })
 
 
-
-
-
     //#region - PRODUCT RELATED API ENDPOINTS
         //API endpoint to add a new product.
         app.post('/addproduct', async (req,res) => {

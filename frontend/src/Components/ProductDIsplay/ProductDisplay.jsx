@@ -7,6 +7,9 @@ import { ShopContext } from '../../Context/ShopContext'
 export const ProductDisplay = (props) => {
     const {product} = props;
     const {addToCart} = useContext(ShopContext);
+
+
+
   return (
     <div className="productdisplay">
         <div className="productdisplay-left">
@@ -24,12 +27,12 @@ export const ProductDisplay = (props) => {
         <div className="productdisplay-right">
             <h1>{product.name}</h1>
             <div className="productdisplay-right-stars">
+                {/* <img src={star_icon} alt="" />
                 <img src={star_icon} alt="" />
                 <img src={star_icon} alt="" />
                 <img src={star_icon} alt="" />
-                <img src={star_icon} alt="" />
-                <img src={star_dull_icon} alt="" />
-                <p>(10)</p>
+                <img src={star_dull_icon} alt="" /> */}
+                <p>({product.reviews.length})</p>
             </div>
 
             <div className="productdisplay-right-prices">

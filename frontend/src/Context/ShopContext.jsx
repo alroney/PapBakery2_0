@@ -12,30 +12,41 @@ const getDefaultCart = () => {
     return cart;
 }
 
+
+
 const ShopContextProvider = (props) => {
 
     const [all_product, setAll_Product] = useState([]);
     const [cartItems, setCartItems] = useState(getDefaultCart());
     
-    useEffect(() => {
-        fetch('http://localhost:4000/allproducts')
-            .then((response) => response.json())
-            .then((data) => setAll_Product(data));
+    const fetchProducts = async () => {
+        try {
+            const response = await fetch('http://localhost:4000/allproducts');
+            const data = await response.json();
+            setAll_Product(data);
+        }
+        catch(error) {
+            console.error("Failed to fetch products: ", error);
+        }
+    }
 
-            if(localStorage.getItem('auth-token')) {
-                fetch('http://localhost:4000/getcart', {
-                    method: 'POST',
-                    headers: {
-                        Accept: 'application/form-data',
-                        'auth-token': `${localStorage.getItem('auth-token')}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: "",
-                })
-                .then((response) => response.json())
-                .then((data) => setCartItems(data));
-                
-            }
+    useEffect(() => {
+        fetchProducts();
+
+        if(localStorage.getItem('auth-token')) {
+            fetch('http://localhost:4000/getcart', {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/form-data',
+                    'auth-token': `${localStorage.getItem('auth-token')}`,
+                    'Content-Type': 'application/json',
+                },
+                body: "",
+            })
+            .then((response) => response.json())
+            .then((data) => setCartItems(data));
+            
+        }
     }, []) // [] instructs the backend to load only one time when the component is mounted.
     
     //Add to Cart.
@@ -98,7 +109,7 @@ const ShopContextProvider = (props) => {
         return totalItems;
     }
 
-    const contextValue = {getTotalCartItems, getTotalCartAmount, all_product, cartItems, addToCart, removeFromCart};
+    const contextValue = {getTotalCartItems, getTotalCartAmount, all_product, cartItems, addToCart, removeFromCart, fetchProducts};
 
     return (
         <ShopContext.Provider value={contextValue}>
