@@ -9,8 +9,7 @@ const multer = require("multer"); //Allows for image storage handling.
 const path = require("path");
 const cors = require("cors"); //Allows frontend (React) to access the backend.
 const axios = require("axios"); //Used to make HTTP requests to external APIs.
-const nodemailer = require("nodemailer"); 
-const { timeStamp } = require("console");
+const nodemailer = require("nodemailer");
 require('dotenv').config(); //Load environment variables.
 
 
@@ -240,7 +239,7 @@ app.listen(port, (error) => {
 
 
 
-    
+
     //#region - PRODUCT RELATED API ENDPOINTS
         //API endpoint to add a new product.
         app.post('/addproduct', async (req,res) => {
@@ -264,14 +263,44 @@ app.listen(port, (error) => {
             //Save the product to the database.
             console.log(product);
             await product.save();
-            console.log("Saved");
+            console.log("Product Added");
 
             //Respond with success.
             res.json({
                 success: true,
                 name: req.body.name,
             })
+        });
+
+
+        //API endpoint to edit product by ID.
+        app.post('/editproduct', async (req,res) => {
+            try {
+                const filter = {id:req.body.id};
+                const update = {
+                    name: req.body.name,
+                    price: req.body.price,
+                    category: req.body.category,
+                }
+
+                let product = await Product.findOneAndUpdate(filter, update);
+                product;
+                product.save();
+                console.log("Product ID: "+ product.id +", has successfully updated!");
+
+                if(product){
+                    res.json({
+                        success: true,
+                        name: product.name,
+                    })
+                }
+            }
+            catch(error) {
+                console.log("An error occurred trying to update a product: ", error);
+            }
+
         })
+
 
         //API endpoint to remove a product by ID.
         app.post('/removeproduct', async (req,res) => {
@@ -281,7 +310,7 @@ app.listen(port, (error) => {
                 success: true,
                 name: req.body.name,
             });
-        })
+        });
 
         //API endpoint to fetch all products.
         app.get('/allproducts', async (req,res) => {
