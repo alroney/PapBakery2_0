@@ -27,18 +27,17 @@ export const DisplayReview = (props) => {
   return (
     <div className="displayreview">
         <hr />
-        {allreviews.map((review, index) => {
-            console.log("REVIEW: ", review);
+        {allreviews.map((review) => {
             //Template to map each review according to its key (index).
-            return <>
-                <div key={index} className="displayreview-format-main displayreview-format">
+            return (
+                <div key={review.id} className="displayreview-format-main displayreview-format">
                     <h1>{review.name}</h1>
                     <p>{review.date}</p>
                     <p>{review.user}</p>
                     <p>{review.rating}</p>
                     <p>{review.comment}</p>
                 </div>
-            </>
+            )
         })}
     </div>
   )
