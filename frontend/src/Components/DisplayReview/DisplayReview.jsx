@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, memo } from 'react'
 import './DisplayReview.css'
 
-export const DisplayReview = (props) => {
+export const DisplayReview = memo((props) => {
     const {product} = props;
     const productId = product.id;
     console.log("Product ID: ", productId);
@@ -20,7 +20,10 @@ export const DisplayReview = (props) => {
         });//Saves data retrieved from productreviews api to allReviews.
     }
 
+    
+
     useEffect(() => {
+        
         fetchReviews();
     }, []) //Execute only once when the page is loaded.
 
@@ -41,4 +44,4 @@ export const DisplayReview = (props) => {
         })}
     </div>
   )
-}
+});
