@@ -141,11 +141,16 @@ app.listen(port, (error) => {
 
     //API Endpoint to handle image uploads.
     app.post("/upload", upload.single('product'), (req,res) => {//field name is product.
-        //Respond with success and img url.
-        res.json({
-            success:1,
-            image_url:`http://localhost:${port}/images/${req.file.filename}`
-        })
+        try {
+            //Respond with success and img url.
+            res.json({
+                success:1,
+                image_url:`http://localhost:${port}/images/${req.file.filename}`
+            })
+        }
+        catch(error) {
+            console.log("Upload error occurred: ", error);
+        }
     })
 
 
@@ -432,135 +437,161 @@ app.listen(port, (error) => {
     });
 
     userSchema.pre("save", async function(next) {
-        const user = this; //`this` refers to the document.
-        if(user.isModified("password")) {
-            user.password = await bcrypt.hash(user.password, process.env.BCRYPT_SALT_ROUNDS);
-        }
+        try {
+            const user = this; //`this` refers to the document.
+            if(user.isModified("password")) {
+                user.password = await bcrypt.hash(user.password, process.env.BCRYPT_SALT_ROUNDS);
+            }
 
-        next();
+            next();
+        }
+        catch(error) {
+            console.log("Error occurred while hashing password: ", error);
+        }
     })
 
-    const Users = mongoose.model("Users", userSchema);
+    const Users = mongoose.model("Users", userSchema); //Create the Users model using the userSchema details.
 
 
 
     //#region - USER RELATED API ENDPOINTS
         //API endpoint for user registration.
         app.post('/signup', async (req,res) => {
-            //Check if user already exists with the given email.
-            let check = await Users.findOne({email:req.body.email});
-            if(check) {
-                return res.status(400).json({success: false, errors: "Exisiting user found with that email!"})
-            }
-
-            //Create an empty cart with keys from 1 to 400 initialized to 0.
-            let cart = {}; 
-            for(let i = 0; i < 300; i++) {
-                cart[i] = 0;
-            }
-
-            //Create a new user with the provided details.
-            const user = new Users({
-                name: req.body.name,
-                email: req.body.email,
-                password: req.body.password,
-                cartData: cart,
-            })
-
-            await user.save(); //Save the new user to the database.
-
-            /** Explanation of `data` object.
-             * Create an object named 'data' that will be encoded into the JWT.
-             * 
-             * The 'data' object contains a property named user, which is itself an object.
-             * The 'user' object has a single property, 'id', which is set to 'user.id'.
-             *      - 'user.id' is a unique identifier for the user in the database. When a user registers or logs in, this ID is used to associate requests or operations with that specific user.
-             * 
-             * @PURPOSE
-             * - The 'data' object is used as the payload for the JWT. It is what will be encoded in the token.
-             * - By including the user's ID, the token carries information about who the user is, allowing the server to identify the user for subsequent requests that require authentication.
-             */
-            const data = {
-                user: {
-                    id: user.id,
+            try {
+                //Check if user already exists with the given email.
+                let check = await Users.findOne({email:req.body.email});
+                if(check) {
+                    return res.status(400).json({success: false, errors: "Exisiting user found with that email!"});
                 }
+
+                //Create an empty cart with keys from 1 to 400 initialized to 0.
+                let cart = {}; 
+                for(let i = 0; i < 300; i++) {
+                    cart[i] = 0;
+                }
+
+                //Create a new user with the provided details.
+                const user = new Users({
+                    name: req.body.name,
+                    email: req.body.email,
+                    password: req.body.password,
+                    cartData: cart,
+                });
+
+                await user.save(); //Save the new user to the database.
+
+                /** Explanation of `data` object
+                 * This section creates an object named `data` that will be encoded into the JWT.
+                 * 
+                 * The `data` object contains a `user` property, which is itself an object with a single property, `id`.
+                 * - `user.id` represents the unique identifier of the user in the database. It is used to associate requests or operations with a 
+                specific user whenever they register or log in.
+                 * 
+                 * @PURPOSE
+                 * - The `data` object serves as the payload for the JWT, which means it contains the information that will be encoded within the token.
+                 * - Including the user's ID allows the server to identify the user when handling subsequent authenticated requests.
+                 */
+                const data = {
+                    user: {
+                        id: user.id,
+                    }
+                };
+
+                /** Explanation of JWT token generation
+                 * This section generates a JWT token using the jsonwebtoken library (`jwt`).
+                 * The function `jwt.sign()` is used to create the JWT.
+                 * 
+                 * The function takes two main arguments:
+                 * - @argument {Payload `data`}: The object that contains the information to be included in the token (in this case, the `data` object containing the user's ID).
+                 * - @argument {Secret `process.env.JWT_SECRET`}: A secret key used to digitally sign the token. This key is securely stored in the `.env` file.
+                 *  -The server uses this secret key when creating or verifying tokens to ensure they haven't been tampered with.
+                 *  - In a production environment, it's crucial to use a strong and unpredictable secret key for security reasons.
+                 */
+                const token = jwt.sign(data, process.env.JWT_SECRET); //jwt.sign(payload, secret);
+
+                //Respond with success and the generated JWT token.
+                res.json({success: true, token});
+
+                
             }
 
-            /** Explanation of JWT token.
-             * This generates a JWT token using the jsonwebtoken library (jwt).
-             * 'jwt.sign()' is the function that creates the JWT.
-             * 
-             * The function takes two main arguments:
-             * - @argument Payload (`data`): This is the object that contains the information to be included in the token (in this case, the 'data' object created earlier with the user's ID).
-             * - @argument Secret (process.env.JWT_SECRET): The secret key is used to digitally sign the token. The key is secured in the .env file where it it retrieved.
-             *      - When creating or verifying the token, the server uses this secret key to ensure that the token hasn't been tampered with.
-             *      - In production environments, it is important to use a strong and unpredictable secret key for security purposes.
-             */
-            const token = jwt.sign(data, process.env.JWT_SECRET); //jwt.sign(object, secret);
+            catch(error) {
+                console.log("User sign-up error occurred: ", error);
+            }
+        });
 
-            //Respond with success and the JWT token that was generated.
-            res.json({success: true, token})
-
-            /** Summary
-             * - When the user successfully registers or logs in, then generate a 'data' object containing information about the user (in this case, just the user ID).
-             * - The 'jwt.sign()' function is used to create a JWT token that includes this information and sign it with a secret key to ensure its integrity.
-             * - Finally, the token gets sent to the client so it can be used to authenticate future requests. 
-             */
-
-        })
 
 
         //API Endpoint for user login.
         app.post('/login', async (req,res) => {
-            //Find user by email.
-            let user = await Users.findOne({email: req.body.email});
-            if(user) {
-                //Compare provided password with stored password.
-                const passCompare = await bcrypt.compare(req.body.password, user.password);//Use bcrypt.compare to compare the hashing. Instead of direct comparison.
-                if(passCompare) {
-                    //Generate JWT token if password matches.
-                    const data = {
-                        user: {
-                            id: user.id,
-                        },
-                    };
-                    const token = jwt.sign(data, process.env.JWT_SECRET);
-                    res.json({success: true, token});
+            try {
+                //Find user by email.
+                let user = await Users.findOne({email: req.body.email});
+                if(user) {
+                    //Compare provided password with stored password.
+                    const passCompare = await bcrypt.compare(req.body.password, user.password);//Use bcrypt.compare to compare the hashing. Instead of direct comparison.
+                    if(passCompare) {
+                        //Generate JWT token if password matches.
+                        const data = {
+                            user: {
+                                id: user.id,
+                            },
+                        };
+                        const token = jwt.sign(data, process.env.JWT_SECRET);
+                        res.json({success: true, token});
+                    }
+
+                    else {
+                        res.json({success: false, errors: "Password Incorrect!"});
+                    }
                 }
 
                 else {
-                    res.json({success: false, errors: "Password Incorrect!"});
+                    res.json({success: false, errors: "Email does not exist!"});
                 }
             }
-
-            else {
-                res.json({success: false, errors: "Email does not exist!"});
+            catch(error) {
+                console.log("User login error occurred: ", error);
             }
-        })
+        });
 
        
 
         //API endpoint to add a product to user's cart.
         app.post('/addtocart', fetchUser, async (req,res) => {
-            let userData = await Users.findOne({_id: req.user.id}); //Wait for server to find a single user.
-            userData.cartData[req.body.itemId] += 1;
-            await Users.findOneAndUpdate({_id: req.user.id}, {cartData: userData.cartData});
+            try {
+                let userData = await Users.findOne({_id: req.user.id}); //Wait for server to find a single user.
+                userData.cartData[req.body.itemId] += 1;
+                await Users.findOneAndUpdate({_id: req.user.id}, {cartData: userData.cartData});
+            }
+            catch(error) {
+                console.log("Add to Cart error occurred: ", error);
+            }
         });
 
         //API endpoint to remove a product from user's cart.
         app.post('/removefromcart', fetchUser, async (req,res) => {
-            let userData = await Users.findOne({_id: req.user.id});
-            if(userData.cartData[req.body.itemId] > 0) {
-                userData.cartData[req.body.itemId] -= 1;
+            try {
+                let userData = await Users.findOne({_id: req.user.id});
+                if(userData.cartData[req.body.itemId] > 0) {
+                    userData.cartData[req.body.itemId] -= 1;
+                }
+                await Users.findOneAndUpdate({_id: req.user.id}, {cartData: userData.cartData});
             }
-            await Users.findOneAndUpdate({_id: req.user.id}, {cartData: userData.cartData});
+            catch(error) {
+                console.log("Remove from Cart error occurred: ", error);
+            }
         });
 
         //API endpoint to get user's cart data.
         app.post('/getcart', fetchUser, async (req,res) => {
-            console.log("GetCart");
-            let userData = await Users.findOne({_id: req.user.id});
-            res.json(userData.cartData);
+            try {
+                let userData = await Users.findOne({_id: req.user.id});
+                res.json(userData.cartData);
+            }
+            catch(error) {
+                console.log("Get Cart error occurred: ", error);
+            }
         });
         //#endregion
 
@@ -570,13 +601,10 @@ app.listen(port, (error) => {
 
         //API endpoint to send an email.
         app.post("/send-confirmation-email", fetchUser, async (req,res) => {
-            console.log("API contacted.")
-
-            let userData = await Users.findOne({_id: req.user.id});
-            let cartData = userData.cartData;
-            
-        
             try {
+                let userData = await Users.findOne({_id: req.user.id});
+                let cartData = userData.cartData;
+                
                 //Find all products that are in the cart by querying the Product collection.
                 let cartItemIds = Object.keys(cartData).filter(itemId => cartData[itemId] > 0);
                 let products = await Product.find({id: {$in: cartItemIds} });
@@ -628,10 +656,7 @@ app.listen(port, (error) => {
             }
             catch(error) {
                 console.log("Error sending email: ", error);
-                res.status(500).json({
-                    success: false,
-                    message: "Failed to send email.",
-                });
+                res.status(500).json({success: false, message: "Failed to send email."});
             }
             
         });
