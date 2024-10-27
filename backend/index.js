@@ -10,7 +10,7 @@ const path = require("path");
 const cors = require("cors"); //Allows frontend (React) to access the backend.
 const axios = require("axios"); //Used to make HTTP requests to external APIs.
 const nodemailer = require("nodemailer");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 require('dotenv').config(); //Load environment variables.
 
 
