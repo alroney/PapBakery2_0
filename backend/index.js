@@ -434,7 +434,7 @@ app.listen(port, (error) => {
     userSchema.pre("save", async function(next) {
         const user = this; //`this` refers to the document.
         if(user.isModified("password")) {
-            user.password = await bcrypt.hash(user.password, 8);
+            user.password = await bcrypt.hash(user.password, process.env.BCRYPT_SALT_ROUNDS);
         }
 
         next();
