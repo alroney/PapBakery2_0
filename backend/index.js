@@ -399,14 +399,19 @@ app.listen(port, (error) => {
 
     //#endregion
 
-    //Define User schema and create Mongoose model.
-    const Users = mongoose.model('Users', { //This creates the model named 'users' in the mongoose database.
+    //Define User schema.
+    const userSchema = mongoose.Schema({
         name: {
             type: String,
+            lowercase: true,
+            trim: true,
         },
         email: {
             type: String,
             unique: true,
+            required: true,
+            trim: true,
+            lowercase: true,
         },
         password: {
             type: String,
@@ -424,71 +429,99 @@ app.listen(port, (error) => {
                 ref: 'Product',
             }
         ],
-    })
+    });
+
+    userSchema.pre("save", async (next) => {
+        const user = this;
+        if(user.isModified("password")) {
+            user.password = await bcrypt.hash(user.password, 8);
+        }
+
+        next();
+    });
+
+
+    //Create the model 'Users' with the data from userSchema.
+    const Users = mongoose.model('Users', userSchema);
 
     //#region - USER RELATED API ENDPOINTS
         //API endpoint for user registration.
         app.post('/signup', async (req,res) => {
-            //Check if user already exists with the given email.
-            let check = await Users.findOne({email:req.body.email});
-            if(check) {
-                return res.status(400).json({success: false, errors: "Exisiting user found with that email!"})
-            }
-
-            //Create an empty cart with keys from 1 to 400 initialized to 0.
-            let cart = {}; 
-            for(let i = 0; i < 300; i++) {
-                cart[i] = 0;
-            }
-
-            //Create a new user with the provided details.
-            const user = new Users({
-                name: req.body.name,
-                email: req.body.email,
-                password: req.body.password,
-                cartData: cart,
-            })
-
-            await user.save(); //Save the new user to the database.
-
-            /** Explanation of `data` object.
-             * Create an object named 'data' that will be encoded into the JWT.
-             * 
-             * The 'data' object contains a property named user, which is itself an object.
-             * The 'user' object has a single property, 'id', which is set to 'user.id'.
-             *      - 'user.id' is a unique identifier for the user in the database. When a user registers or logs in, this ID is used to associate requests or operations with that specific user.
-             * 
-             * @PURPOSE
-             * - The 'data' object is used as the payload for the JWT. It is what will be encoded in the token.
-             * - By including the user's ID, the token carries information about who the user is, allowing the server to identify the user for subsequent requests that require authentication.
-             */
-            const data = {
-                user: {
-                    id: user.id,
+            try {
+                //Check if user already exists with the given email.
+                let check = await Users.findOne({email:req.body.email});
+                if(check) {
+                    return res.status(400).json({success: false, errors: "Exisiting user found with that email!"})
                 }
+
+                //Create an empty cart with keys from 1 to 400 initialized to 0.
+                let cart = {}; 
+                for(let i = 0; i < 300; i++) {
+                    cart[i] = 0;
+                }
+
+                //Create a new user with the provided details.
+                const user = new Users({
+                    name: req.body.name,
+                    email: req.body.email,
+                    password: req.body.password,
+                    cartData: cart,
+                })
+
+                try {
+                    await user.save(); //Save the new user to the database.
+                    res.status(201).send({ user });
+                }
+                catch(error) {
+                    res.status(400).send(error);
+                }
+                
+
+                /** Explanation of `data` object.
+                 * Create an object named 'data' that will be encoded into the JWT.
+                 * 
+                 * The 'data' object contains a property named user, which is itself an object.
+                 * The 'user' object has a single property, 'id', which is set to 'user.id'.
+                 *      - 'user.id' is a unique identifier for the user in the database. When a user registers or logs in, this ID is used to associate requests or operations with that specific user.
+                 * 
+                 * @PURPOSE
+                 * - The 'data' object is used as the payload for the JWT. It is what will be encoded in the token.
+                 * - By including the user's ID, the token carries information about who the user is, allowing the server to identify the user for subsequent requests that require authentication.
+                 */
+                const data = {
+                    user: {
+                        id: user.id,
+                    }
+                }
+
+                /** Explanation of JWT token.
+                 * This generates a JWT token using the jsonwebtoken library (jwt).
+                 * 'jwt.sign()' is the function that creates the JWT.
+                 * 
+                 * The function takes two main arguments:
+                 * - @argument Payload (`data`): This is the object that contains the information to be included in the token (in this case, the 'data' object created earlier with the user's ID).
+                 * - @argument Secret (process.env.JWT_SECRET): The secret key is used to digitally sign the token. The key is secured in the .env file where it it retrieved.
+                 *      - When creating or verifying the token, the server uses this secret key to ensure that the token hasn't been tampered with.
+                 *      - In production environments, it is important to use a strong and unpredictable secret key for security purposes.
+                 */
+                const token = jwt.sign(data, process.env.JWT_SECRET); //jwt.sign(object, secret);
+
+                //Respond with success and the JWT token that was generated.
+                res.json({success: true, token})
+
+                /** Summary
+                 * - When the user successfully registers or logs in, then generate a 'data' object containing information about the user (in this case, just the user ID).
+                 * - The 'jwt.sign()' function is used to create a JWT token that includes this information and sign it with a secret key to ensure its integrity.
+                 * - Finally, the token gets sent to the client so it can be used to authenticate future requests. 
+                 */
+
             }
 
-            /** Explanation of JWT token.
-             * This generates a JWT token using the jsonwebtoken library (jwt).
-             * 'jwt.sign()' is the function that creates the JWT.
-             * 
-             * The function takes two main arguments:
-             * - @argument Payload (`data`): This is the object that contains the information to be included in the token (in this case, the 'data' object created earlier with the user's ID).
-             * - @argument Secret (process.env.JWT_SECRET): The secret key is used to digitally sign the token. The key is secured in the .env file where it it retrieved.
-             *      - When creating or verifying the token, the server uses this secret key to ensure that the token hasn't been tampered with.
-             *      - In production environments, it is important to use a strong and unpredictable secret key for security purposes.
-             */
-            const token = jwt.sign(data, process.env.JWT_SECRET); //jwt.sign(object, secret);
-
-            //Respond with success and the JWT token that was generated.
-            res.json({success: true, token})
-
-            /** Summary
-             * - When the user successfully registers or logs in, then generate a 'data' object containing information about the user (in this case, just the user ID).
-             * - The 'jwt.sign()' function is used to create a JWT token that includes this information and sign it with a secret key to ensure its integrity.
-             * - Finally, the token gets sent to the client so it can be used to authenticate future requests. 
-             */
-
+            catch(error) {
+                console.log("An error has occurred while trying to sign-up a user: ", error);
+            }
+            
+            
         })
 
 
