@@ -432,7 +432,7 @@ app.listen(port, (error) => {
     });
 
     userSchema.pre("save", async function(next) {
-        const user = this;
+        const user = this; //`this` refers to the document.
         if(user.isModified("password")) {
             user.password = await bcrypt.hash(user.password, 8);
         }
@@ -516,7 +516,7 @@ app.listen(port, (error) => {
             let user = await Users.findOne({email: req.body.email});
             if(user) {
                 //Compare provided password with stored password.
-                const passCompare = req.body.password === user.password;
+                const passCompare = await bcrypt.compare(req.body.password, user.password);//Use bcrypt.compare to compare the hashing. Instead of direct comparison.
                 if(passCompare) {
                     //Generate JWT token if password matches.
                     const data = {
