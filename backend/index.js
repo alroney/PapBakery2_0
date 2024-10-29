@@ -246,33 +246,37 @@ app.listen(port, (error) => {
     //#region - PRODUCT RELATED API ENDPOINTS
         //API endpoint to add a new product.
         app.post('/addproduct', async (req,res) => {
+            try {
+                let products = await Product.find({}); 
+                console.log("Product Length: "+ products.length);
 
-            let products = await Product.find({}); 
-            console.log("Product Length: "+ products.length);
+                //Generate a new product ID. If there are exisiting products, it takes the last product's ID and increments it by 1. If no products exist, it starts with an ID of 1.
+                let id = products.length > 0 ? products.slice(-1)[0].id + 1 : 1; //slice() method is used to return a shallow copy of a portion of an array. So, slice(-1) is used with a negative index, which means "get the last element of the array". This returns an array containing only the last product in the products array.
+                
 
-            //Generate a new product ID. If there are exisiting products, it takes the last product's ID and increments it by 1. If no products exist, it starts with an ID of 1.
-            let id = products.length > 0 ? products.slice(-1)[0].id + 1 : 1; //slice() method is used to return a shallow copy of a portion of an array. So, slice(-1) is used with a negative index, which means "get the last element of the array". This returns an array containing only the last product in the products array.
-            
+                //Create a new product with the provided values.
+                const product = new Product({
+                    id: id,
+                    name: req.body.name,
+                    image: req.body.image,
+                    category: req.body.category,
+                    price: req.body.price,
+                });
 
-            //Create a new product with the provided values.
-            const product = new Product({
-                id: id,
-                name: req.body.name,
-                image: req.body.image,
-                category: req.body.category,
-                price: req.body.price,
-            });
+                //Save the product to the database.
+                console.log(product);
+                await product.save();
+                console.log("Product Added");
 
-            //Save the product to the database.
-            console.log(product);
-            await product.save();
-            console.log("Product Added");
-
-            //Respond with success.
-            res.json({
-                success: true,
-                name: req.body.name,
-            })
+                //Respond with success.
+                res.json({
+                    success: true,
+                    name: req.body.name,
+                })
+            }
+            catch(error) {
+                console.log("Error while adding product: ", error);
+            }
         });
 
 
@@ -307,26 +311,41 @@ app.listen(port, (error) => {
 
         //API endpoint to remove a product by ID.
         app.post('/removeproduct', async (req,res) => {
-            await Product.findOneAndDelete({id:req.body.id});
+            try {
+                await Product.findOneAndDelete({id:req.body.id});
 
-            res.json({
-                success: true,
-                name: req.body.name,
-            });
+                res.json({
+                    success: true,
+                    name: req.body.name,
+                });
+            }
+            catch(error) {
+                console.log("Error while removing product: ", error);
+            }
         });
 
         //API endpoint to fetch all products.
         app.get('/allproducts', async (req,res) => {
-            let products = await Product.find({});
-            res.send(products); //Respond with list of all products.
+            try {
+                let products = await Product.find({});
+                res.send(products); //Respond with list of all products.
+            }
+            catch(error) {
+                console.log("Error while getting all products: ", error);
+            }
         });
 
         //API endpoint to fetch the newest items (last 8 added).
         app.get('/newitems', async (req,res) => {
-            let products = await Product.find({}); //Get all products.
-            let newItems = products.slice(-8);
-            console.log("New Items Fetched.");
-            res.send(newItems);
+            try {
+                let products = await Product.find({}); //Get all products.
+                let newItems = products.slice(-8);
+                console.log("New Items Fetched.");
+                res.send(newItems);
+            }
+            catch(error) {
+                console.log("Error while getting new items: ", error);
+            }
         });
 
         /**
@@ -335,10 +354,15 @@ app.listen(port, (error) => {
 
         //API endpoint to fetch popular flavors (first 4 items).
         app.get('/popular', async (req,res) => {
-            let products = await Product.find({}); //Get all products.
-            let popular_flavors = products.slice(0,4);
-            console.log("Popular Flavors Fetched.");
-            res.send(popular_flavors);
+            try {
+                let products = await Product.find({}); //Get all products.
+                let popular_flavors = products.slice(0,4);
+                console.log("Popular Flavors Fetched.");
+                res.send(popular_flavors);
+            }
+            catch(error) {
+                console.log("Error while getting popular items: ", error);
+            }
         });
 
         //API endpoint to add a review to a product
@@ -393,13 +417,18 @@ app.listen(port, (error) => {
         });
 
         app.get('/productreviews/:productId', async (req,res) => {
-            const productId = req.params.productId;
-            let product = await Product.findOne({id:productId});
+            try {
+                const productId = req.params.productId;
+                let product = await Product.findOne({id:productId});
 
-            res.status(200).json({
-                success: true,
-                reviews: product.reviews,
-            });
+                res.status(200).json({
+                    success: true,
+                    reviews: product.reviews,
+                });
+            }
+            catch(error) {
+                console.log("Error getting product reviews: ", error);
+            }
         });
 
     //#endregion
