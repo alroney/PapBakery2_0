@@ -91,6 +91,27 @@ const fetchUser = async (req,res,next) => {
  * - If the token is missing or invalid, the user gets a 401 Unauthorized response, preventing access to the route.
  */
 
+
+const updateAverageRating = async (productId) => {
+    try {
+        const product = await Product.findById(productId);
+        let avgRating = 0;
+
+        if(product.reviews.length > 0) {
+            const totalRating = product.reviews.reduce((sum, review) => sum + review.rating, 0);
+            avgRating = totalRating / product.reviews.length;
+        }
+
+        product.rating = avgRating;
+
+        await product.save();
+    }
+    catch(error) {
+        console.log("Error while updating rating: ", error);
+    }
+}
+
+
 //#endregion
 
 
@@ -328,6 +349,8 @@ app.listen(port, (error) => {
         app.get('/allproducts', async (req,res) => {
             try {
                 let products = await Product.find({});
+                
+
                 res.send(products); //Respond with list of all products.
             }
             catch(error) {
@@ -400,6 +423,8 @@ app.listen(port, (error) => {
                 await product.save();
                 console.log("A review as been saved.");
 
+
+                await updateAverageRating(product._id);
                 //Link saved review to user who created it.
                 await Users.findByIdAndUpdate(userId, {$push: {reviews: product._id}}); //`findByIdAndUpdate(userId, updateObject)`. The `$push` is a MongoDB update operator. The `{reviews:` is the name of the array field within the user's document where reviews are stored. ` product._id}` is the unique ID of the product that was reviewed.
 
