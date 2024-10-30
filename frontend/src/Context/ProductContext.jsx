@@ -5,30 +5,39 @@
  */
 
 
-import React, { createContext, useReducer, useContext } from 'react';
+import React, { createContext, useReducer, useContext, useEffect } from 'react';
 
 //Inital state.
 const initialState = {
     products: [],
+    loading: true, //Add loading state to track the fetch status.
 };
 
 //Action types.
 const ADD_REVIEW = 'ADD_REVIEW';
+const SET_PRODUCTS = 'SET_PRODUCTS';
 
 //Reducer function to manage product state.
 const productReducer = (state, action) => {
     switch(action.type) {
+        case SET_PRODUCTS: 
+            return {
+                ...state,
+                products: action.payload,
+            };
+
         case ADD_REVIEW:
             return {
                 ...state,
                 products: state.products.map((product) => {
                     if(product.id === action.payload.productId) {
-                        const updateReviews = [...product.reviews, action.payload.review];
+                        const updatedReviews = [...product.reviews, action.payload.review];
                         return {
                             ...product,//Get all previous values (unchanged).
                             reviews: updatedReviews,
-                            rating:
-                            updatedReviews.reduce((sum, review) => sum + review.rating, 0) / updatedReviews.length,
+                            rating: updatedReviews.length > 0
+                                ? updatedReviews.reduce((sum, review) => sum + review.rating, 0) / updatedReviews.length
+                                : 0,
                         };
                     }
                     return product;
@@ -49,6 +58,29 @@ const ProductContext = createContext();
 export const ProductProvider = ({ children }) => {
     const [state, dispatch] = useReducer(productReducer, initialState);
 
+    useEffect(() => {
+        //Fetch all products from the backend API when the provider is mounted
+        const fetchProducts = async () => {
+            try {
+                const response = await fetch('http://localhost:4000/allproducts');
+                const data = await response.json();
+                console.log("Fetch products: ", data);
+                dispatch({
+                    type: SET_PRODUCTS, 
+                    payload: data
+                });
+            }
+            catch(error) {
+                console.error("Failed to fetch products: ", error);
+            }
+    }
+    fetchProducts();
+}, []); //The empty dependency array ensures this runs only once when the provider mounts.
+    
+    useEffect(() => {
+        console.log("State after dispatch: ", state); //Log state after updating.
+    }, [state]); //This will log whenever state changes.
+
     return (
         <ProductContext.Provider value={{ state, dispatch }}>
             {children}
@@ -57,4 +89,11 @@ export const ProductProvider = ({ children }) => {
 };
 
 //Custom hook to use product context
-export const useProduct = () => useContext(ProductContext);
+export const useProduct = () => {
+    const context = useContext(ProductContext);
+    console.log("context = ", context);
+    if(context === undefined) {
+        throw new Error('useProduct must be used within a ProductProvider');
+    }
+    return context;
+}

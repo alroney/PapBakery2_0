@@ -7,7 +7,22 @@ import { ShopContext } from '../../Context/ShopContext'
 export const ProductDisplay = (props) => {
     const {product} = props;
     const {addToCart} = useContext(ShopContext);
-    
+
+    //Function to render stars based on rating
+    const renderStars = (rating) => {
+        let stars = [];
+        for(let i = 1; i<= 5; i++) {
+            stars.push(
+                <img 
+                    key={i} 
+                    src={i <= Math.round(rating) ? star_icon : star_dull_icon} 
+                    alt=""
+                />
+            );
+        }
+        return stars;
+    };
+
   return (
     <div className="productdisplay">
         <div className="productdisplay-left">
@@ -25,11 +40,7 @@ export const ProductDisplay = (props) => {
         <div className="productdisplay-right">
             <h1>{product.name}</h1>
             <div className="productdisplay-right-stars">
-                {/* <img src={star_icon} alt="" />
-                <img src={star_icon} alt="" />
-                <img src={star_icon} alt="" />
-                <img src={star_icon} alt="" />
-                <img src={star_dull_icon} alt="" /> */}
+                {renderStars(product.rating)} {/* Render average rating */}
                 <p>({product.reviews.length})</p>
             </div>
 
