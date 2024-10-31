@@ -345,6 +345,7 @@ app.listen(port, (error) => {
             }
         });
 
+        
         //API endpoint to fetch all products.
         app.get('/allproducts', async (req,res) => {
             try {
@@ -431,13 +432,13 @@ app.listen(port, (error) => {
                 //Respond with success.
                 res.json({
                     success: true,
-                    review: newReview,
+                    review: newReview
                 });
             }
 
             catch (error) {
                 console.error("IN THE CATCH", error);
-                res.status(500).json({ error: "Server Error" });
+                res.status(500).json({ success:false, message: "Server Error" });
             }
         });
 

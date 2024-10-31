@@ -3,7 +3,7 @@ import './AddReview.css'
 import upload_area from '../Assets/img/icon/upload_area.svg'
 
 export const AddReview = (props) => {
-    const {product} = props; //Store the current product object into product
+    const { product, onAddReview } = props; //Store the current product object into product
     const [image, setImage] = useState(false);
     const [reviewDetails, setReviewDetails] = useState({
         name: "",
@@ -34,7 +34,7 @@ export const AddReview = (props) => {
         }));
     }, []);
 
-    const Add_Review = async (productId) => {
+    const Add_Review = async () => {
         try {
             let responseData;
             let review = reviewDetails;
@@ -61,18 +61,17 @@ export const AddReview = (props) => {
                 }
             }
 
-            
-            await fetch('http://localhost:4000/addreview', {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'auth-token': `${localStorage.getItem('auth-token')}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({...review, productId}),
-            }).then((resp) => resp.json()).then((data) => {
-                data.success?alert("Review Added"):alert("Failed to add Review")
-            });
+            //Use the onAddReview callback to post the review to the backend and update context state.
+            if(onAddReview) {
+                onAddReview(review);
+                setReviewDetails({
+                    name: "",
+                    rating: 0,
+                    comment: "",
+                    image: "",
+                });
+                setImage(false);
+            }
         }
         catch(error) {
             console.error('An error occurred while adding review: ', error);

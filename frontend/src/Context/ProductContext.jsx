@@ -24,6 +24,7 @@ const productReducer = (state, action) => {
             return {
                 ...state,
                 products: action.payload,
+                loading: false,
             };
 
         case ADD_REVIEW:

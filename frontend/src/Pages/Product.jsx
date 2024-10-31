@@ -13,15 +13,12 @@ export const Product = () => {
   const {productId} = useParams();
   const [product, setProduct] = useState(null);
 
-  console.log(product);
-
   useEffect(() => {
     console.log("State: ", state);
     //Find product by ID
     const foundProduct = state.products.find(
       (p) => p.id === Number(productId)
     );
-    console.log("FoundProduct = ", foundProduct)
     setProduct(foundProduct);
   }, [state.products, productId]);
 
@@ -32,26 +29,40 @@ export const Product = () => {
     * @param {*} newReview 
     */
   const handleAddReview = async (newReview) => {
+    console.log("handleAddReview was triggered. newReview: ", newReview);
     try {
+      let responseData;
+      
+      //Post the new review to the backend.
       await fetch('http://localhost:4000/addreview', {
         method: 'POST',
         headers: {
+          Accept: 'application/json',
           'Content-Type': 'application/json',
+          'auth-token': `${localStorage.getItem('auth-token')}`,
         },
-        body: JSON.stringify({ productId, ...newReview }),
-      });
-
-      //Dispatch action to update state optimistically.
-      dispatch({ 
-        type: 'ADD_REVIEW',
-        payload: {
-          productId,
-          review: newReview
-        }
-      });
+        body: JSON.stringify({ ...newReview, productId }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("data: ", data);
+          if(data.success) {
+            //Dispatch action to update state optimistically.
+            dispatch({ 
+              type: 'ADD_REVIEW',
+              payload: {
+                productId: Number(productId),
+                review: newReview,
+              }
+            });
+          }
+          else {
+            alert("Failed to add review.");
+          }
+        });
     }
     catch(error) {
-      console.error("Failed to add review: ", error);
+      console.error("Catch -> Failed to add review: ", error);
     }
   };
 
@@ -67,7 +78,7 @@ export const Product = () => {
       {/* Add Review Form */}
       <AddReview product={product} onAddReview={handleAddReview}/>
       {/* Display Reviews */}
-      <DisplayReview product={product}/>
+      <DisplayReview key={product.reviews.length} reviews={product.reviews}/>
       <RelatedProducts/>
     </div>
   )
