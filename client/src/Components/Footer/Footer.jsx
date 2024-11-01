@@ -2,8 +2,8 @@ import React from 'react'
 import './Footer.css'
 import logo from '../Assets/img/logo/papbakery_logo_light.png'
 import text_logo from '../Assets/img/logo/papbakery_textLogo_dark.png'
-import instagram_icon from '../Assets/img/icon/socialMediaIcon/instagram_icon.png'
-import facebook_icon from '../Assets/img/icon/socialMediaIcon/facebook_icon.png'
+// import instagram_icon from '../Assets/img/icon/socialMediaIcon/instagram_icon.png'
+// import facebook_icon from '../Assets/img/icon/socialMediaIcon/facebook_icon.png'
 
 export const Footer = () => {
   return (

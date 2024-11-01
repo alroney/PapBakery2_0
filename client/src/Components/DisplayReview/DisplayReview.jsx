@@ -1,4 +1,4 @@
-import React, { useEffect, useState, memo } from 'react'
+import React, { memo } from 'react'
 import './DisplayReview.css'
 
 export const DisplayReview = memo(({ reviews }) => {

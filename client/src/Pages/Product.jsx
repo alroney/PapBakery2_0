@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useProduct } from '../Context/ProductContext';
 import { useParams } from 'react-router-dom';
 import { Breadcrum } from '../Components/Breadcrums/Breadcrum';
@@ -31,8 +31,6 @@ export const Product = () => {
   const handleAddReview = async (newReview) => {
     console.log("handleAddReview was triggered. newReview: ", newReview);
     try {
-      let responseData;
-      
       //Post the new review to the backend.
       await fetch('http://localhost:4000/addreview', {
         method: 'POST',
