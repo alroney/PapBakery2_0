@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import './Checkout.css'
 import {
   PayPalScriptProvider,
@@ -9,15 +9,22 @@ import {
   PayPalNumberField,
   PayPalExpiryField,
   PayPalCVVField,
-} from "@paypal/paypal-js"
-
-require('dotenv').config(); //Load environment variables.
+} from "@paypal/react-paypal-js"
 
 export const Checkout = () => {
 
-  cons [isPaying, setIsPaying] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
+  const [clientID, setClientID] = useState(null);
+
+  useEffect(() => {
+    fetch('http://localhost:4000/ppclientId')
+      .then(response => response.json())
+      .then(data => setClientID(data.clientID))
+      .catch(error => console.error('Error fetching PayPal clientID: ', error));
+  }, []);
+
   const initialOptions = {
-    "client-id": process.env.PP_API_KEY,
+    "client-id": clientID,
     "enable-funding": "venmo",
     "disable-funding": "",
     currency: "USD",
@@ -257,3 +264,37 @@ export const Checkout = () => {
     </div>
   )
 }
+
+
+const SubmitPayment = ({ isPaying, setIsPaying, billingAddress }) => {
+  const { cardFieldsForm, fields } = usePayPalCardFields();
+
+  const handleClick = async () => {
+      if (!cardFieldsForm) {
+          const childErrorMessage =
+              "Unable to find any child components in the <PayPalCardFieldsProvider />";
+
+          throw new Error(childErrorMessage);
+      }
+      const formState = await cardFieldsForm.getState();
+
+      if (!formState.isFormValid) {
+          return alert("The payment form is invalid");
+      }
+      setIsPaying(true);
+
+      cardFieldsForm.submit({ billingAddress }).catch((err) => {
+          setIsPaying(false);
+      });
+  };
+
+  return (
+      <button
+          className={isPaying ? "btn" : "btn btn-primary"}
+          style={{ float: "right" }}
+          onClick={handleClick}
+      >
+          {isPaying ? <div className="spinner tiny" /> : "Pay"}
+      </button>
+  );
+};

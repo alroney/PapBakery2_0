@@ -659,6 +659,23 @@ app.listen(port, (error) => {
 
 
 
+        //API endpoint to get PayPal clientID.
+        app.get("/ppclientId", async (req,res) => {
+            try{
+                const ppcID = process.env.PP_API_KEY;
+
+                res.send({
+                    success: true,
+                    clientID: ppcID,
+                })
+            }
+            catch(error) {
+                console.log("ppClientId error occurred: ", error);
+            }
+        })
+
+
+
         //API endpoint to send an email.
         app.post("/send-confirmation-email", fetchUser, async (req,res) => {
             try {
