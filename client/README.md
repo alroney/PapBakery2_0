@@ -72,7 +72,7 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/t
 
 
 ### Notes
-Frontend is using ReactJS
+client is using ReactJS
 Backend is using ExpressJS
 
 The `Context` folder will be used for context API
