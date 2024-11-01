@@ -94,12 +94,17 @@ const fetchUser = async (req,res,next) => {
 
 const updateAverageRating = async (productId) => {
     try {
-        const product = await Product.findById(productId);
+        const product = await Product.findOne({id:productId});
         let avgRating = 0;
 
         if(product.reviews.length > 0) {
             const totalRating = product.reviews.reduce((sum, review) => sum + review.rating, 0);
+            console.log("TotalRating: ", totalRating);
             avgRating = totalRating / product.reviews.length;
+        }
+
+        else {
+            console.log("Product has no reviews.");
         }
 
         product.rating = avgRating;
@@ -345,7 +350,7 @@ app.listen(port, (error) => {
             }
         });
 
-        
+
         //API endpoint to fetch all products.
         app.get('/allproducts', async (req,res) => {
             try {
@@ -425,7 +430,7 @@ app.listen(port, (error) => {
                 console.log("A review as been saved.");
 
 
-                await updateAverageRating(product._id);
+                await updateAverageRating(product.id);
                 //Link saved review to user who created it.
                 await Users.findByIdAndUpdate(userId, {$push: {reviews: product._id}}); //`findByIdAndUpdate(userId, updateObject)`. The `$push` is a MongoDB update operator. The `{reviews:` is the name of the array field within the user's document where reviews are stored. ` product._id}` is the unique ID of the product that was reviewed.
 
