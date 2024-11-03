@@ -12,6 +12,14 @@ const axios = require("axios"); //Used to make HTTP requests to external APIs.
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcryptjs");
 const paypal = require("@paypal/checkout-server-sdk");
+const {
+    ApiError,
+    Client,
+    Environment,
+    LogLevel,
+    OrdersController,
+    PaymentsController
+} = require("@paypal/paypal-server-sdk");
 require('dotenv').config(); //Load environment variables.
 
 
@@ -667,39 +675,53 @@ app.listen(port, (error) => {
 
         //const {PP_API_KEY, PP_SECRET} = process.env;
 
-        const ppEnvironment = new paypal.core.SandboxEnvironment(
-            process.env.PP_CLIENT_ID,
-            process.env.PP_CLIENT_SECRET
-        )
-        //const ppClient = new paypal.core.PayPalHttpClient(environment);
+        // const ppEnvironment = new paypal.core.SandboxEnvironment(
+        //     process.env.PP_CLIENT_ID,
+        //     process.env.PP_CLIENT_SECRET
+        // )
+        // const ppClient = new paypal.core.PayPalHttpClient(ppEnvironment);
 
-        app.post('/create-order', async (req,res) => {
-            const request = new paypal.orders.OrdersCreateRequest();
-            request.requestBody({
-                intent: 'CAPTURE',
-                purchase_units: [
-                    {
-                        amount: {
-                            currency_code: 'USD',
-                            value: '10.00'
-                        }
-                    }
-                ]
-            });
+        // app.post('/create-order', async (req,res) => {
+        //     const request = new paypal.orders.OrdersCreateRequest();
+        //     request.requestBody({
+        //         intent: 'CAPTURE',
+        //         purchase_units: [
+        //             {
+        //                 amount: {
+        //                     currency_code: 'USD',
+        //                     value: '10.00'
+        //                 }
+        //             }
+        //         ]
+        //     });
 
-            try {
-                const order = await client.execute(request);
-                res.json({ id: order.result.id });
-            }
-            catch(error) {
-                console.error("Create-order error: ", error);
-                res.status(500).send("An error occurred");
-            }
-        });
-
-
+        //     try {
+        //         const order = await client.execute(request);
+        //         res.json({ id: order.result.id });
+        //     }
+        //     catch(error) {
+        //         console.error("Create-order error: ", error);
+        //         res.status(500).send("An error occurred");
+        //     }
+        // });
 
 
+
+    const client = new Client({
+        clientCredentialsAuthCredentials: {
+            oAuthClientId: process.env.PP_CLIENT_ID,
+            oAuthClientSecret: process.env.PP_CLIENT_SECRET,
+        },
+        timeout: 0,
+        environment: Environment.Sandbox,
+        logging: {
+            logLevel: LogLevel.Info,
+            logRequest: { logBody: true },
+            logResponse: { logHeaders: true },
+        },
+    });
+    const ordersConroller = new OrdersController(client);
+    const paymentsController = new PaymentsController(client);
 
 
 
