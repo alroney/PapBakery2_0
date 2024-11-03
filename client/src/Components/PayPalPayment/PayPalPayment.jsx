@@ -8,8 +8,7 @@ function Message({content}) {
 
 export const PayPalPayment = () => {
     const initialOptions = {
-        "client-id":
-            "Af6pPRwhuga79T5orIUTspuNWzEyCAzcsoZsCANMJHCNcxhbDsJExmlPKNi3P76D3A2qNuY9GQMrhp7u",
+        "client-id": process.env.REACT_APP_PAYPAL_CLIENT_ID,
         "enable-funding": "venmo",
         "disable-funding": "",
         "buyer-country": "US",
@@ -33,7 +32,7 @@ export const PayPalPayment = () => {
                     }} 
                     createOrder={async () => {
                         try {
-                            const response = await fetch("/api/orders", {
+                            const response = await fetch(`${apiUrl}/api/orders`, {
                                 method: "POST",
                                 headers: {
                                     "Content-Type": "application/json",
@@ -72,7 +71,7 @@ export const PayPalPayment = () => {
                     onApprove={async (data, actions) => {
                         try {
                             const response = await fetch(
-                                `/api/orders/${data.orderID}/capture`,
+                                `${apiUrl}/api/orders/${data.orderID}/capture`,
                                 {
                                     method: "POST",
                                     headers: {
