@@ -11,7 +11,6 @@ const cors = require("cors"); //Allows client (React) to access the backend.
 const axios = require("axios"); //Used to make HTTP requests to external APIs.
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcryptjs");
-const paypal = require("@paypal/checkout-server-sdk");
 const {
     ApiError,
     Client,
@@ -673,60 +672,202 @@ app.listen(port, (error) => {
 
 
 
-        //const {PP_API_KEY, PP_SECRET} = process.env;
-
-        // const ppEnvironment = new paypal.core.SandboxEnvironment(
-        //     process.env.PP_CLIENT_ID,
-        //     process.env.PP_CLIENT_SECRET
-        // )
-        // const ppClient = new paypal.core.PayPalHttpClient(ppEnvironment);
-
-        // app.post('/create-order', async (req,res) => {
-        //     const request = new paypal.orders.OrdersCreateRequest();
-        //     request.requestBody({
-        //         intent: 'CAPTURE',
-        //         purchase_units: [
-        //             {
-        //                 amount: {
-        //                     currency_code: 'USD',
-        //                     value: '10.00'
-        //                 }
-        //             }
-        //         ]
-        //     });
-
-        //     try {
-        //         const order = await client.execute(request);
-        //         res.json({ id: order.result.id });
-        //     }
-        //     catch(error) {
-        //         console.error("Create-order error: ", error);
-        //         res.status(500).send("An error occurred");
-        //     }
-        // });
+        
 
 
 
-    const client = new Client({
-        clientCredentialsAuthCredentials: {
-            oAuthClientId: process.env.PP_CLIENT_ID,
-            oAuthClientSecret: process.env.PP_CLIENT_SECRET,
-        },
-        timeout: 0,
-        environment: Environment.Sandbox,
-        logging: {
-            logLevel: LogLevel.Info,
-            logRequest: { logBody: true },
-            logResponse: { logHeaders: true },
-        },
-    });
-    const ordersConroller = new OrdersController(client);
-    const paymentsController = new PaymentsController(client);
+        const client = new Client({
+            clientCredentialsAuthCredentials: {
+                oAuthClientId: process.env.PP_CLIENT_ID,
+                oAuthClientSecret: process.env.PP_CLIENT_SECRET,
+            },
+            timeout: 0,
+            environment: Environment.Sandbox,
+            logging: {
+                logLevel: LogLevel.Info,
+                logRequest: { logBody: true },
+                logResponse: { logHeaders: true },
+            },
+        });
+        const ordersConroller = new OrdersController(client);
+        const paymentsController = new PaymentsController(client);
 
 
+        /**
+         * Create an order to start the transaction.
+         * @see https://developer.paypal.com/docs/api/orders/v2/#orders_create
+         */
+        const createOrder = async (cart) => {
+            const payload = {
+                body: {
+                    intent: "CAPTURE",
+                    purchaseUnits: [
+                        {
+                            amount: {
+                                currencyCode: "USD",
+                                value: "100",
+                            },
+                        },
+                    ],
+                },
+                
+                prefer: "return=minimal",
+            };
+
+            try {
+                const { body, ...httpResponse } = await OrdersController.ordersCreate(payload);
+
+                //Get more response info...
+                //const { statusCode, headers } = httpResponse;
+                return {
+                    jsonResponse : JSON.parse(body),
+                    httpStatusCode: httpResponse.statusCode,
+                };
+            }
+            catch(error) {
+                if(error instanceof ApiError) {
+                    //const { statusCode, headers } = error;
+                    throw new Error(error.message);
+                }
+            }
+        };
+
+        app.post("/orders", async (req,res) => {
+            try {
+                //Use the cart information passed from the front-end to calculate the order amount details.
+                const { cart } = req.body;
+                const { jsonResponse, httpStatusCode } = await createOrder(cart);
+                res.status(httpStatusCode).json(jsonResponse);
+            }
+            catch(error) {
+                console.error("Failed to create order: ", error);
+                res.status(500).json({error: "failed to create order."});
+            }
+        });
 
 
+        /**
+         * Capture payment for the created order to complete the transaction.
+         * @see https://developer.paypal.com/docs/api/orders/v2/#orders_capture
+         */
 
+        const captureOrder = async (orderID) => {
+            const collect = {
+                id: orderID,
+                prefer: "return=minimal",
+            };
+
+            try {
+                const {body, ...httpResponse } = await OrdersController.ordersCapture(collect);
+                
+                //Get more response info...
+                //const { statusCode, headers } = httpResponse;
+                return {
+                    jsonResponse: JSON.parse(body),
+                    httpStatusCode: httpResponse.statusCode,
+                };
+            }
+            catch(error) {
+                if(error instanceof ApiError) {
+                    throw new Error(error.message);
+                }
+            }
+        };
+
+        app.post("/orders/:orderID/capture", async (req,res) => {
+            try {
+                const { orderID } = req.params;
+                const { jsonResponse, httpStatusCode } = await captureOrder(orderID);
+                res.status(httpStatusCode).json(jsonResponse);
+            }
+            catch(error) {
+                console.error("Failed to create order: ", error);
+                res.status(500).json({ error: "Failed to capture order." });
+            }
+        });
+
+
+        /**
+         * Authorize payment for the created order to complete the transaction.
+         * @see https://developer.paypal.com/docs/api/orders/v2/#orders_authorize
+         */
+        const authorizeOrder = async (orderID) => {
+            const collect = {
+                id: orderID,
+                prefer: "return=minimal",
+            };
+
+            try {
+                const { body, ...httpResponse } =
+                    await ordersController.ordersAuthorize(collect);
+                // Get more response info...
+                // const { statusCode, headers } = httpResponse;
+                return {
+                    jsonResponse: JSON.parse(body),
+                    httpStatusCode: httpResponse.statusCode,
+                };
+            } catch (error) {
+                if (error instanceof ApiError) {
+                    // const { statusCode, headers } = error;
+                    throw new Error(error.message);
+                }
+            }
+        };
+
+        // authorizeOrder route
+        app.post("/api/orders/:orderID/authorize", async (req, res) => {
+            try {
+                const { orderID } = req.params;
+                const { jsonResponse, httpStatusCode } = await authorizeOrder(orderID);
+                res.status(httpStatusCode).json(jsonResponse);
+            } catch (error) {
+                console.error("Failed to create order:", error);
+                res.status(500).json({ error: "Failed to authorize order." });
+            }
+        });
+
+        /**
+         * Captures an authorized payment, by ID.
+         * @see https://developer.paypal.com/docs/api/payments/v2/#authorizations_capture
+         */
+        const captureAuthorize = async (authorizationId) => {
+            const collect = {
+                authorizationId: authorizationId,
+                prefer: "return=minimal",
+                body: {
+                    finalCapture: false,
+                },
+            };
+            try {
+                const { body, ...httpResponse } =
+                    await paymentsController.authorizationsCapture(collect);
+                // Get more response info...
+                // const { statusCode, headers } = httpResponse;
+                return {
+                    jsonResponse: JSON.parse(body),
+                    httpStatusCode: httpResponse.statusCode,
+                };
+            } catch (error) {
+                if (error instanceof ApiError) {
+                    // const { statusCode, headers } = error;
+                    throw new Error(error.message);
+                }
+            }
+        };
+
+        // captureAuthorize route
+        app.post("/orders/:authorizationId/captureAuthorize", async (req, res) => {
+            try {
+                const { authorizationId } = req.params;
+                const { jsonResponse, httpStatusCode } = await captureAuthorize(
+                    authorizationId
+                );
+                res.status(httpStatusCode).json(jsonResponse);
+            } catch (error) {
+                console.error("Failed to create order:", error);
+                res.status(500).json({ error: "Failed to capture authorize." });
+            }
+        });
 
         //API endpoint to send an email.
         app.post("/send-confirmation-email", fetchUser, async (req,res) => {
