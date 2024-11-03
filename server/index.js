@@ -2,6 +2,7 @@ const port = 4000;
 
 //Import necessary packages -> const varname = require("packagename");.
 const express = require("express");
+require('dotenv').config(); //Load environment variables.
 const app = express();
 const mongoose = require("mongoose"); //Allows connection to MongoDB
 const jwt = require("jsonwebtoken"); //Used to generate and verify tokens.
@@ -12,6 +13,7 @@ const axios = require("axios"); //Used to make HTTP requests to external APIs.
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcryptjs");
 const bodyParser = require("body-parser")
+const rateLimit = require('express-rate-limit');
 const {
     ApiError,
     Client,
@@ -20,16 +22,21 @@ const {
     OrdersController,
     PaymentsController
 } = require("@paypal/paypal-server-sdk");
-require('dotenv').config(); //Load environment variables.
+const environment = process.env.ENVIRONMENT;
+const pp_client_id = process.env.PAYPAL_CLIENT_ID;
+const pp_client_secret = process.env.PAYPAL_CLIENT_SECRET;
+const paypal_endpoint_url = environment === 'sandbox' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
 
-
-
+app.use(express.json()); //Automatically parse incoming requests as JSON.
+app.use(express.urlencoded({
+    extended: true
+})); 
+app.use(cors()); //Allow React app to connect to the Express app.
 
 
 
 //#region - MIDDLEWARE SETUP
-app.use(express.json()); //Automatically parse incoming requests as JSON.
-app.use(cors()); //Allow React app to connect to the Express app.
+
 
  /** Explanation of Middleware.
  * Asynchronous Middleware Function.
@@ -125,7 +132,11 @@ const updateAverageRating = async (productId) => {
     }
 }
 
-
+const createOrderLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, //15 minutes
+    max: 100, //Limit each IP to 100 requests per windowMs (15mins).
+    message: 'Too many requests, please try again later.',
+});
 //#endregion
 
 
@@ -673,121 +684,17 @@ app.use(bodyParser.json());
 
 
 
-        const {
-            PAYPAL_CLIENT_ID,
-            PAYPAL_CLIENT_SECRET,
-        } = process.env;
         
-        const client = new Client({
-            clientCredentialsAuthCredentials: {
-                oAuthClientId: PAYPAL_CLIENT_ID,
-                oAuthClientSecret: PAYPAL_CLIENT_SECRET,
-            },
-            timeout: 0,
-            environment: Environment.Sandbox,
-            logging: {
-                logLevel: LogLevel.Info,
-                logRequest: { logBody: true },
-                logResponse: { logHeaders: true },
-            },
-        }); 
-        const ordersController = new OrdersController(client);
-        const paymentsController = new PaymentsController(client);
-        
-        /**
-         * Create an order to start the transaction.
-         * @see https://developer.paypal.com/docs/api/orders/v2/#orders_create
-         */
-        const createOrder = async (cart) => {
-            const collect = {
-                body: {
-                    intent: "CAPTURE",
-                    purchaseUnits: [
-                        {
-                            amount: {
-                                currencyCode: "USD",
-                                value: "100",
-                            },
-                        },
-                    ],
-                },
-                prefer: "return=minimal",
-            }; 
-        
-            try {
-                const { body, ...httpResponse } = await ordersController.ordersCreate(
-                    collect
-                );
-                // Get more response info...
-                // const { statusCode, headers } = httpResponse;
-                return {
-                    jsonResponse: JSON.parse(body),
-                    httpStatusCode: httpResponse.statusCode,
-                };
-            } catch (error) {
-                if (error instanceof ApiError) {
-                    // const { statusCode, headers } = error;
-                    throw new Error(error.message);
-                }
-            }
-        };
-        
-        // createOrder route
-        app.post("/api/orders", async (req, res) => {
-            try {
-                // use the cart information passed from the front-end to calculate the order amount detals
-                const { cart } = req.body;
-                const { jsonResponse, httpStatusCode } = await createOrder(cart);
-                res.status(httpStatusCode).json(jsonResponse);
-            } catch (error) {
-                console.error("Failed to create order:", error);
-                res.status(500).json({ error: "Failed to create order." });
-            }
-        });
-        
-        
-        
-        /**
-         * Capture payment for the created order to complete the transaction.
-         * @see https://developer.paypal.com/docs/api/orders/v2/#orders_capture
-         */
-        const captureOrder = async (orderID) => {
-            const collect = {
-                id: orderID,
-                prefer: "return=minimal",
-            };
-        
-            try {
-                const { body, ...httpResponse } = await ordersController.ordersCapture(
-                    collect
-                );
-                // Get more response info...
-                // const { statusCode, headers } = httpResponse;
-                return {
-                    jsonResponse: JSON.parse(body),
-                    httpStatusCode: httpResponse.statusCode,
-                };
-            } catch (error) {
-                if (error instanceof ApiError) {
-                    // const { statusCode, headers } = error;
-                    throw new Error(error.message);
-                }
-            }
-        };
-        
-        // captureOrder route
-        app.post("/api/orders/:orderID/capture", async (req, res) => {
-            try {
-                const { orderID } = req.params;
-                const { jsonResponse, httpStatusCode } = await captureOrder(orderID);
-                res.status(httpStatusCode).json(jsonResponse);
-            } catch (error) {
-                console.error("Failed to create order:", error);
-                res.status(500).json({ error: "Failed to capture order." });
-            }
-        });
 
-        
+
+
+
+
+
+
+
+
+
 
 
 
@@ -860,3 +767,210 @@ app.use(bodyParser.json());
 
 
 
+// const {
+        //     PAYPAL_CLIENT_ID,
+        //     PAYPAL_CLIENT_SECRET,
+        // } = process.env;
+        
+        // const client = new Client({
+        //     clientCredentialsAuthCredentials: {
+        //         oAuthClientId: PAYPAL_CLIENT_ID,
+        //         oAuthClientSecret: PAYPAL_CLIENT_SECRET,
+        //     },
+        //     timeout: 0,
+        //     environment: Environment.Sandbox,
+        //     logging: {
+        //         logLevel: LogLevel.Info,
+        //         logRequest: { logBody: true },
+        //         logResponse: { logHeaders: true },
+        //     },
+        // }); 
+        // const ordersController = new OrdersController(client);
+        // const paymentsController = new PaymentsController(client);
+        
+        // /**
+        //  * Create an order to start the transaction.
+        //  * @see https://developer.paypal.com/docs/api/orders/v2/#orders_create
+        //  */
+        // const createOrder = async (cart) => {
+        //     const collect = {
+        //         body: {
+        //             intent: "CAPTURE",
+        //             purchaseUnits: [
+        //                 {
+                            
+        //                     amount: {
+        //                         currencyCode: "USD",
+        //                         value: "100",
+        //                     },
+        //                 },
+        //             ],
+        //         },
+        //         prefer: "return=minimal",
+        //     }; 
+        
+        //     try {
+        //         const { body, ...httpResponse } = await ordersController.ordersCreate(
+        //             collect
+        //         );
+        //         // Get more response info...
+        //         // const { statusCode, headers } = httpResponse;
+        //         return {
+        //             jsonResponse: JSON.parse(body),
+        //             httpStatusCode: httpResponse.statusCode,
+        //         };
+        //     } catch (error) {
+        //         if (error instanceof ApiError) {
+        //             // const { statusCode, headers } = error;
+        //             throw new Error(error.message);
+        //         }
+        //     }
+        // };
+        
+        // // createOrder route
+        // app.post("/api/orders", async (req, res) => {
+        //     try {
+        //         // use the cart information passed from the front-end to calculate the order amount detals
+        //         const { cart } = req.body;
+        //         const { jsonResponse, httpStatusCode } = await createOrder(cart);
+        //         res.status(httpStatusCode).json(jsonResponse);
+        //     } catch (error) {
+        //         console.error("Failed to create order:", error);
+        //         res.status(500).json({ error: "Failed to create order." });
+        //     }
+        // });
+        
+        
+        
+        // /**
+        //  * Capture payment for the created order to complete the transaction.
+        //  * @see https://developer.paypal.com/docs/api/orders/v2/#orders_capture
+        //  */
+        // const captureOrder = async (orderID) => {
+        //     const collect = {
+        //         id: orderID,
+        //         prefer: "return=representation",
+        //     };
+        
+        //     try {
+        //         const { body, ...httpResponse } = await ordersController.ordersCapture(
+        //             collect
+        //         );
+        //         // Get more response info...
+        //         // const { statusCode, headers } = httpResponse;
+        //         return {
+        //             jsonResponse: JSON.parse(body),
+        //             httpStatusCode: httpResponse.statusCode,
+        //         };
+        //     } catch (error) {
+        //         if (error instanceof ApiError) {
+        //             // const { statusCode, headers } = error;
+        //             throw new Error(error.message);
+        //         }
+        //     }
+        // };
+        
+        // // captureOrder route
+        // app.post("/api/orders/:orderID/capture", async (req, res) => {
+        //     try {
+        //         const { orderID } = req.params;
+        //         const { jsonResponse, httpStatusCode } = await captureOrder(orderID);
+        //         res.status(httpStatusCode).json(jsonResponse);
+        //     } catch (error) {
+        //         console.error("Failed to create order:", error);
+        //         res.status(500).json({ error: "Failed to capture order." });
+        //     }
+        // });
+
+        
+
+
+
+
+
+
+        app.post('/create_order', createOrderLimiter, (req, res) => {
+            get_access_token()
+                .then(access_token => {
+                    let order_data_json = {
+                        'intent': req.body.intent.toUpperCase(),
+                        'purchase_units': [{
+                            'amount': {
+                                'currency_code': 'USD',
+                                'value': '50.00'
+                            },
+                        }],
+                    };
+
+                    const data = JSON.stringify(order_data_json);
+                    
+                    fetch(paypal_endpoint_url + '/v2/checkout/orders', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${access_token}`
+                        },
+                        body: data
+                    })
+                    .then(res => res.json())
+                    .then(json => {
+                        res.send(json);
+                    }) //Send minimal data to client.
+                }).catch(error => {
+                    console.log("Error in create_order: ", error);
+                    res.status(500).send(error);
+                })
+        });
+
+        /**
+         * Completes an order and returns it as a JSON response.
+         * @function
+         * @name completeOrder
+         * @memberof module:routes
+         * @param {object} req - The HTTP request object.
+         * @param {object} req.body - The request body containing the order ID and intent.
+         * @param {string} req.body.order_id - The ID of the order to complete.
+         * @param {string} req.body.intent - The intent of the order.
+         * @param {object} res - The HTTP response object.
+         * @returns {object} The completed order as a JSON response.
+         * @throws {Error} If there is an error completing the order.
+         */
+
+        app.post('/complete_order', (req,res) => {
+            get_access_token()
+                .then(access_token => {
+                    fetch(paypal_endpoint_url + '/v2/checkout/orders/' + req.body.order_id + '/' + req.body.intent, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${access_token}`
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(json => {
+                        console.log(json);
+                        res.send(json);
+                    }) //Send minimal data to client.
+                }).catch(error => {
+                    console.log("Error in complete_order: ", error);
+                    res.status(500).send(error);
+                })
+        });
+
+        const get_access_token = () => {
+            const auth = `${pp_client_id}:${pp_client_secret}`;
+            const data = 'grant_type=client_credentials';
+
+            return fetch(paypal_endpoint_url + '/v1/oauth2/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Basic ${Buffer.from(auth).toString('base64')}`
+                },
+                body: data
+            })
+            .then(res => res.json())
+            .then(json => {
+                return json.access_token;
+            })
+        };
