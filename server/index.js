@@ -14,6 +14,7 @@ const nodemailer = require("nodemailer");
 const bcrypt = require("bcryptjs");
 const bodyParser = require("body-parser")
 const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
 const {
     ApiError,
     Client,
@@ -27,6 +28,7 @@ const pp_client_id = process.env.PAYPAL_CLIENT_ID;
 const pp_client_secret = process.env.PAYPAL_CLIENT_SECRET;
 const paypal_endpoint_url = environment === 'sandbox' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
 
+app.use(helmet()); //Secures the Express app by setting various HTTP headers that enhance security.
 app.use(express.json()); //Automatically parse incoming requests as JSON.
 app.use(express.urlencoded({
     extended: true
