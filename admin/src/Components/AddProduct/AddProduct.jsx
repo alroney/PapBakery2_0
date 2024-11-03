@@ -41,7 +41,7 @@ const AddProduct = () => {
         formData.append('product', image); //Add the image to the new empty FormData object.
 
         //Send the formData to the API. fetch('backendURL/uploadEndpoint')
-        await fetch('http://localhost:4000/upload', {
+        await fetch(`${process.env.REACT_APP_API_BASE_URL}/upload`, {
             method:'POST',
             headers: {
                 Accept: 'application/json',
@@ -54,7 +54,7 @@ const AddProduct = () => {
             console.log(product);
 
             //Send product to addproduct API Endpoint.
-            await fetch('http://localhost:4000/addproduct', {
+            await fetch(`${process.env.REACT_APP_API_BASE_URL}/addproduct`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',

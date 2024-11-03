@@ -42,7 +42,7 @@ const ShopContextProvider = (props) => {
     //Asynchronously fetches all products from the server and updates the state.
     const fetchProducts = async () => {
         try {
-            const response = await fetch('http://localhost:4000/allproducts');
+            const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/allproducts`);
             const data = await response.json();
             setAll_Product(data);
         }
@@ -57,7 +57,7 @@ const ShopContextProvider = (props) => {
 
         //If user is logged in, load the user's cart from the backend.
         if(localStorage.getItem('auth-token')) {
-            fetch('http://localhost:4000/getcart', {
+            fetch(`${process.env.REACT_APP_API_BASE_URL}/getcart`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/form-data',
@@ -88,7 +88,7 @@ const ShopContextProvider = (props) => {
         
         //If user is logged in, update the backend cart.
         if(localStorage.getItem('auth-token')){
-            fetch('http://localhost:4000/addtocart', {
+            fetch(`${process.env.REACT_APP_API_BASE_URL}/addtocart`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/form-data',
@@ -113,7 +113,7 @@ const ShopContextProvider = (props) => {
         
         //If user logged in, update the backend cart.
         if(localStorage.getItem('auth-token')) {
-            fetch('http://localhost:4000/removefromcart', {
+            fetch(`${process.env.REACT_APP_API_BASE_URL}/removefromcart`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/form-data',

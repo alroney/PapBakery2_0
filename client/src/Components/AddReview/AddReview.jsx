@@ -44,7 +44,7 @@ export const AddReview = (props) => {
             if(image) {
                 formData.append('product', image); //Append image separtely if it's provided.
 
-                await fetch('http://localhost:4000/upload', {
+                await fetch(`${process.env.REACT_APP_API_BASE_URL}/upload`, {
                     method:'POST',
                     headers: {
                         Accept: 'application/json',

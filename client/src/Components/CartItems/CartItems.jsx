@@ -1,13 +1,14 @@
 import React, { useContext } from 'react'
 import './CartItems.css'
 import { ShopContext } from '../../Context/ShopContext'
+import { Link } from 'react-router-dom'
 import remove_icon from '../Assets/img/icon/cart_cross_icon.png'
 
 export const CartItems = () => {
     const {getTotalCartAmount, all_product, cartItems, removeFromCart} = useContext(ShopContext);
 
     const confirmation = async () => {
-        await fetch("http://localhost:4000/send-confirmation-email", {
+        await fetch(`${process.env.REACT_APP_API_BASE_UR}/send-confirmation-email`, {
             method: 'POST',
             headers: {
                 Accept: 'application/json',
@@ -63,8 +64,10 @@ export const CartItems = () => {
                         <h3>${getTotalCartAmount()}</h3>
                     </div>
                 </div>
-                <button onClick={() => {getTotalCartAmount > 0 ? confirmation() : alert("Your cart is empty.")}}>PROCEED TO CHECKOUT</button>
+                {/* <button onClick={() => {getTotalCartAmount > 0 ? confirmation() : alert("Your cart is empty.")}}>PROCEED TO CHECKOUT</button> */}
+                <button onClick={()=>{}}><Link to='/checkout'>Checkout</Link></button>
             </div>
+
             <div className="cartitems-promocode">
                 <p>If you have a promo code, Enter it here</p>
                 <div className="cartitems-promobox">

@@ -7,7 +7,7 @@ export const Popular = () => {
   const [popular_flavors, setPopular_flavors] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:4000/popular') //Call the API endpoint.
+    fetch(`${process.env.REACT_APP_API_BASE_URL}/popular`) //Call the API endpoint.
     .then((response) => response.json()) //Then convert the response into json format.
     .then((data) => setPopular_flavors(data)) //Then place all the data into popular_flavors using its set property.
   }, []); //[] indicates to be called only one time when component is mounted.

@@ -9,7 +9,7 @@ export const DisplayReview = memo(({ reviews }) => {
     // const [allreviews, setAllReviews] = useState([]);//Set default of allReviews to an emtpy array. 
 
     // const fetchReviews = async () => {
-    //     await fetch(`http://localhost:4000/productreviews/${productId}`)
+    //     await fetch(`${process.env.REACT_APP_API_BASE_URL}/productreviews/${productId}`)
     //     .then((res) => res.json())
     //     .then((data) => {
     //         if(data && data.reviews) {

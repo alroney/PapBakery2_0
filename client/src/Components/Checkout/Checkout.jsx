@@ -17,7 +17,7 @@ export const Checkout = () => {
   const [clientID, setClientID] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:4000/ppclientId')
+    fetch(`${process.env.REACT_APP_API_BASE_URL}/ppclientId`)
       .then(response => response.json())
       .then(data => setClientID(data.clientID))
       .catch(error => console.error('Error fetching PayPal clientID: ', error));
@@ -53,7 +53,7 @@ export const Checkout = () => {
 
   async function createOrder() {
     try {
-      const response = await fetch("http://localhost:4000/orders", {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_UR}/orders`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -93,7 +93,7 @@ export const Checkout = () => {
 
   async function onApprove(data, actions) {
     try {
-      const response = await fetch(`http:localhost:4000/orders/${data.orderID}/capture`,
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/orders/${data.orderID}/capture`,
         {
           method: "POST",
           headers: {
@@ -150,7 +150,12 @@ export const Checkout = () => {
 
   return (
     <div className="checkout">
-      <PayPalScriptProvider options={initialOptions}>
+      <h1>CHECKOUT</h1>
+      {console.log("ClientID: ", clientID)}
+      
+      {clientID ? 
+      (
+        <PayPalScriptProvider options={initialOptions}>
             <PayPalButtons
                 createOrder={createOrder}
                 onApprove={onApprove}
@@ -261,9 +266,19 @@ export const Checkout = () => {
             </PayPalCardFieldsProvider>
             
         </PayPalScriptProvider>
+      )
+      :
+      (
+        <p>Loading payment options...</p>
+      )
+      }
+
+      
     </div>
   )
 }
+
+
 
 
 const SubmitPayment = ({ isPaying, setIsPaying, billingAddress }) => {

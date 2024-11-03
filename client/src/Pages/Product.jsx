@@ -32,7 +32,7 @@ export const Product = () => {
     console.log("handleAddReview was triggered. newReview: ", newReview);
     try {
       //Post the new review to the backend.
-      await fetch('http://localhost:4000/addreview', {
+      await fetch(`${process.env.REACT_APP_API_BASE_URL}/addreview`, {
         method: 'POST',
         headers: {
           Accept: 'application/json',

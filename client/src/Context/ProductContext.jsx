@@ -63,7 +63,7 @@ export const ProductProvider = ({ children }) => {
         //Fetch all products from the backend API when the provider is mounted
         const fetchProducts = async () => {
             try {
-                const response = await fetch('http://localhost:4000/allproducts');
+                const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/allproducts`);
                 const data = await response.json();
                 console.log("Fetch products: ", data);
                 dispatch({

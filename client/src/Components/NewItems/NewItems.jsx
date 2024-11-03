@@ -7,7 +7,7 @@ export const NewItems = () => {
     const [new_items, setNew_items] = useState([]);
 
     useEffect(() => {
-        fetch("http://localhost:4000/newitems") //Contact the newitems API endpoint.
+        fetch(`${process.env.REACT_APP_API_BASE_UR}/newitems`) //Contact the newitems API endpoint.
             .then((response) => response.json()) //Then get the response and format it to json.
             .then((data) => setNew_items(data)); //Then take the data from it and put it in new_items using the set property for it.
     }, []) //[] indicates the useEffect to be used only one time when the component gets mounted.

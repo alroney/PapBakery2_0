@@ -12,7 +12,7 @@ const ListProduct = () => {
     const [editedProduct, setEditedProduct] = useState({});
 
     const fetchInfo = async () => {
-        await fetch('http://localhost:4000/allproducts') //Get the response from API Endpoint.
+        await fetch(`${process.env.REACT_APP_API_BASE_URL}/allproducts`) //Get the response from API Endpoint.
         .then((res) => res.json()) //Converts the response to a json.
         .then((data) => {setAllProducts(data)}); //Saves data to allproducts state variable.
     }
@@ -25,7 +25,7 @@ const ListProduct = () => {
 
     //Remove product from database and allproducts list.
     const remove_product = async (id) => {
-        await fetch('http://localhost:4000/removeProduct', {
+        await fetch(`${process.env.REACT_APP_API_BASE_URL}/removeProduct`, {
             method: 'POST',
             headers: {
                 Accept: 'application/json',
@@ -50,7 +50,7 @@ const ListProduct = () => {
 
 
     const saveEdit = async () => {
-        await fetch('http://localhost:4000/editproduct', {
+        await fetch(`${process.env.REACT_APP_API_BASE_URL}/editproduct`, {
             method: 'POST',
             headers: {
                 Accept: 'application/json',
