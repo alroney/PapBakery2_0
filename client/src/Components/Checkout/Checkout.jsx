@@ -15,14 +15,8 @@ import apiUrl from '@config';
 export const Checkout = () => {
 
   const [isPaying, setIsPaying] = useState(false);
-  const [clientID, setClientID] = useState(null);
+  const clientID = process.env.REACT_APP_PP_CLIENT_ID;
 
-  useEffect(() => {
-    fetch(`${apiUrl}/ppclientId`)
-      .then(response => response.json())
-      .then(data => setClientID(data.clientID))
-      .catch(error => console.error('Error fetching PayPal clientID: ', error));
-  }, []);
 
   const initialOptions = {
     "client-id": clientID,
@@ -152,7 +146,6 @@ export const Checkout = () => {
   return (
     <div className="checkout">
       <h1>CHECKOUT</h1>
-      {console.log("ClientID: ", clientID)}
       
       {clientID ? 
       (
