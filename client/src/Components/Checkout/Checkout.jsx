@@ -1,11 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './Checkout.css';
-import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
-import apiUrl from '@config';
-
-const Message = ({ content }) => {
-  return <p>{content}</p>;
-}
+import { PayPalPayment } from '../PayPalPayment/PayPalPayment'
 
 export const Checkout = () => {
 
@@ -25,9 +20,7 @@ export const Checkout = () => {
   const [message, setMessage] = useState("");
   return (
     <div className="checkout">
-      <PayPalScriptProvider options={{initialOptions}}>
-        <PayPalButtons style={{layout: "horizontal"}}/>
-      </PayPalScriptProvider>
+      <PayPalPayment/>
     </div>
   );
 }
