@@ -47,7 +47,7 @@ export const PayPalPayment = () => {
                     label: 'paypal'
                 },
                 createOrder: (data, actions) => {
-                    return fetch("http://localhost:3000/create_order", {
+                    return fetch(`${apiUrl}/create_order`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ "intent": intent })
@@ -60,7 +60,7 @@ export const PayPalPayment = () => {
                 },
                 onApprove: (data) => {
                     const order_id = data.orderID;
-                    return fetch("http://localhost:3000/complete_order", {
+                    return fetch(`${apiUrl}/complete_order`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ "intent": intent, "order_id": order_id })
@@ -129,11 +129,7 @@ export const PayPalPayment = () => {
                         <div ref={contentRef} id="content">
                             <div className="ms-card ms-fill">
                                 <div className="ms-card-content">
-                                    <img
-                                        src="https://cdn.discordapp.com/attachments/1060825015681028127/1076385063903694908/rauljr7_3d_e83fed6a-69aa-4a6a-b0ec-928edd57aecf.png"
-                                        alt="AI-generated NFT Bored Ape"
-                                        style={{ width: "400px" }}
-                                    />
+                                    
                                 </div>
                             </div>
                             <div ref={paymentOptionsRef} id="payment_options"></div>
