@@ -1,14 +1,15 @@
-import React, { useContext } from 'react'
-import './CartItems.css'
-import { ShopContext } from '../../Context/ShopContext'
-import { Link } from 'react-router-dom'
-import remove_icon from '../Assets/img/icon/cart_cross_icon.png'
+import React, { useContext } from 'react';
+import './CartItems.css';
+import { ShopContext } from '../../Context/ShopContext';
+import { Link } from 'react-router-dom';
+import remove_icon from '../Assets/img/icon/cart_cross_icon.png';
+import apiUrl from '@config';
 
 export const CartItems = () => {
     const {getTotalCartAmount, all_product, cartItems, removeFromCart} = useContext(ShopContext);
 
     const confirmation = async () => {
-        await fetch(`${process.env.REACT_APP_API_BASE_UR}/send-confirmation-email`, {
+        await fetch(`${apiUrl}/send-confirmation-email`, {
             method: 'POST',
             headers: {
                 Accept: 'application/json',

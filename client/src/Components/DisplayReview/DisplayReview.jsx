@@ -1,5 +1,5 @@
-import React, { memo } from 'react'
-import './DisplayReview.css'
+import React, { memo } from 'react';
+import './DisplayReview.css';
 
 export const DisplayReview = memo(({ reviews }) => {
     console.log("Rendering DisplayReview.")
@@ -9,7 +9,7 @@ export const DisplayReview = memo(({ reviews }) => {
     // const [allreviews, setAllReviews] = useState([]);//Set default of allReviews to an emtpy array. 
 
     // const fetchReviews = async () => {
-    //     await fetch(`${process.env.REACT_APP_API_BASE_URL}/productreviews/${productId}`)
+    //     await fetch(`${apiUrl}/productreviews/${productId}`)
     //     .then((res) => res.json())
     //     .then((data) => {
     //         if(data && data.reviews) {

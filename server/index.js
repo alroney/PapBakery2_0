@@ -671,7 +671,7 @@ app.listen(port, (error) => {
             process.env.PP_CLIENT_ID,
             process.env.PP_CLIENT_SECRET
         )
-        const ppClient = new paypal.core.PayPalHttpClient(environment);
+        //const ppClient = new paypal.core.PayPalHttpClient(environment);
 
         app.post('/create-order', async (req,res) => {
             const request = new paypal.orders.OrdersCreateRequest();

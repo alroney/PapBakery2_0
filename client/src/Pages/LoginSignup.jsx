@@ -1,6 +1,7 @@
-import React from 'react'
-import './CSS/LoginSignup.css'
-import { useState } from 'react'
+import React from 'react';
+import './CSS/LoginSignup.css';
+import { useState } from 'react';
+import apiUrl from '@config';
 
 export const LoginSignup = () => {
 
@@ -21,7 +22,7 @@ export const LoginSignup = () => {
  * - `responseData`: Variable declared to store the response data from the server after the fetch request is completed.
  *
  * @async_operation
- * - `fetch()`: Makes an HTTP POST request to the specified URL (`${process.env.REACT_APP_API_BASE_URL}/login`) to authenticate the user.
+ * - `fetch()`: Makes an HTTP POST request to the specified URL (`${apiUrl}/login`) to authenticate the user.
  *   - `await` pauses execution until the fetch request completes.
  *   - Request Options:
  *     - `method: 'POST'`: Indicates that data is being sent to the server.
@@ -43,7 +44,7 @@ export const LoginSignup = () => {
   const login = async () => {
     console.log("login funtion executed: ", formData); //Debugging to indicate proper functionality.
     let responseData;
-    await fetch(`${process.env.REACT_APP_API_BASE_URL}/login`, {
+    await fetch(`${apiUrl}/login`, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -64,7 +65,7 @@ export const LoginSignup = () => {
   const signup = async () => {
     console.log("signup function executed: ", formData);
     let responseData;
-    await fetch(`${process.env.REACT_APP_API_BASE_URL}/signup`, {
+    await fetch(`${apiUrl}/signup`, {
       method: 'POST',
       headers: {
         Accept: 'application/json',

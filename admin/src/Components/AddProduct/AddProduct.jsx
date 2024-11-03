@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
-import './AddProduct.css'
-import upload_area from '../../assets/img/icon/upload_area.svg'
+import React, { useState } from 'react';
+import './AddProduct.css';
+import upload_area from '../../assets/img/icon/upload_area.svg';
+import apiUrl from '@config';
 
 const AddProduct = () => {
     //const [variableName, setterFunction] = useState(initialState);
@@ -41,7 +42,7 @@ const AddProduct = () => {
         formData.append('product', image); //Add the image to the new empty FormData object.
 
         //Send the formData to the API. fetch('backendURL/uploadEndpoint')
-        await fetch(`${process.env.REACT_APP_API_BASE_URL}/upload`, {
+        await fetch(`${apiUrl}/upload`, {
             method:'POST',
             headers: {
                 Accept: 'application/json',
@@ -54,7 +55,7 @@ const AddProduct = () => {
             console.log(product);
 
             //Send product to addproduct API Endpoint.
-            await fetch(`${process.env.REACT_APP_API_BASE_URL}/addproduct`, {
+            await fetch(`${apiUrl}/addproduct`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',

@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from 'react'
-import './NewItems.css'
-import Item from '../Item/Item'
+import React, { useEffect, useState } from 'react';
+import './NewItems.css';
+import Item from '../Item/Item';
+import apiUrl from '@config';
 
 export const NewItems = () => {
 
     const [new_items, setNew_items] = useState([]);
 
     useEffect(() => {
-        fetch(`${process.env.REACT_APP_API_BASE_UR}/newitems`) //Contact the newitems API endpoint.
+        fetch(`${apiUrl}/newitems`) //Contact the newitems API endpoint.
             .then((response) => response.json()) //Then get the response and format it to json.
             .then((data) => setNew_items(data)); //Then take the data from it and put it in new_items using the set property for it.
     }, []) //[] indicates the useEffect to be used only one time when the component gets mounted.

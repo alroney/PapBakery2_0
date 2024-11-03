@@ -1,8 +1,11 @@
-const path = require('path-browserify');
+const path = require('path');
 
 module.exports = {
     webpack: {
-        alias: {},
+        alias: {
+            '@config': path.resolve(__dirname, 'src/config'),
+            '@components': path.resolve(__dirname, 'src/components'),
+        },
         configure: {
             resolve: {
                 fallback: {

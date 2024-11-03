@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import './Checkout.css'
+import React, { useEffect, useState } from 'react';
+import './Checkout.css';
 import {
   PayPalScriptProvider,
   usePayPalCardFields,
@@ -9,7 +9,8 @@ import {
   PayPalNumberField,
   PayPalExpiryField,
   PayPalCVVField,
-} from "@paypal/react-paypal-js"
+} from "@paypal/react-paypal-js";
+import apiUrl from '@config';
 
 export const Checkout = () => {
 
@@ -17,7 +18,7 @@ export const Checkout = () => {
   const [clientID, setClientID] = useState(null);
 
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_BASE_URL}/ppclientId`)
+    fetch(`${apiUrl}/ppclientId`)
       .then(response => response.json())
       .then(data => setClientID(data.clientID))
       .catch(error => console.error('Error fetching PayPal clientID: ', error));
@@ -53,7 +54,7 @@ export const Checkout = () => {
 
   async function createOrder() {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_UR}/orders`, {
+      const response = await fetch(`${apiUrl}/orders`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -93,7 +94,7 @@ export const Checkout = () => {
 
   async function onApprove(data, actions) {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/orders/${data.orderID}/capture`,
+      const response = await fetch(`${apiUrl}/orders/${data.orderID}/capture`,
         {
           method: "POST",
           headers: {

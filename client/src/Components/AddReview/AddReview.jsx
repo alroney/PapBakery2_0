@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react'
-import './AddReview.css'
-import upload_area from '../Assets/img/icon/upload_area.svg'
+import React, { useEffect, useState } from 'react';
+import './AddReview.css';
+import upload_area from '../Assets/img/icon/upload_area.svg';
+import apiUrl from '@config';
+
 
 export const AddReview = (props) => {
     const { product, onAddReview } = props; //Store the current product object into product
@@ -44,7 +46,7 @@ export const AddReview = (props) => {
             if(image) {
                 formData.append('product', image); //Append image separtely if it's provided.
 
-                await fetch(`${process.env.REACT_APP_API_BASE_URL}/upload`, {
+                await fetch(`${apiUrl}/upload`, {
                     method:'POST',
                     headers: {
                         Accept: 'application/json',

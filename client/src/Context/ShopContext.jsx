@@ -4,6 +4,7 @@
  */
 
 import React, { createContext, useEffect, useState } from "react";
+import apiUrl from '@config';
 
 //Create a Context for the Shop
 export const ShopContext = createContext(null);
@@ -42,7 +43,7 @@ const ShopContextProvider = (props) => {
     //Asynchronously fetches all products from the server and updates the state.
     const fetchProducts = async () => {
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/allproducts`);
+            const response = await fetch(`${apiUrl}/allproducts`);
             const data = await response.json();
             setAll_Product(data);
         }
@@ -57,7 +58,7 @@ const ShopContextProvider = (props) => {
 
         //If user is logged in, load the user's cart from the backend.
         if(localStorage.getItem('auth-token')) {
-            fetch(`${process.env.REACT_APP_API_BASE_URL}/getcart`, {
+            fetch(`${apiUrl}/getcart`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/form-data',
@@ -88,7 +89,7 @@ const ShopContextProvider = (props) => {
         
         //If user is logged in, update the backend cart.
         if(localStorage.getItem('auth-token')){
-            fetch(`${process.env.REACT_APP_API_BASE_URL}/addtocart`, {
+            fetch(`${apiUrl}/addtocart`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/form-data',
@@ -113,7 +114,7 @@ const ShopContextProvider = (props) => {
         
         //If user logged in, update the backend cart.
         if(localStorage.getItem('auth-token')) {
-            fetch(`${process.env.REACT_APP_API_BASE_URL}/removefromcart`, {
+            fetch(`${apiUrl}/removefromcart`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/form-data',

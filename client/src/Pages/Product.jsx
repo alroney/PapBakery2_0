@@ -7,6 +7,7 @@ import { DescriptionBox } from '../Components/DescriptionBox/DescriptionBox';
 import { RelatedProducts } from '../Components/RelatedProducts/RelatedProducts';
 import { AddReview } from '../Components/AddReview/AddReview';
 import { DisplayReview } from '../Components/DisplayReview/DisplayReview';
+import apiUrl from '@config';
 
 export const Product = () => {
   const { state, dispatch } = useProduct();
@@ -32,7 +33,7 @@ export const Product = () => {
     console.log("handleAddReview was triggered. newReview: ", newReview);
     try {
       //Post the new review to the backend.
-      await fetch(`${process.env.REACT_APP_API_BASE_URL}/addreview`, {
+      await fetch(`${apiUrl}/addreview`, {
         method: 'POST',
         headers: {
           Accept: 'application/json',

@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react'
-import './ListProduct.css'
-import cross_icon from '../../assets/img/icon/cross_icon.png'
-import edit_icon from '../../assets/img/icon/edit_icon.svg'
-import save_icon from '../../assets/img/icon/confirm_icon.svg'
-import cancel_icon from '../../assets/img/icon/cancel_icon.svg'
+import React, { useEffect, useState } from 'react';
+import './ListProduct.css';
+import cross_icon from '../../assets/img/icon/cross_icon.png';
+import edit_icon from '../../assets/img/icon/edit_icon.svg';
+import save_icon from '../../assets/img/icon/confirm_icon.svg';
+import cancel_icon from '../../assets/img/icon/cancel_icon.svg';
+import apiUrl from '@config';
 
 const ListProduct = () => {
 
@@ -12,7 +13,7 @@ const ListProduct = () => {
     const [editedProduct, setEditedProduct] = useState({});
 
     const fetchInfo = async () => {
-        await fetch(`${process.env.REACT_APP_API_BASE_URL}/allproducts`) //Get the response from API Endpoint.
+        await fetch(`${apiUrl}/allproducts`) //Get the response from API Endpoint.
         .then((res) => res.json()) //Converts the response to a json.
         .then((data) => {setAllProducts(data)}); //Saves data to allproducts state variable.
     }
@@ -25,7 +26,7 @@ const ListProduct = () => {
 
     //Remove product from database and allproducts list.
     const remove_product = async (id) => {
-        await fetch(`${process.env.REACT_APP_API_BASE_URL}/removeProduct`, {
+        await fetch(`${apiUrl}/removeProduct`, {
             method: 'POST',
             headers: {
                 Accept: 'application/json',
@@ -50,7 +51,7 @@ const ListProduct = () => {
 
 
     const saveEdit = async () => {
-        await fetch(`${process.env.REACT_APP_API_BASE_URL}/editproduct`, {
+        await fetch(`${apiUrl}/editproduct`, {
             method: 'POST',
             headers: {
                 Accept: 'application/json',

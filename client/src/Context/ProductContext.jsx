@@ -6,6 +6,7 @@
 
 
 import React, { createContext, useReducer, useContext, useEffect } from 'react';
+import apiUrl from '@config';
 
 //Inital state.
 const initialState = {
@@ -63,7 +64,7 @@ export const ProductProvider = ({ children }) => {
         //Fetch all products from the backend API when the provider is mounted
         const fetchProducts = async () => {
             try {
-                const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/allproducts`);
+                const response = await fetch(`${apiUrl}/allproducts`);
                 const data = await response.json();
                 console.log("Fetch products: ", data);
                 dispatch({
