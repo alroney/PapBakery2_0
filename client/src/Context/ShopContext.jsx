@@ -35,9 +35,13 @@ const getDefaultCart = () => {
 const ShopContextProvider = (props) => {
     //State to store all products fetched from the server.
     const [all_product, setAll_Product] = useState([]);
-
     //State to store cart items, initialized using getDefaultCart().
-    const [cartItems, setCartItems] = useState(getDefaultCart());
+    const [cartItems, setCartItems] = useState(() => {
+        //Load cart from localStorage for guests or initialize with default cart for logged-in users.
+        const storedCart = localStorage.getItem("cartData");
+        return storedCart ? JSON.parse(storedCart) : getDefaultCart();
+    });
+    const [loading, setLoading] = useState(true);
     
     
     //Asynchronously fetches all products from the server and updates the state.
@@ -46,16 +50,17 @@ const ShopContextProvider = (props) => {
             const response = await fetch(`${apiUrl}/allproducts`);
             const data = await response.json();
             setAll_Product(data);
+            setLoading(false);
         }
         catch(error) {
             console.error("Failed to fetch products: ", error);
+            setLoading(false);
         }
     }
 
     //useEffect hook to fetch products and load cart items on component mount.
     useEffect(() => {
         fetchProducts();
-
         //If user is logged in, load the user's cart from the backend.
         if(localStorage.getItem('auth-token')) {
             fetch(`${apiUrl}/getcart`, {
@@ -73,20 +78,18 @@ const ShopContextProvider = (props) => {
         }
     }, []) //The empty dependency array ensures this runs only once when the component is mounted.
     
-    /** addToCart
-     * 
-     * @param {number} itemId - The id of the item to be added to the cart.
-     * Adds a product to the cart by increasing its quantity by 1.
-     * If the user is logged in, it also sends a request to update the cart in the backend.
-     */
+    
+
     const addToCart = (itemId) => {
-        /** setCartItems() Explanation.
-         * The line below create a new state for `cartItems` by copying the previous state `(prev)`.
-         * The spread operator (`...prev`) ensures that all previous entries in the cart remain intact.
-         * While `[itemId]: prev[itemId] + 1` updates only the specified item.
-         */
-        setCartItems((prev) => ({...prev, [itemId]:prev[itemId] + 1})) //'prev[itemId]' will provide the key for that item. Then increment the quantity of the specified item.
-        
+        setCartItems((prev) => {
+            const updatedCart = { ...prev, [itemId]: (prev[itemId] || 0) + 1}; //Increment.
+            //Save to localStorage if user is a guest.
+            if(!localStorage.getItem("auth-token")) {
+                localStorage.setItem("cartData", JSON.stringify(updatedCart));
+            }
+            return updatedCart;
+        });
+
         //If user is logged in, update the backend cart.
         if(localStorage.getItem('auth-token')){
             fetch(`${apiUrl}/addtocart`, {
@@ -99,18 +102,22 @@ const ShopContextProvider = (props) => {
                 body: JSON.stringify({"itemId": itemId})
             })
             .then((response) => response.json())
-            .then((data) => console.log(data));
         }
     }
 
-    /** removeFromCart
-     * 
-     * @param {number} itemId - The ID of the item to be removed from the cart.
-     * Removes a product from the cart by decreasing its quantity by 1.
-     * If the user is logged in, it also sends a request to update the cart in the backend.
-     */
+    
+
     const removeFromCart = (itemId) => {
-        setCartItems((prev) => ({...prev, [itemId]:prev[itemId] - 1})); //Decrement the quantity of the specified item
+        setCartItems((prev) => {
+            const updatedCart = { ...prev, [itemId]: (prev[itemId] || 1) - 1}; //Decrement.
+            //Remove item if quantity reaches 0.
+            if(updatedCart[itemId] <= 0) delete updatedCart[itemId];
+            //Update localStorage for guests.
+            if(!localStorage.getItem("auth-token")) {
+                localStorage.setItem("cartData", JSON.stringify(updatedCart));
+            }
+            return updatedCart;
+        });
         
         //If user logged in, update the backend cart.
         if(localStorage.getItem('auth-token')) {
@@ -124,9 +131,6 @@ const ShopContextProvider = (props) => {
                 body: JSON.stringify({"itemId": itemId})
             })
             .then((response) => response.json())
-            .then((data) => console.log(data));
-
-            console.log("Product removed from cart db");
         }
     }
 
@@ -168,7 +172,8 @@ const ShopContextProvider = (props) => {
         all_product, cartItems,
         addToCart,
         removeFromCart,
-        fetchProducts
+        fetchProducts,
+        loading,
     };
 
     //Return the Provider component, passing the context value down to children components.

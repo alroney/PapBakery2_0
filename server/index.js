@@ -142,7 +142,7 @@ const updateAverageRating = async (productId) => {
     }
 }
 
-const createOrderLimiter = rateLimit({
+const rateLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, //15 minutes
     max: 100, //Limit each IP to 100 requests per windowMs (15mins).
     message: 'Too many requests, please try again later.',
@@ -198,7 +198,7 @@ app.use(bodyParser.json());
     app.use('/images', express.static('upload/images'))
 
 
-    
+
     //API Endpoint to handle image uploads.
     app.post("/upload", upload.single('product'), (req,res) => {//field name is product.
         try {
@@ -748,8 +748,15 @@ app.use(bodyParser.json());
         //API endpoint to send an email.
         app.post("/send-confirmation-email", fetchUser, async (req,res) => {
             try {
-                let userData = await Users.findOne({_id: req.user.id});
-                let cartData = userData.cartData;
+                let cartData;
+
+                if(req.user) {
+                    let userData = await Users.findOne({_id: req.user.id});
+                    cartData = userData.cartData;
+                }
+                else if(req.body.isGuest) {
+                    cartData = req.body.cartData;
+                }
                 
                 //Find all products that are in the cart by querying the Product collection.
                 let cartItemIds = Object.keys(cartData).filter(itemId => cartData[itemId] > 0);
@@ -812,129 +819,11 @@ app.use(bodyParser.json());
 
 
 
-// const {
-        //     PAYPAL_CLIENT_ID,
-        //     PAYPAL_CLIENT_SECRET,
-        // } = process.env;
-        
-        // const client = new Client({
-        //     clientCredentialsAuthCredentials: {
-        //         oAuthClientId: PAYPAL_CLIENT_ID,
-        //         oAuthClientSecret: PAYPAL_CLIENT_SECRET,
-        //     },
-        //     timeout: 0,
-        //     environment: Environment.Sandbox,
-        //     logging: {
-        //         logLevel: LogLevel.Info,
-        //         logRequest: { logBody: true },
-        //         logResponse: { logHeaders: true },
-        //     },
-        // }); 
-        // const ordersController = new OrdersController(client);
-        // const paymentsController = new PaymentsController(client);
-        
-        // /**
-        //  * Create an order to start the transaction.
-        //  * @see https://developer.paypal.com/docs/api/orders/v2/#orders_create
-        //  */
-        // const createOrder = async (cart) => {
-        //     const collect = {
-        //         body: {
-        //             intent: "CAPTURE",
-        //             purchaseUnits: [
-        //                 {
-                            
-        //                     amount: {
-        //                         currencyCode: "USD",
-        //                         value: "100",
-        //                     },
-        //                 },
-        //             ],
-        //         },
-        //         prefer: "return=minimal",
-        //     }; 
-        
-        //     try {
-        //         const { body, ...httpResponse } = await ordersController.ordersCreate(
-        //             collect
-        //         );
-        //         // Get more response info...
-        //         // const { statusCode, headers } = httpResponse;
-        //         return {
-        //             jsonResponse: JSON.parse(body),
-        //             httpStatusCode: httpResponse.statusCode,
-        //         };
-        //     } catch (error) {
-        //         if (error instanceof ApiError) {
-        //             // const { statusCode, headers } = error;
-        //             throw new Error(error.message);
-        //         }
-        //     }
-        // };
-        
-        // // createOrder route
-        // app.post("/api/orders", async (req, res) => {
-        //     try {
-        //         // use the cart information passed from the front-end to calculate the order amount detals
-        //         const { cart } = req.body;
-        //         const { jsonResponse, httpStatusCode } = await createOrder(cart);
-        //         res.status(httpStatusCode).json(jsonResponse);
-        //     } catch (error) {
-        //         console.error("Failed to create order:", error);
-        //         res.status(500).json({ error: "Failed to create order." });
-        //     }
-        // });
-        
-        
-        
-        // /**
-        //  * Capture payment for the created order to complete the transaction.
-        //  * @see https://developer.paypal.com/docs/api/orders/v2/#orders_capture
-        //  */
-        // const captureOrder = async (orderID) => {
-        //     const collect = {
-        //         id: orderID,
-        //         prefer: "return=representation",
-        //     };
-        
-        //     try {
-        //         const { body, ...httpResponse } = await ordersController.ordersCapture(
-        //             collect
-        //         );
-        //         // Get more response info...
-        //         // const { statusCode, headers } = httpResponse;
-        //         return {
-        //             jsonResponse: JSON.parse(body),
-        //             httpStatusCode: httpResponse.statusCode,
-        //         };
-        //     } catch (error) {
-        //         if (error instanceof ApiError) {
-        //             // const { statusCode, headers } = error;
-        //             throw new Error(error.message);
-        //         }
-        //     }
-        // };
-        
-        // // captureOrder route
-        // app.post("/api/orders/:orderID/capture", async (req, res) => {
-        //     try {
-        //         const { orderID } = req.params;
-        //         const { jsonResponse, httpStatusCode } = await captureOrder(orderID);
-        //         res.status(httpStatusCode).json(jsonResponse);
-        //     } catch (error) {
-        //         console.error("Failed to create order:", error);
-        //         res.status(500).json({ error: "Failed to capture order." });
-        //     }
-        // });
-
-        
 
 
+        app.post('/create_order', rateLimiter, (req, res) => {
+            let total = 1.00;
 
-
-
-
-        app.post('/create_order', createOrderLimiter, (req, res) => {
             get_access_token()
                 .then(access_token => {
                     let order_data_json = {
@@ -942,7 +831,7 @@ app.use(bodyParser.json());
                         'purchase_units': [{
                             'amount': {
                                 'currency_code': 'USD',
-                                'value': '50.00' //This is the total amount that will be charged.
+                                'value': total //This is the total amount that will be charged.
                             },
                         }],
                     };
