@@ -87,32 +87,32 @@ const ListProduct = () => {
             {allproducts.map((product, index) => {
                 const isEditing = editingProductId === product.id;
                 //Template to map each product according to its key (index).
-                return <>
-                    <div key={index} className="listproduct-format-main listproduct-format">
-                        <img src={product.image} alt="" className="listproduct-product-icon" />
+                return (
+                    <div>
                         {isEditing ? (
-                        <>
-                            <input value={editedProduct.name} onChange={handleEditChange} type="text" name="name" />
-                            <input value={editedProduct.description} onChange={handleEditChange} type="text" name="description" />
-                            <input value={editedProduct.price} onChange={handleEditChange} type="number" name="price" />
-                            <input value={editedProduct.category} onChange={handleEditChange} type="text" name="category" /> {/*Change to selec later*/}
-                            <img onClick={saveEdit} src={save_icon} alt="Save" className="listproduct-save-icon"/>
-                            <img onClick={cancelEdit} src={cancel_icon} alt="Cancel" className="listproduct-cancel-icon"/>
-                        </>
+                            <div key={index} className="listproduct-format-main listproduct-format">
+                                <img src={product.image} alt="" className="listproduct-product-icon" />
+                                <input value={editedProduct.name} onChange={handleEditChange} type="text" name="name" />
+                                <input value={editedProduct.description} onChange={handleEditChange} type="text" name="description" />
+                                <input value={editedProduct.price} onChange={handleEditChange} type="number" name="price" />
+                                <input value={editedProduct.category} onChange={handleEditChange} type="text" name="category" /> {/*Change to selec later*/}
+                                <img onClick={saveEdit} src={save_icon} alt="Save" className="listproduct-save-icon"/>
+                                <img onClick={cancelEdit} src={cancel_icon} alt="Cancel" className="listproduct-cancel-icon"/>
+                            </div>
                         ) : (
-                        <>
-                            <p>{product.name}</p>
-                            <p>{product.description}</p>
-                            <p>${product.price}</p>
-                            <p>{product.category}</p>
-                            <img onClick={() => {startEditing(product)}} src={edit_icon} alt='edit' className="listproduct-edit-icon"/>
-                            <img onClick={() => {remove_product(product.id)}} src={cross_icon} alt="X" className="listproduct-remove-icon" />                          
-                        </>
+                            <div key={index} className="listproduct-format-main listproduct-format">
+                                <img src={product.image} alt="" className="listproduct-product-icon" />
+                                <p>{product.name}</p>
+                                <p>{product.description}</p>
+                                <p>${product.price}</p>
+                                <p>{product.category}</p>
+                                <img onClick={() => {startEditing(product)}} src={edit_icon} alt='edit' className="listproduct-edit-icon"/>
+                                <img onClick={() => {remove_product(product.id)}} src={cross_icon} alt="X" className="listproduct-remove-icon" />                          
+                            </div>
                         )}
-                        
+                        <hr />
                     </div>
-                    <hr />
-                </>
+                )
             })}
         </div>
     </div>

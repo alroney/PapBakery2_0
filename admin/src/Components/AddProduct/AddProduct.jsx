@@ -53,7 +53,6 @@ const AddProduct = () => {
 
         if(responseData.success) {
             product.image = responseData.image_url; //Set product image to image url given by the backend.
-            console.log(product);
 
             //Send product to addproduct API Endpoint.
             await fetch(`${apiUrl}/addproduct`, {

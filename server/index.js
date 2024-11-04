@@ -226,10 +226,12 @@ app.use(bodyParser.json());
         name: {
             type: String,
             required: true,
+            default: "product",
         },
         image: {
             type: String,
             required: true,
+            default: "",
         },
         description: {
             type: String,
@@ -239,10 +241,12 @@ app.use(bodyParser.json());
         category:{
             type: String,
             required: true,
+            default: "none",
         },
         price:{
             type: Number,
             required: true,
+            default: 0,
         },
         date:{
             type: Date,
@@ -255,21 +259,21 @@ app.use(bodyParser.json());
         reviews: [ //This property is an array since it will hold multiple reviews.
             {
                 id: {
-                    type: Number,
-                    required: true,
-                    unique: true,
+                    type: String,
+                    required: false,
                 },
                 name: {
                     type: String,
-                    required: true,
+                    required: false,
+                    default: null,
                 },
                 rating: {
                     type: Number,
-                    required: true,
+                    required: false,
                 },
                 comment: {
                     type: String,
-                    required: true,
+                    required: false,
                 },
                 image: { //This property gives the option to add an image to a review.
                     type: String,
@@ -277,12 +281,12 @@ app.use(bodyParser.json());
                 },
                 user: {//This property is created to assign the user to the review made.
                     type: mongoose.Schema.Types.ObjectId,
-                    required: true,
+                    required: false,
                     ref: "users",
                 },
                 date: {
                     type: Date,
-                    required: true,
+                    required: false,
                     default: Date.now(),
                 },
             },
@@ -303,13 +307,14 @@ app.use(bodyParser.json());
     //#region - PRODUCT RELATED API ENDPOINTS
         //API endpoint to add a new product.
         app.post('/addproduct', async (req,res) => {
+            
+            let products = await Product.find({}); 
+            console.log("Product Length: "+ products.length);
             try {
-                let products = await Product.find({}); 
-                console.log("Product Length: "+ products.length);
 
                 //Generate a new product ID. If there are exisiting products, it takes the last product's ID and increments it by 1. If no products exist, it starts with an ID of 1.
                 let id = products.length > 0 ? products.slice(-1)[0].id + 1 : 1; //slice() method is used to return a shallow copy of a portion of an array. So, slice(-1) is used with a negative index, which means "get the last element of the array". This returns an array containing only the last product in the products array.
-                
+                console.log("ID: ", id);
 
                 //Create a new product with the provided values.
                 const product = new Product({
@@ -321,7 +326,6 @@ app.use(bodyParser.json());
                 });
 
                 //Save the product to the database.
-                console.log(product);
                 await product.save();
                 console.log("Product Added");
 
@@ -332,6 +336,7 @@ app.use(bodyParser.json());
                 })
             }
             catch(error) {
+                console.log("Product Length was: ", products.length);
                 console.log("Error while adding product: ", error);
             }
         });
@@ -370,7 +375,7 @@ app.use(bodyParser.json());
         app.post('/removeproduct', async (req,res) => {
             try {
                 await Product.findOneAndDelete({id:req.body.id});
-
+                
                 res.json({
                     success: true,
                     name: req.body.name,
