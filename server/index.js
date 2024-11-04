@@ -197,6 +197,8 @@ app.use(bodyParser.json());
     //Serve static images from the 'upload/images' folder.
     app.use('/images', express.static('upload/images'))
 
+
+    
     //API Endpoint to handle image uploads.
     app.post("/upload", upload.single('product'), (req,res) => {//field name is product.
         try {
