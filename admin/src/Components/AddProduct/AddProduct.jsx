@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './AddProduct.css';
 import upload_area from '../../assets/img/icon/upload_area.svg';
-import apiUrl from '@config';
+const apiUrl = "http://localhost:4000";
 
 const AddProduct = () => {
     //const [variableName, setterFunction] = useState(initialState);
@@ -11,6 +11,7 @@ const AddProduct = () => {
         image: "",
         category: "biscuit",
         price: "",
+        description: "",
     });
 
 

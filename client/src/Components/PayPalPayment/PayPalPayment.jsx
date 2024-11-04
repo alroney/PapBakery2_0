@@ -25,7 +25,7 @@ export const PayPalPayment = () => {
                 script.src = `${paypal_sdk_url}?client-id=${client_id}&enable-funding=venmo&currency=${currency}&intent=${intent}`;
                 script.onload = () => {
                     setLoading(false);
-                    initPayPalButtons();
+                    waitForRefAndInit();
                 };
                 script.onerror = () => setAlertMessage("Failed to load PayPal script.");
                 document.head.appendChild(script);
@@ -35,7 +35,22 @@ export const PayPalPayment = () => {
             }
         };
 
+        //Set a timeout to retry loading the buttons if they fail to load on initial page opening.
+        const waitForRefAndInit = () => {
+            if(paymentOptionsRef.current) {
+                initPayPalButtons();
+            }
+            else {
+                setTimeout(waitForRefAndInit, 100); //Retry after 100ms if is still undefined.
+            }
+        }
+
         const initPayPalButtons = () => {
+            if(!paymentOptionsRef.current) {
+                console.error("Error: paymentOptionsRef.current is not defined.");
+                return;
+            }
+
             const paypalButtons = window.paypal.Buttons({
                 onClick: () => {
                     // Custom logic before transaction
@@ -104,16 +119,18 @@ export const PayPalPayment = () => {
     }, []);
 
     return (
-        <div className="container">
-            <div className="row">
-                <div className="col-sm"></div>
-                <div className="col-sm">
-                    <h2 className="ms-text-center">AI-generated NFT Bored Ape</h2>
-                    <div className="ms-text-center pb-2">
-                        <div className="ms-label ms-large ms-action2 ms-light">$100.00 USD</div>
+        <div className="paypalpayment">
+            <div className="ppp-content">
+                <div className="ppp-content-recap">
+                    <h2 className="ppp-content-recap-title">Checkout</h2>
+                    <div className="ppp-content-recap-context">
+                        <div className="ms-label ms-large ms-action2 ms-light">Grand Total: $100.00 USD</div>
                     </div>
+                </div>
+                
+                <div className="ppp-content-alertmessage">
                     {alertMessage && (
-                        <div id="alerts" className="ms-text-center">
+                        <div id="alerts">
                             <div
                                 className="ms-alert ms-action"
                                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(alertMessage) }}
@@ -121,6 +138,9 @@ export const PayPalPayment = () => {
                             <span className="ms-close" onClick={() => setAlertMessage("")}>&times;</span>
                         </div>
                     )}
+                </div>
+                
+                <div className="ppp-content-payment">
                     {loading ? (
                         <div className="spinner-container ms-div-center">
                             <div className="spinner"></div>
@@ -136,7 +156,7 @@ export const PayPalPayment = () => {
                         </div>
                     )}
                 </div>
-                <div className="col-sm"></div>
+                
             </div>
         </div>
     );

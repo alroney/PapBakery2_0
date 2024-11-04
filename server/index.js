@@ -28,19 +28,26 @@ const pp_client_id = process.env.PAYPAL_CLIENT_ID;
 const pp_client_secret = process.env.PAYPAL_CLIENT_SECRET;
 const paypal_endpoint_url = environment === 'sandbox' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
 
-app.use(helmet()); //Secures the Express app by setting various HTTP headers that enhance security.
+
+
+
+
+//#region - MIDDLEWARE SETUP
+
+app.use(helmet());
 app.use(express.json()); //Automatically parse incoming requests as JSON.
 app.use(express.urlencoded({
     extended: true
 })); 
 app.use(cors()); //Allow React app to connect to the Express app.
 
+//Set Cross-Origin-Resource-Policy to cross-origin during development and same-site during production.
+app.use((req,res,next) => {
+    res.setHeader('Cross-Origin-Resource-Policy', environment === 'sandbox' ? 'cross-origin' : 'same-site');
+    next();
+})
 
-
-//#region - MIDDLEWARE SETUP
-
-
- /** Explanation of Middleware.
+ /** Explanation of fetchUser Middleware.
  * Asynchronous Middleware Function.
  * 
  * @param {*} req: Represents the request made by the client.
@@ -899,7 +906,7 @@ app.use(bodyParser.json());
                         'purchase_units': [{
                             'amount': {
                                 'currency_code': 'USD',
-                                'value': '50.00'
+                                'value': '50.00' //This is the total amount that will be charged.
                             },
                         }],
                     };

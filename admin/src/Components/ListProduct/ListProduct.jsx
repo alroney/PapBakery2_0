@@ -4,7 +4,7 @@ import cross_icon from '../../assets/img/icon/cross_icon.png';
 import edit_icon from '../../assets/img/icon/edit_icon.svg';
 import save_icon from '../../assets/img/icon/confirm_icon.svg';
 import cancel_icon from '../../assets/img/icon/cancel_icon.svg';
-import apiUrl from '@config';
+const apiUrl = "http://localhost:4000";
 
 const ListProduct = () => {
 
