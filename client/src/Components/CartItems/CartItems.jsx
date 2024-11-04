@@ -1,19 +1,19 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useRef, useState } from 'react';
 import './CartItems.css';
 import { ShopContext } from '../../Context/ShopContext';
-import { Link } from 'react-router-dom';
+import { PayPalPayment } from '../PayPalPayment/PayPalPayment';
 import remove_icon from '../Assets/img/icon/cart_cross_icon.png';
 import apiUrl from '@config';
 
 export const CartItems = () => {
     const {getTotalCartItems, getTotalCartAmount, all_product, cartItems, removeFromCart, loading} = useContext(ShopContext);
-    console.log("# of Items in cart: ", getTotalCartItems());
     const authToken = localStorage.getItem('auth-token');
     const [guestData, setGuestData] = useState({
         name: "",
         phone: "",
         email: "",
-      })
+      });
+    const payRef = useRef();
 
     if(loading) {
         return <div>Loading...</div>;
@@ -34,21 +34,24 @@ export const CartItems = () => {
         };
 
         const cartData = JSON.parse(localStorage.getItem('cartData')) || {};
-        console.log("CartData in confirmation: ", cartData);
 
-        await fetch(`${apiUrl}/send-confirmation-email`, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify({
-                isGuest: !authToken, //Set `isGuest` to true if no auth-token is present.
-                cartData: cartData,
-                email: guestData.email,
-            })
-        });
+        // await fetch(`${apiUrl}/send-confirmation-email`, {
+        //     method: 'POST',
+        //     headers: headers,
+        //     body: JSON.stringify({
+        //         isGuest: !authToken, //Set `isGuest` to true if no auth-token is present.
+        //         cartData: cartData,
+        //         email: guestData.email,
+        //     })
+        // });
     }
 
 
     
+    const paynow_toggle = (e) => {
+        payRef.current.classList.toggle('paynow-visible');
+        e.target.classList.toggle('open');
+    }
 
   return (
     <div className="cartitems">
@@ -113,8 +116,10 @@ export const CartItems = () => {
                             <input type='text' name='email' value={guestData.email} onChange={changeHandler} placeholder='Email' required></input>
                         </div>
                 }
-                <button onClick={() => {getTotalCartItems() > 0 ? confirmation() : alert("Your cart is empty.")}}>PROCEED TO CHECKOUT</button>
-                
+                <button className="paynow-button" onClick={getTotalCartItems() > 0 ? paynow_toggle : alert("Cart is Empty")}>Pay Now</button>
+                <div ref={payRef} className="paynow">
+                    <PayPalPayment />
+                </div>
             </div>
 
             
