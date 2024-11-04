@@ -121,13 +121,6 @@ export const PayPalPayment = () => {
     return (
         <div className="paypalpayment">
             <div className="ppp-content">
-                <div className="ppp-content-recap">
-                    <h2 className="ppp-content-recap-title">Checkout</h2>
-                    <div className="ppp-content-recap-context">
-                        <div className="ms-label ms-large ms-action2 ms-light">Grand Total: $100.00 USD</div>
-                    </div>
-                </div>
-                
                 <div className="ppp-content-alertmessage">
                     {alertMessage && (
                         <div id="alerts">
