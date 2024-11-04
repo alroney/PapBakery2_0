@@ -7,6 +7,7 @@ const app = express();
 const mongoose = require("mongoose"); //Allows connection to MongoDB
 const jwt = require("jsonwebtoken"); //Used to generate and verify tokens.
 const multer = require("multer"); //Allows for image storage handling.
+const fs = require('fs');
 const path = require("path");
 const cors = require("cors"); //Allows client (React) to access the backend.
 const axios = require("axios"); //Used to make HTTP requests to external APIs.
@@ -374,15 +375,43 @@ app.use(bodyParser.json());
         //API endpoint to remove a product by ID.
         app.post('/removeproduct', async (req,res) => {
             try {
-                await Product.findOneAndDelete({id:req.body.id});
+                const product = await Product.findOne({id:req.body.id});
+
+                if(!product) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Product not found',
+                    });
+                }
+
+                //Get only the image file name if `product.image` contains a full URL.
+                const imageName = product.image.split('/').pop(); //Extracts the file name
+                const imagePath = path.join(__dirname, 'upload/images', imageName);
+
                 
-                res.json({
-                    success: true,
-                    name: req.body.name,
+
+                //Delete the image file
+                fs.unlink(imagePath, async (error) => {
+                    if(error) {
+                        console.error("Error while deleting the image file: ", error);
+                    }
+                    else {
+                        console.log("Image file deleted successfull.");
+                        //Delete the product from the database.
+                        await Product.findOneAndDelete({ id: req.body.id });
+                        res.json({
+                            success: true,
+                            name: req.body.name,
+                        });
+                    }
                 });
             }
             catch(error) {
                 console.log("Error while removing product: ", error);
+                res.status(500).json({
+                    success: false,
+                    message: "Error while removing product",
+                })
             }
         });
 
