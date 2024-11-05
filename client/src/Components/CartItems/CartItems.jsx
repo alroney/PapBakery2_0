@@ -105,7 +105,7 @@ export const CartItems = () => {
                             <input type='email' name='guestEmail' value={guestData.guestEmail} onChange={changeHandler}  placeholder='Email' required />
                         </div>
                 }
-                <button className="paynow-button" onClick={ getTotalCartItems() > 0 ? paynow_toggle : alert("Cart is Empty")}>Pay Now</button>
+                <button className="paynow-button" onClick={(e) => getTotalCartItems() > 0 ? paynow_toggle(e) : alert("Cart is Empty")}>Pay Now</button>
                 <div ref={payRef} className="paynow">
                     <PayPalPayment guestData={ !authToken ? guestData : null }/>
                 </div>

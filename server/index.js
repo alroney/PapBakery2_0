@@ -567,7 +567,7 @@ app.use(bodyParser.json());
             const user = this; //`this` refers to the document.
             if(user.isModified("password")) {
                 console.log("hashing password...");
-                user.password = await bcrypt.hash(user.password, process.env.BCRYPT_SALT_ROUNDS);
+                user.password = await bcrypt.hash(user.password, saltRounds);
             }
 
             next();

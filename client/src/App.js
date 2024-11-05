@@ -14,6 +14,10 @@ function App() {
     <div>
       <BrowserRouter>
         <Navbar/>
+        {localStorage.getItem('auth-token')
+          ? <></>
+          : <p>GUEST MODE</p>
+        }
         <Routes>
           <Route path='/' element={<Shop/>}/>
           <Route path='/biscuits' element={<ShopCategory category="biscuits"/>}/>
