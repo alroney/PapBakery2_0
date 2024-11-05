@@ -28,7 +28,7 @@ const environment = process.env.ENVIRONMENT;
 const pp_client_id = process.env.PAYPAL_CLIENT_ID;
 const pp_client_secret = process.env.PAYPAL_CLIENT_SECRET;
 const paypal_endpoint_url = environment === 'sandbox' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
-
+const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS, 10); //Convert to integer.
 
 
 
@@ -60,42 +60,41 @@ app.use((req,res,next) => {
  */
 const fetchUser = async (req,res,next) => {
     const token = req.header('auth-token'); //Extract JWT token value from the key 'auth-token' located in the 'headers' key's object value in the fetch functions object parameter -> fetch(('api_endpoint_url'), {}).
+    
     if(!token) {
-        //If no token is provided.
-        res.status(401).send({errors: "Please authenticate using valid token."});
+        req.user = null; //Set req.user to null for guest users.
+        return next(); ///Proceed without user authentication.
     }
-    else {
-        try {
-            /** Explanation of JWT verification process.
-             * Verify JWT token and extract user data.
-             * 
-             * @Verification_Process
-             * - `jwt.verify(token, process.env.JWT_SECRET)`: used to verify the token.
-             *      - `token`: The JWT token extracted from the request header.
-             *      - `secret_ecom`: The secret key used to verify the token's integrity.
-             *          - This is the same secret that was used to sign the token when it was originally created.
-             *          - If the token has been altered or is not valid, verification will fail.
-             * - If the token is valid, `jwt.verify()` returns the decoded payload from the token, which in this case is assigned to the variable `data`.
-             *      - `data` contains the information embedded when the token was created, specifically `{user: {id: user.id} }`
-             * 
-             * Extract User Data
-             * - `req.user =data.user;` assigns the `user` object (from the decoded token) to `req.user`.
-             * - This allows the information about the user (e.g. user ID) to be available in any subsequent route handler or middleware.
-             * - For example, any route that follows this middleware can use req.user.id to know which user is making the request.
-             * 
-             * Call Next Middleware
-             * - `next();` is called to pass control to the next middleware function in the stack.
-             * - If the middleware successfully authenticates the user, the request proceeds to the next handler (e.g. a route that handles a request to add a product to a cart).
-             */
-            const data = jwt.verify(token, process.env.JWT_SECRET);
-            req.user = data.user;
-            next();
-        }
-        catch (error) {
-            res.status(401).send({errors: "Please authenticate using valid token."});
-        }
+    try {
+        /** Explanation of JWT verification process.
+         * Verify JWT token and extract user data.
+         * 
+         * @Verification_Process
+         * - `jwt.verify(token, process.env.JWT_SECRET)`: used to verify the token.
+         *      - `token`: The JWT token extracted from the request header.
+         *      - `secret_ecom`: The secret key used to verify the token's integrity.
+         *          - This is the same secret that was used to sign the token when it was originally created.
+         *          - If the token has been altered or is not valid, verification will fail.
+         * - If the token is valid, `jwt.verify()` returns the decoded payload from the token, which in this case is assigned to the variable `data`.
+         *      - `data` contains the information embedded when the token was created, specifically `{user: {id: user.id} }`
+         * 
+         * Extract User Data
+         * - `req.user =data.user;` assigns the `user` object (from the decoded token) to `req.user`.
+         * - This allows the information about the user (e.g. user ID) to be available in any subsequent route handler or middleware.
+         * - For example, any route that follows this middleware can use req.user.id to know which user is making the request.
+         * 
+         * Call Next Middleware
+         * - `next();` is called to pass control to the next middleware function in the stack.
+         * - If the middleware successfully authenticates the user, the request proceeds to the next handler (e.g. a route that handles a request to add a product to a cart).
+         */
+        const verified = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = verified.user;
+        next();
     }
-}
+    catch (error) {
+        res.status(401).send({errors: "Invalid token."});
+    }
+};
 
 /** Explanation of Middleware Usage.
  * HOW THE MIDDLEWARE IS USED (fetchUser)
@@ -567,6 +566,7 @@ app.use(bodyParser.json());
         try {
             const user = this; //`this` refers to the document.
             if(user.isModified("password")) {
+                console.log("hashing password...");
                 user.password = await bcrypt.hash(user.password, process.env.BCRYPT_SALT_ROUNDS);
             }
 
@@ -722,44 +722,32 @@ app.use(bodyParser.json());
         });
         //#endregion
 
+//#endregion
 
 
 
+        //Helper function to fetch cart data based on user or guest.
+        async function getCartData(req) {
+            console.log("Getting cart data......");
+            if(req.user) {
+                console.log("User found! Using user cart.");
+                const userData = await Users.findOne({_id: req.user.id});
+                return { cartData: userData.cartData, email: userData.email };
+            }
+            else if(req.body.isGuest) {
+                console.log("No user found. Searching for guest email...")
+                if(!req.body.guestEmail) throw new Error("Guest email is required for guest checkout");
+                console.log("Guest email found. Returning cartData and email...");
+                return { cartData: req.body.cartData, email: req.body.guestEmail };
+            }
+            else {
+                console.log("Cart data not found.");
+            }
+        }
 
-
-
-
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-
-        //API endpoint to send an email.
-        app.post("/send-confirmation-email", fetchUser, async (req,res) => {
-            try {
-                let cartData;
-
-                if(req.user) {
-                    let userData = await Users.findOne({_id: req.user.id});
-                    cartData = userData.cartData;
-                }
-                else if(req.body.isGuest) {
-                    cartData = req.body.cartData;
-                }
-                
-                //Find all products that are in the cart by querying the Product collection.
-                let cartItemIds = Object.keys(cartData).filter(itemId => cartData[itemId] > 0);
+        //Helper function to generate cart summary.
+        async function generateCartSummary(cartData) {
+            let cartItemIds = Object.keys(cartData).filter(itemId => cartData[itemId] > 0);
                 let products = await Product.find({id: {$in: cartItemIds} });
 
                 
@@ -784,76 +772,76 @@ app.use(bodyParser.json());
 
                 cartSummary += `\nGrand Total = $${totalAmount}`
 
-                //SMTP configuration for Zoho Mail.
-                const transporter = nodemailer.createTransport({
-                    host: "smtp.zoho.com",
-                    port: 465,
-                    secure: true,
-                    auth: {
-                        user: process.env.AUTO_EMAIL_ADR,
-                        pass: process.env.AUTO_EMAIL_PAS,
+                return cartSummary;
+        }
+
+        //Helper function to send confirmation email.
+        async function sendConfirmationEmail(email, cartSummary) {
+            //SMTP configuration for Zoho Mail.
+            const transporter = nodemailer.createTransport({
+                host: "smtp.zoho.com",
+                port: 465,
+                secure: true,
+                auth: {
+                    user: process.env.AUTO_EMAIL_ADR,
+                    pass: process.env.AUTO_EMAIL_PAS,
+                },
+            });
+
+            await transporter.sendMail({
+                from: process.env.AUTO_EMAIL_ADR,
+                to: email,
+                subject: "Order Confirmation",
+                text: `Your order has been confirmed.\n\n ${cartSummary}`,
+            });
+        }
+
+
+
+
+        app.post('/create_order', rateLimiter, async (req, res) => {
+            
+            try {
+                const isGuest = !req.user; //Determine if it's a guest checkout.
+                const { cartData, email } = getCartData(req); //Use helper function to get the cart data.
+                
+                let total = 0.00;
+                
+                //Find all products that are in the cart by querying the Product collection.
+                let cartItemIds = Object.keys(cartData).filter(itemId => cartData[itemId] > 0);
+                let products = await Product.find({id: {$in: cartItemIds} });
+
+                total = products.reduce((sum, product) => sum + (product.price * cartData[product.id], 0).toFixed(2))
+
+                console.log("Made it inside create_order. Now running get_access_token.");
+
+                const access_token = await get_access_token();
+                console.log("Access_Token: ", access_token);
+                const order_data_json = {
+                    intent: req.body.intent.toUpperCase(),
+                    purchase_units: [{
+                        currency_code: 'USD',
+                        value: total,
+                    }],
+                };
+
+                const response = await fetch(paypal_endpoint_url + '/v2/checkout/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${access_token}`
                     },
+                    body: JSON.stringify(order_data_json),
                 });
-                console.log("Emails sending");
-                await transporter.sendMail({
-                    from: process.env.AUTO_EMAIL_ADR,
-                    to: userData.email,
-                    subject: "Order Confirmation",
-                    text: `Your order has been confirmed.\n\n ${cartSummary}`,
-                });
-        
-                res.json({
-                    success: true,
-                    message: "Email sent successfully"
-                });
+
+                const json = await response.json();
+                res.send(json);
             }
             catch(error) {
-                console.log("Error sending email: ", error);
-                res.status(500).json({success: false, message: "Failed to send email."});
+                console.log("Error in create_order: ", error);
+                res.status(500).send(error);
             }
             
-        });
-
-//#endregion
-
-
-
-
-
-
-        app.post('/create_order', rateLimiter, (req, res) => {
-            let total = 1.00;
-
-            get_access_token()
-                .then(access_token => {
-                    let order_data_json = {
-                        'intent': req.body.intent.toUpperCase(),
-                        'purchase_units': [{
-                            'amount': {
-                                'currency_code': 'USD',
-                                'value': total //This is the total amount that will be charged.
-                            },
-                        }],
-                    };
-
-                    const data = JSON.stringify(order_data_json);
-                    
-                    fetch(paypal_endpoint_url + '/v2/checkout/orders', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${access_token}`
-                        },
-                        body: data
-                    })
-                    .then(res => res.json())
-                    .then(json => {
-                        res.send(json);
-                    }) //Send minimal data to client.
-                }).catch(error => {
-                    console.log("Error in create_order: ", error);
-                    res.status(500).send(error);
-                })
         });
 
         /**
@@ -870,41 +858,79 @@ app.use(bodyParser.json());
          * @throws {Error} If there is an error completing the order.
          */
 
-        app.post('/complete_order', (req,res) => {
-            get_access_token()
-                .then(access_token => {
-                    fetch(paypal_endpoint_url + '/v2/checkout/orders/' + req.body.order_id + '/' + req.body.intent, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${access_token}`
-                        }
-                    })
-                    .then(res => res.json())
-                    .then(json => {
-                        console.log(json);
-                        res.send(json);
-                    }) //Send minimal data to client.
-                }).catch(error => {
-                    console.log("Error in complete_order: ", error);
-                    res.status(500).send(error);
-                })
+        /**@todo: Create a model for completed orders. Then add completed orders to the model everytime. */
+
+        app.post('/complete_order', async (req,res) => {
+            try {
+                const access_token = get_access_token();
+                const response = await fetch(paypal_endpoint_url + '/v2/checkout/orders/' + req.body.order_id + '/' + req.body.intent, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${access_token}`,
+                    }
+                });
+
+                const json = await response.json();
+                if(json.status === 'COMPLETED') {
+                    const { cartData, email } = await getCartData(req);
+                    const cartSummary = await generateCartSummary(cartData);
+
+                    await sendConfirmationEmail(email, cartSummary);
+
+                    res.json({ success: true, message: "Order completed and email sent successfully!", paymentDetails: json });
+                }
+                else {
+                    res.json({ success: false, message: "Payment could not be completed.", details: json});
+                }
+            }
+            catch(error) {
+                console.log("Error in complete_order: ", error);
+                res.status(500).json({ success: false, message: "An error occurred while completing the order."})
+            }
+
+            // get_access_token()
+            //     .then(access_token => {
+            //         fetch(paypal_endpoint_url + '/v2/checkout/orders/' + req.body.order_id + '/' + req.body.intent, {
+            //             method: 'POST',
+            //             headers: {
+            //                 'Content-Type': 'application/json',
+            //                 'Authorization': `Bearer ${access_token}`
+            //             }
+            //         })
+            //         .then(res => res.json())
+            //         .then(json => {
+            //             console.log(json);
+            //             res.send(json);
+            //         }) //Send minimal data to client.
+            //     }).catch(error => {
+            //         console.log("Error in complete_order: ", error);
+            //         res.status(500).send(error);
+            //     })
         });
 
         const get_access_token = () => {
             const auth = `${pp_client_id}:${pp_client_secret}`;
             const data = 'grant_type=client_credentials';
+            console.log("get_access_token reached!");
 
             return fetch(paypal_endpoint_url + '/v1/oauth2/token', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded',
                     'Authorization': `Basic ${Buffer.from(auth).toString('base64')}`
                 },
                 body: data
             })
-            .then(res => res.json())
             .then(json => {
+                console.log("Access token retrieved: ", json.access_token);
+                if(!json.access_token) {
+                    throw new Error('Access token missing in response.');
+                }
                 return json.access_token;
             })
+            .catch(error => {
+                console.error("Error fetching access token: ", error);
+                throw error; //Propagate the error so it can be handled by the caller
+            });
         };

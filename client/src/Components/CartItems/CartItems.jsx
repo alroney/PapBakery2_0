@@ -9,9 +9,9 @@ export const CartItems = () => {
     const {getTotalCartItems, getTotalCartAmount, all_product, cartItems, removeFromCart, loading} = useContext(ShopContext);
     const authToken = localStorage.getItem('auth-token');
     const [guestData, setGuestData] = useState({
-        name: "",
-        phone: "",
-        email: "",
+        guestName: "",
+        guestPhone: "",
+        guestEmail: "",
       });
     const payRef = useRef();
 
@@ -34,16 +34,7 @@ export const CartItems = () => {
         };
 
         const cartData = JSON.parse(localStorage.getItem('cartData')) || {};
-
-        // await fetch(`${apiUrl}/send-confirmation-email`, {
-        //     method: 'POST',
-        //     headers: headers,
-        //     body: JSON.stringify({
-        //         isGuest: !authToken, //Set `isGuest` to true if no auth-token is present.
-        //         cartData: cartData,
-        //         email: guestData.email,
-        //     })
-        // });
+        
     }
 
 
@@ -100,25 +91,23 @@ export const CartItems = () => {
                     </div>
                 </div>
 
-                {/* <div className="cartitems-promocode">
+                <div className="cartitems-promocode">
                     <p>If you have a promo code, Enter it here</p>
                     <div className="cartitems-promobox">
                         <input type="text" placeholder="PROMO-CODE"/>
                         <button>SUBMIT</button>
                     </div>
-                </div> */}
+                </div>
 
                 {authToken
                     ? <></> //If true.
-                    :   <div>
-                            <input type='text' name='name' value={guestData.name} onChange={changeHandler} placeholder='First Name' required></input>
-                            <input type='text' name='phone' value={guestData.phone} onChange={changeHandler} placeholder='###-###-####'></input>
-                            <input type='text' name='email' value={guestData.email} onChange={changeHandler} placeholder='Email' required></input>
+                    :   <div className="guest-info-fields">
+                            <input type='email' name='guestEmail' value={guestData.guestEmail} onChange={changeHandler}  placeholder='Email' required />
                         </div>
                 }
-                <button className="paynow-button" onClick={getTotalCartItems() > 0 ? paynow_toggle : alert("Cart is Empty")}>Pay Now</button>
+                <button className="paynow-button" onClick={ getTotalCartItems() > 0 ? paynow_toggle : alert("Cart is Empty")}>Pay Now</button>
                 <div ref={payRef} className="paynow">
-                    <PayPalPayment />
+                    <PayPalPayment guestData={ !authToken ? guestData : null }/>
                 </div>
             </div>
 

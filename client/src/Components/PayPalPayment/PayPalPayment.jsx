@@ -6,10 +6,13 @@ function Message({content}) {
     return <p>{content}</p>
 }
 
-export const PayPalPayment = () => {
+export const PayPalPayment = ({ guestData }) => {
 
     const paypal_sdk_url = "https://www.paypal.com/sdk/js";
     const client_id = process.env.REACT_APP_PAYPAL_CLIENT_ID;
+    const userAuthToken = localStorage.getItem("auth-token");
+    const guestMode = false;
+    const guestEmail = guestData.guestEmail;
     const currency = "USD";
     const intent = "capture";
 
@@ -17,6 +20,10 @@ export const PayPalPayment = () => {
     const [alertMessage, setAlertMessage] = useState("");
     const contentRef = useRef(null);
     const paymentOptionsRef = useRef(null);
+
+    useEffect(() => {
+        console.log("Guest Data received in PayPalPayment: ", guestEmail);
+    }, [guestData])
 
     useEffect(() => {
         const loadPayPalScript = async () => {
@@ -50,7 +57,8 @@ export const PayPalPayment = () => {
                 console.error("Error: paymentOptionsRef.current is not defined.");
                 return;
             }
-
+            
+            console.log("Guest email outside of createOrder: ", guestEmail);
             const paypalButtons = window.paypal.Buttons({
                 onClick: () => {
                     // Custom logic before transaction
@@ -61,24 +69,55 @@ export const PayPalPayment = () => {
                     layout: 'vertical',
                     label: 'paypal'
                 },
-                createOrder: (data, actions) => {
-                    return fetch(`${apiUrl}/create_order`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ "intent": intent })
-                    })
-                    .then(response => {
-                        if (!response.ok) throw new Error('Failed to create order.');
-                        return response.json();
-                    })
-                    .then(order => order.id);
+                createOrder: async () => {
+                    console.log("Create order has been called with Auth-Token of: ", userAuthToken);
+                    console.log("Guest email: ", guestEmail);
+                    try {
+                        const requestBody = {
+                            "intent": intent,
+                            "isGuest": !userAuthToken ? true : false,
+                            "guestEmail": guestData.guestEmail,
+                        }
+
+                        const response = await fetch(`${apiUrl}/create_order`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "auth-token": userAuthToken,
+                            },
+                            body: JSON.stringify({ requestBody })
+                        });
+                        const data = await response.json();
+                        console.log("Response from /create_order: ", data);
+                        return data.id
+                    }
+                    catch(error) {
+                        console.error("Error in createOrder: ", error);
+                    }
+                    // return fetch(`${apiUrl}/create_order`, {
+                    //     method: "POST",
+                    //     headers: { "Content-Type": "application/json" },
+                    //     body: JSON.stringify({ "intent": intent })
+                    // })
+                    // .then(response => {
+                    //     if (!response.ok) throw new Error('Failed to create order.');
+                    //     return "Response.json = " + response.json();
+                    // })
+                    // .then(order => order.id);
                 },
                 onApprove: (data) => {
                     const order_id = data.orderID;
+
+                    const requestBody = {
+                        "intent": intent,
+                        "order_id": order_id,
+                        ...(guestData && { "isGuest": true, "guestEmail": guestData.guestEmail }) //Include guest info only if guestData is provided.
+                    }
+
                     return fetch(`${apiUrl}/complete_order`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ "intent": intent, "order_id": order_id })
+                        body: JSON.stringify(requestBody)
                     })
                     .then(response => {
                         if (!response.ok) throw new Error('Order completion failed.');
@@ -153,122 +192,4 @@ export const PayPalPayment = () => {
             </div>
         </div>
     );
-
-    // const initialOptions = {
-    //     "client-id": process.env.REACT_APP_PAYPAL_CLIENT_ID,
-    //     "enable-funding": "venmo",
-    //     "disable-funding": "",
-    //     "buyer-country": "US",
-    //     currency: "USD",
-    //     "data-page-type": "product-details",
-    //     components: "buttons",
-    //     "data-sdk-integration-source": "developer-studio",
-    // };
-
-    // const [message, setMessage] = useState("");
-
-    // return (
-    //     <div className="paypalpayment">
-    //         <PayPalScriptProvider options={initialOptions}>
-    //             <PayPalButtons
-    //                 style={{
-    //                     shape: "rect",
-    //                     layout: "vertical",
-    //                     color: "gold",
-    //                     label: "paypal",
-    //                 }} 
-    //                 createOrder={async () => {
-    //                     try {
-    //                         const response = await fetch(`${apiUrl}/api/orders`, {
-    //                             method: "POST",
-    //                             headers: {
-    //                                 "Content-Type": "application/json",
-    //                             },
-    //                             // use the "body" param to optionally pass additional order information
-    //                             // like product ids and quantities
-    //                             body: JSON.stringify({
-    //                                 cart: [
-    //                                     {
-    //                                         id: "YOUR_PRODUCT_ID",
-    //                                         quantity: "YOUR_PRODUCT_QUANTITY",
-    //                                     },
-    //                                 ],
-    //                             }),
-    //                         });
-
-    //                         const orderData = await response.json();
-
-    //                         if (orderData.id) {
-    //                             return orderData.id;
-    //                         } else {
-    //                             const errorDetail = orderData?.details?.[0];
-    //                             const errorMessage = errorDetail
-    //                                 ? `${errorDetail.issue} ${errorDetail.description} (${orderData.debug_id})`
-    //                                 : JSON.stringify(orderData);
-
-    //                             throw new Error(errorMessage);
-    //                         }
-    //                     } catch (error) {
-    //                         console.error(error);
-    //                         setMessage(
-    //                             `Could not initiate PayPal Checkout...${error}`
-    //                         );
-    //                     }
-    //                 }} 
-    //                 onApprove={async (data, actions) => {
-    //                     try {
-    //                         const response = await fetch(
-    //                             `${apiUrl}/api/orders/${data.orderID}/capture`,
-    //                             {
-    //                                 method: "POST",
-    //                                 headers: {
-    //                                     "Content-Type": "application/json",
-    //                                 },
-    //                             }
-    //                         );
-
-    //                         const orderData = await response.json();
-    //                         // Three cases to handle:
-    //                         //   (1) Recoverable INSTRUMENT_DECLINED -> call actions.restart()
-    //                         //   (2) Other non-recoverable errors -> Show a failure message
-    //                         //   (3) Successful transaction -> Show confirmation or thank you message
-
-    //                         const errorDetail = orderData?.details?.[0];
-
-    //                         if (errorDetail?.issue === "INSTRUMENT_DECLINED") {
-    //                             // (1) Recoverable INSTRUMENT_DECLINED -> call actions.restart()
-    //                             // recoverable state, per https://developer.paypal.com/docs/checkout/standard/customize/handle-funding-failures/
-    //                             return actions.restart();
-    //                         } else if (errorDetail) {
-    //                             // (2) Other non-recoverable errors -> Show a failure message
-    //                             throw new Error(
-    //                                 `${errorDetail.description} (${orderData.debug_id})`
-    //                             );
-    //                         } else {
-    //                             // (3) Successful transaction -> Show confirmation or thank you message
-    //                             // Or go to another URL:  actions.redirect('thank_you.html');
-    //                             const transaction =
-    //                                 orderData.purchase_units[0].payments
-    //                                     .captures[0];
-    //                             setMessage(
-    //                                 `Transaction ${transaction.status}: ${transaction.id}. See console for all available details`
-    //                             );
-    //                             console.log(
-    //                                 "Capture result",
-    //                                 orderData,
-    //                                 JSON.stringify(orderData, null, 2)
-    //                             );
-    //                         }
-    //                     } catch (error) {
-    //                         console.error(error);
-    //                         setMessage(
-    //                             `Sorry, your transaction could not be processed...${error}`
-    //                         );
-    //                     }
-    //                 }} 
-    //             />
-    //         </PayPalScriptProvider>
-    //         <Message content={message} />
-    //     </div>
-    // );
 }
