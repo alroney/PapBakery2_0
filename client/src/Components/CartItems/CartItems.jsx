@@ -42,6 +42,8 @@ export const CartItems = () => {
     const paynow_toggle = (e) => {
         payRef.current.classList.toggle('paynow-visible');
         e.target.classList.toggle('open');
+
+        localStorage.setItem("guestEmail", guestData.guestEmail);
     }
 
   return (

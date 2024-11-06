@@ -6,13 +6,13 @@ function Message({content}) {
     return <p>{content}</p>
 }
 
-export const PayPalPayment = ({ guestData }) => {
+export const PayPalPayment = () => {
 
     const paypal_sdk_url = "https://www.paypal.com/sdk/js";
     const client_id = process.env.REACT_APP_PAYPAL_CLIENT_ID;
     const userAuthToken = localStorage.getItem("auth-token");
-    const guestMode = false;
-    const guestEmail = guestData.guestEmail;
+    const guestMode = localStorage.getItem("isGuest");
+    const guestEmail = localStorage.getItem("guestEmail");
     const currency = "USD";
     const intent = "capture";
 
@@ -21,9 +21,6 @@ export const PayPalPayment = ({ guestData }) => {
     const contentRef = useRef(null);
     const paymentOptionsRef = useRef(null);
 
-    useEffect(() => {
-        console.log("Guest Data received in PayPalPayment: ", guestEmail);
-    }, [guestData])
 
     useEffect(() => {
         const loadPayPalScript = async () => {
@@ -57,11 +54,11 @@ export const PayPalPayment = ({ guestData }) => {
                 console.error("Error: paymentOptionsRef.current is not defined.");
                 return;
             }
-            
-            console.log("Guest email outside of createOrder: ", guestEmail);
+
             const paypalButtons = window.paypal.Buttons({
                 onClick: () => {
                     // Custom logic before transaction
+
                 },
                 style: {
                     shape: 'rect',
@@ -72,11 +69,10 @@ export const PayPalPayment = ({ guestData }) => {
                 createOrder: async () => {
                     console.log("Create order has been called with Auth-Token of: ", userAuthToken);
                     console.log("Guest email: ", guestEmail);
+                    console.log("Is Guest: ", guestMode);
                     try {
                         const requestBody = {
                             "intent": intent,
-                            "isGuest": !userAuthToken ? true : false,
-                            "guestEmail": guestData.guestEmail,
                         }
 
                         const response = await fetch(`${apiUrl}/create_order`, {
@@ -111,7 +107,6 @@ export const PayPalPayment = ({ guestData }) => {
                     const requestBody = {
                         "intent": intent,
                         "order_id": order_id,
-                        ...(guestData && { "isGuest": true, "guestEmail": guestData.guestEmail }) //Include guest info only if guestData is provided.
                     }
 
                     return fetch(`${apiUrl}/complete_order`, {

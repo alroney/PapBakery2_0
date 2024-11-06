@@ -10,13 +10,25 @@ import { LoginSignup } from './Pages/LoginSignup';
 import { Footer } from './Components/Footer/Footer';
 
 function App() {
+  const setBrowseMode = () => {
+    if(localStorage.getItem("auth-token")) {
+      localStorage.setItem("isGuest", false);
+      localStorage.setItem("guestEmail", "");
+      return "userMode";
+    }
+    else {
+      localStorage.setItem("isGuest", true);
+      return "guestMode";
+    }
+  }
+
   return (
     <div>
       <BrowserRouter>
         <Navbar/>
-        {localStorage.getItem('auth-token')
-          ? <></>
-          : <p>GUEST MODE</p>
+        { setBrowseMode() === "guestMode"
+          ? <p>Guest Mode</p>
+          : <></>
         }
         <Routes>
           <Route path='/' element={<Shop/>}/>
