@@ -531,7 +531,7 @@ app.use(bodyParser.json());
     //#endregion
 
     //Define User schema and create Mongoose model.
-    const userSchema = new mongoose.Schema({ //This creates the model named 'users' in the mongoose database.
+    const userSchema = new mongoose.Schema({ 
         name: {
             type: String,
             lowercase: true,
@@ -593,7 +593,7 @@ app.use(bodyParser.json());
 
                 //Create an empty cart with keys from 1 to 400 initialized to 0.
                 let cart = {}; 
-                for(let i = 0; i < 300; i++) {
+                for(let i = 0; i < 10; i++) {
                     cart[i] = 0;
                 }
 
@@ -727,15 +727,17 @@ app.use(bodyParser.json());
 
 
         //Helper function to fetch cart data based on user or guest.
-        async function getCartData(req) {
+        const getCartData = async (req) =>  {
             console.log("Getting cart data......");
+            console.log("req: ", req.user);
             if(req.user) {
                 console.log("User found! Using user cart.");
                 const userData = await Users.findOne({_id: req.user.id});
+
                 return { cartData: userData.cartData, email: userData.email };
             }
-            else if(req.body.isGuest) {
-                console.log("No user found. Searching for guest email...")
+            else if(req.user === undefined && req.body.isGuest) {
+                console.log("No user found. Searching for guest email...");
                 if(!req.body.guestEmail) throw new Error("Guest email is required for guest checkout");
                 console.log("Guest email found. Returning cartData and email...");
                 return { cartData: req.body.cartData, email: req.body.guestEmail };
@@ -746,7 +748,7 @@ app.use(bodyParser.json());
         }
 
         //Helper function to generate cart summary.
-        async function generateCartSummary(cartData) {
+        const generateCartSummary = async (cartData) => {
             let cartItemIds = Object.keys(cartData).filter(itemId => cartData[itemId] > 0);
                 let products = await Product.find({id: {$in: cartItemIds} });
 
@@ -776,7 +778,7 @@ app.use(bodyParser.json());
         }
 
         //Helper function to send confirmation email.
-        async function sendConfirmationEmail(email, cartSummary) {
+        const sendConfirmationEmail = async (email, cartSummary) => {
             //SMTP configuration for Zoho Mail.
             const transporter = nodemailer.createTransport({
                 host: "smtp.zoho.com",
@@ -797,13 +799,55 @@ app.use(bodyParser.json());
         }
 
 
+        const orderSchema = new mongoose.Schema({
+            id: {
+                type: String,
+                lowercase: true,
+                unique: true,
+            },
+            user: {
+                type: mongoose.Schema.Types.ObjectId,
+                required: false,
+                ref: "users",
+            },
+            guest: {
+                isGuest: {
+                    type: Boolean,
+                },
+                email: {
+                    type: String,
+                    lowercase: true,
+                },
+            },
+            cart: {
+                type: Object,
+            },
+            subtotal: {
+                type: Number,
+            },
+            tax: {
+                type: Number,
+            },
+            date: {
+                type: Date,
+                default: Date().now,
+            }
+        });
 
 
-        app.post('/create_order', rateLimiter, async (req, res) => {
-            
+
+
+
+
+
+
+
+        app.post('/create_order', rateLimiter, fetchUser, async (req, res) => {
+            console.log("Inside create_order api...");
             try {
+                
                 const isGuest = !req.user; //Determine if it's a guest checkout.
-                const { cartData, email } = getCartData(req); //Use helper function to get the cart data.
+                const { cartData, email } = await getCartData(req); //Use helper function to get the cart data. Use await to ensure it is given time to return the data needed.
                 
                 let total = 0.00;
                 
@@ -816,7 +860,9 @@ app.use(bodyParser.json());
                 console.log("Made it inside create_order. Now running get_access_token.");
 
                 const access_token = await get_access_token();
-                console.log("Access_Token: ", access_token);
+
+                console.log("Body content: ", req.body);
+                console.log("Intent in body: ", req.body.intent);
                 const order_data_json = {
                     intent: req.body.intent.toUpperCase(),
                     purchase_units: [{
@@ -824,6 +870,7 @@ app.use(bodyParser.json());
                         value: total,
                     }],
                 };
+
 
                 const response = await fetch(paypal_endpoint_url + '/v2/checkout/orders', {
                     method: 'POST',
@@ -834,8 +881,11 @@ app.use(bodyParser.json());
                     body: JSON.stringify(order_data_json),
                 });
 
-                const json = await response.json();
+                
+                const json = await response.json({ orderID: createOrderID});
+               
                 res.send(json);
+                res.send({message: "Reached end of create_order successfully."});
             }
             catch(error) {
                 console.log("Error in create_order: ", error);
@@ -922,10 +972,16 @@ app.use(bodyParser.json());
                 },
                 body: data
             })
+            .then(response => {
+                if(!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json(); //Parse the response as JSON. This allows access to json.access_token.
+            })
             .then(json => {
                 console.log("Access token retrieved: ", json.access_token);
                 if(!json.access_token) {
-                    throw new Error('Access token missing in response.');
+                    throw new Error("Access token missing in response.");
                 }
                 return json.access_token;
             })

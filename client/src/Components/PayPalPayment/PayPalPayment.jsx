@@ -66,26 +66,29 @@ export const PayPalPayment = () => {
                     layout: 'vertical',
                     label: 'paypal'
                 },
-                createOrder: async () => {
+                createOrder: async (data, actions) => {
                     console.log("Create order has been called with Auth-Token of: ", userAuthToken);
                     console.log("Guest email: ", guestEmail);
                     console.log("Is Guest: ", guestMode);
                     try {
+                        console.log("Start of try in createOrder:...")
+                        console.log("createOrder Intent: ", intent);
                         const requestBody = {
                             "intent": intent,
+                            "isGuest": guestMode,
+                            "guestEmail": guestEmail,
                         }
-
                         const response = await fetch(`${apiUrl}/create_order`, {
                             method: "POST",
                             headers: {
                                 "Content-Type": "application/json",
                                 "auth-token": userAuthToken,
                             },
-                            body: JSON.stringify({ requestBody })
+                            body: JSON.stringify(requestBody)
                         });
-                        const data = await response.json();
-                        console.log("Response from /create_order: ", data);
-                        return data.id
+                        const data1 = await response.json();
+                        console.log("Response from /create_order: ", data1);
+                        return data1.id;
                     }
                     catch(error) {
                         console.error("Error in createOrder: ", error);
@@ -102,6 +105,7 @@ export const PayPalPayment = () => {
                     // .then(order => order.id);
                 },
                 onApprove: (data) => {
+                    console.log("Inside OnApprove...");
                     const order_id = data.orderID;
 
                     const requestBody = {
