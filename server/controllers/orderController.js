@@ -7,6 +7,8 @@ const {
     PaymentsController
 } = require("@paypal/paypal-server-sdk");
 
+const {get_access_token, getCartData, generateCartSummary, sendConfirmationEmail} = require('../utils/helpers');
+
 
 
 const create_order = async (req, res) => {
@@ -49,7 +51,7 @@ const create_order = async (req, res) => {
         });
 
         
-        const json = await response.json({ orderID: createOrderID});
+        const json = await response.json({ orderID: "1"});
        
         res.send(json);
         res.send({message: "Reached end of create_order successfully."});

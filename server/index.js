@@ -5,26 +5,19 @@ const express = require("express");
 require('dotenv').config(); //Load environment variables.
 const app = express();
 const mongoose = require("mongoose"); //Allows connection to MongoDB
-const jwt = require("jsonwebtoken"); //Used to generate and verify tokens.
 const multer = require("multer"); //Allows for image storage handling.
 const fs = require('fs');
 const path = require("path");
 const cors = require("cors"); //Allows client (React) to access the backend.
-const axios = require("axios"); //Used to make HTTP requests to external APIs.
-const bcrypt = require("bcryptjs");
+
 const bodyParser = require("body-parser")
 const helmet = require('helmet');
-
 const environment = process.env.ENVIRONMENT;
-const pp_client_id = process.env.PAYPAL_CLIENT_ID;
-const pp_client_secret = process.env.PAYPAL_CLIENT_SECRET;
-const paypal_endpoint_url = environment === 'sandbox' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
-const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS, 10); //Convert to integer.
 
 
 
 
-//#region - MIDDLEWARE SETUP
+
 
 app.use(helmet());
 app.use(express.json()); //Automatically parse incoming requests as JSON.
@@ -39,36 +32,6 @@ app.use((req,res,next) => {
     next();
 })
 
-
-
-
-
-const updateAverageRating = async (productId) => {
-    try {
-        const product = await Product.findOne({id:productId});
-        let avgRating = 0;
-
-        if(product.reviews.length > 0) {
-            const totalRating = product.reviews.reduce((sum, review) => sum + review.rating, 0);
-            console.log("TotalRating: ", totalRating);
-            avgRating = totalRating / product.reviews.length;
-        }
-
-        else {
-            console.log("Product has no reviews.");
-        }
-
-        product.rating = avgRating;
-
-        await product.save();
-    }
-    catch(error) {
-        console.log("Error while updating rating: ", error);
-    }
-}
-
-
-//#endregion
 
 
 //Database credentials and connection string.
@@ -135,71 +98,6 @@ app.use(bodyParser.json());
     })
 
 
-    
-
-
-    //#region - PRODUCT RELATED API ENDPOINTS
-        
-
-    //#endregion
-
-    //Define User schema and create Mongoose model.
-    const userSchema = new mongoose.Schema({ 
-        name: {
-            type: String,
-            lowercase: true,
-            trim: true,
-        },
-        email: {
-            type: String,
-            unique: true,
-            required: true,
-            trim: true,
-            lowercase: true,
-        },
-        password: {
-            type: String,
-        },
-        cartData: {
-            type: Object,
-        },
-        date: {
-            type: Date,
-            default: Date.now,
-        },
-        reviews: [ //Storage for all reviews made by the user.
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'Product',
-            }
-        ],
-    });
-
-    userSchema.pre("save", async function(next) {
-        try {
-            const user = this; //`this` refers to the document.
-            if(user.isModified("password")) {
-                console.log("hashing password...");
-                user.password = await bcrypt.hash(user.password, saltRounds);
-            }
-
-            next();
-        }
-        catch(error) {
-            console.log("Error occurred while hashing password: ", error);
-        }
-    })
-
-    const Users = mongoose.model("Users", userSchema); //Create the Users model using the userSchema details.
-
-
-
-    //#region - USER RELATED API ENDPOINTS
-        
-       
-
-        
-        //#endregion
 
 //#endregion
 
@@ -220,34 +118,4 @@ app.use(bodyParser.json());
 
         
 
-        const get_access_token = () => {
-            const auth = `${pp_client_id}:${pp_client_secret}`;
-            const data = 'grant_type=client_credentials';
-            console.log("get_access_token reached!");
-
-            return fetch(paypal_endpoint_url + '/v1/oauth2/token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Authorization': `Basic ${Buffer.from(auth).toString('base64')}`
-                },
-                body: data
-            })
-            .then(response => {
-                if(!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                return response.json(); //Parse the response as JSON. This allows access to json.access_token.
-            })
-            .then(json => {
-                console.log("Access token retrieved: ", json.access_token);
-                if(!json.access_token) {
-                    throw new Error("Access token missing in response.");
-                }
-                return json.access_token;
-            })
-            .catch(error => {
-                console.error("Error fetching access token: ", error);
-                throw error; //Propagate the error so it can be handled by the caller
-            });
-        };
+        
