@@ -16,13 +16,15 @@ const updateAverageRating = async (productId) => {
             const totalRating = product.reviews.reduce((sum, review) => sum + review.rating, 0);
             console.log("TotalRating: ", totalRating);
             avgRating = totalRating / product.reviews.length;
+            console.log("Avg Rating: ", avgRating);
+            product.rating = avgRating;
         }
 
         else {
             console.log("Product has no reviews.");
         }
 
-        return avgRating;
+        await product.save();
     }
     catch(error) {
         console.log("Error while updating rating: ", error);
@@ -64,7 +66,7 @@ const addReview = async (req,res) => {
 
         //Generate a new review ID.
         let id = product.reviews.length > 0 ? product.reviews.slice(-1)[0].id + 1 : 1; //slice() method is used to return a shallow copy of a portion of an array. So, slice(-1) is used with a negative index, which means "get the last element of the array". This returns an array containing only the last product in the products array.
-        let avgRating = await updateAverageRating(product.id);
+        
 
         //Create a new product with the provided values.
         const newReview = {
@@ -75,8 +77,7 @@ const addReview = async (req,res) => {
             comment: req.body.comment,
             user: userId,
         };
-
-        product.rating = avgRating;
+        
         product.reviews.push(newReview); //Add the review to the product's reviews property's array.
 
         //Save the updated product to the database.
@@ -86,7 +87,7 @@ const addReview = async (req,res) => {
         }
 
 
-        
+        await updateAverageRating(product.id);
         //Link the saved review to user who created it.
         await Users.findByIdAndUpdate(userId, {$push: {reviews: product._id}}); //`findByIdAndUpdate(userId, updateObject)`. The `$push` is a MongoDB update operator. The `{reviews:` is the name of the array field within the user's document where reviews are stored. ` product._id}` is the unique ID of the product that was reviewed.
 
