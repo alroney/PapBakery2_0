@@ -36,9 +36,6 @@ const create_order = async (req, res) => {
         const total = products.reduce((sum, product) => {
             return sum + (product.price * cartData[product.id]);
         }, 0).toFixed(2);
-        
-        console.log("Total: ", total);
-        console.log("Made it inside create_order. Now running get_access_token.");
 
         const access_token = await get_access_token();
 
@@ -54,22 +51,6 @@ const create_order = async (req, res) => {
                 
             }],
         };
-
-        console.log("Order_data_Json: ", order_data_json);
-
-
-        const newOrder = {
-            id: orderId,
-            user: "",
-            guest: {
-                isGuest: false,
-                email: "",
-            },
-            cart: "",
-            subtotal: "",
-            tax: "",
-
-        }
 
 
         const response = await fetch(paypal_endpoint_url + '/v2/checkout/orders', {
@@ -127,6 +108,19 @@ const complete_order = async (req,res) => {
         if(json.status === 'COMPLETED') {
             const { cartData, email } = await getCartData(req);
             const cartSummary = await generateCartSummary(cartData);
+
+            const newOrder = {
+                id: orderId,
+                user: "",
+                guest: {
+                    isGuest: false,
+                    email: "",
+                },
+                cart: "",
+                subtotal: "",
+                tax: "",
+    
+            }
 
             await sendConfirmationEmail(email, cartSummary);
 

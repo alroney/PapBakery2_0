@@ -17,7 +17,6 @@ export const Product = () => {
   const reviewAPIUrl = `${apiUrl}/pReviews`;
 
   useEffect(() => {
-    console.log("State: ", state);
     //Find product by ID
     const foundProduct = state.products.find(
       (p) => p.id === Number(productId)
@@ -33,6 +32,7 @@ export const Product = () => {
     */
   const handleAddReview = async (newReview) => {
     console.log("handleAddReview was triggered. newReview: ", newReview);
+
     try {
       //Post the new review to the backend.
       await fetch(`${reviewAPIUrl}/add`, {

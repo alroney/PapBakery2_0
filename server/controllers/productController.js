@@ -1,4 +1,5 @@
 const Products = require('../models/productSchema'); //Get & import the Products model.
+const Users = require('../models/userSchema');
 const fs = require('fs');
 const path = require('path');
 const serverUrl = process.env.SERVER_URL;
@@ -9,7 +10,8 @@ const serverUrl = process.env.SERVER_URL;
 //Function: Find and return all products in the MongoDB
 const fetchAllProducts = async () => {
     try {
-        return await Products.find({});
+        const products = await Products.find({}).populate('reviews.user', 'name');
+        return products;
     }
     catch(error) {
         console.error("Error while fetching products: ", error);

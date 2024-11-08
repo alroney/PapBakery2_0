@@ -21,6 +21,7 @@ const userRoutes = require('./routes/userRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const imageRoutes = require('./routes/imageRoutes');
+const Users = require('./models/userSchema');
 
 
 
@@ -50,7 +51,6 @@ let uri = process.env.MONGO_URI;
 mongoose.connect(uri)
     .then(() => console.log("Connected to MongoDB."))
     .catch((error) => console.error("Error connecting to MongoDB: ", error));
-
 
 
 

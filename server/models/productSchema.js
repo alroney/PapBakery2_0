@@ -71,7 +71,7 @@ const productSchema = new Mongoose.Schema({
             user: {//This property is created to assign the user to the review made.
                 type: Mongoose.Schema.Types.ObjectId,
                 required: false,
-                ref: "users",
+                ref: "Users",
             },
             date: {
                 type: Date,

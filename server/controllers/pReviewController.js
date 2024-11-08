@@ -3,7 +3,7 @@ const Users = require('../models/userSchema');
 
 
 const findProduct = async (req) => {
-    return await Products.findOne({id:req.body.productId});
+    return await Products.findOne({id:req.body.productId}).populate('reviews.user', 'name');
 }
 
 
@@ -38,7 +38,6 @@ const addReview = async (req,res) => {
         //Fetch the product which the review is being added to.
         let product = await findProduct(req);
         let success = false;
-        console.log("product: ", product);
 
         if(!product) {
             console.log("The product: "+ product +" is not found.");
@@ -50,7 +49,7 @@ const addReview = async (req,res) => {
 
         
 
-        //Validate if name and rating are provided
+        //Validate if name and rating are provided.
         if(!req.body.name || !req.body.rating) {
             const missingFields = [];
             if(!req.body.name) missingFields.push("Title");
@@ -99,7 +98,7 @@ const addReview = async (req,res) => {
     }
 
     catch (error) {
-        console.error("IN THE CATCH", error);
+        console.error("Error occurred in addReview: ", error);
         res.status(500).json({ success:false, message: "Server Error" });
     }
 };
@@ -107,11 +106,12 @@ const addReview = async (req,res) => {
 const productReviews = async (req,res) => {
     try {
         const productId = req.params.productId;
-        let product = await Products.findOne({id:productId});
+        let productWithReviews = await Products.findOne({id:productId}).populate('reviews.user', 'name');
+        console.log(productWithReviews.reviews);
 
         res.status(200).json({
             success: true,
-            reviews: product.reviews,
+            reviews: productWithReviews.reviews,
         });
     }
     catch(error) {

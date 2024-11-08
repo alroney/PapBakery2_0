@@ -2,7 +2,6 @@ import React, { memo } from 'react';
 import './DisplayReview.css';
 
 export const DisplayReview = memo(({ reviews }) => {
-    console.log("DisplayReview rendered");
     // const {product} = props;
     // const productId = product.id;
     // console.log("Product ID: ", productId);
@@ -27,7 +26,7 @@ export const DisplayReview = memo(({ reviews }) => {
 
     //     fetchReviews();
     // }, [product.reviews]) //Runs whenever product.reviews changes.
-
+    
   return (
     <div className="displayreview">
         <hr />
@@ -38,7 +37,7 @@ export const DisplayReview = memo(({ reviews }) => {
                 <div key={review.id} className="displayreview-format-main displayreview-format">
                     <h1>{review.name}</h1>
                     <p>{review.date}</p>
-                    <p>{review.user}</p>
+                    <p>{review.user && review.user.name ? review.user.name : "Anonymous"}</p>
                     <p>{review.rating}</p>
                     <p>{review.comment}</p>
                 </div>

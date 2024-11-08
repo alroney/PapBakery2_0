@@ -111,7 +111,7 @@ export const LoginSignup = () => {
       <div className="loginsignup-container">
         <h1>{state}</h1> {/* Text changes depending on the value of the state variable */}
         <div className="loginsignup-fields">
-          {state === "Sign Up"?<input name="username" value={formData.username} onChange={changeHandler} type="text" placeholder='Your Name'/> : <></>} {/*If state value is "Sign Up" then show the input field for your name : ELSE hide the input field and place empty tag <></> */}
+          {state === "Sign Up"?<input name="name" value={formData.name} onChange={changeHandler} type="text" placeholder='Your Name'/> : <></>} {/*If state value is "Sign Up" then show the input field for your name : ELSE hide the input field and place empty tag <></> */}
           <input name="email" value={formData.email} onChange={changeHandler} type="email" placeholder='email@mail.com'/>
           <input name="password" value={formData.password} onChange={changeHandler} type="password" placeholder='Password'/>
         </div>
