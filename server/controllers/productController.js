@@ -1,6 +1,6 @@
 const Products = require('../models/productSchema'); //Get & import the Products model.
 const fs = require('fs');
-const path = require("path");
+const path = require('path');
 const serverUrl = process.env.SERVER_URL;
 
 

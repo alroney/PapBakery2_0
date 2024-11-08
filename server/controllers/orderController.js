@@ -5,7 +5,7 @@ const {
     LogLevel,
     OrdersController,
     PaymentsController
-} = require("@paypal/paypal-server-sdk");
+} = require('@paypal/paypal-server-sdk');
 
 const {get_access_token, getCartData, generateCartSummary, sendConfirmationEmail} = require('../utils/helpers');
 

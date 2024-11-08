@@ -1,6 +1,7 @@
 
-const jwt = require("jsonwebtoken"); //Used to generate and verify tokens.
-const {Users} = require("../models/userSchema");
+const jwt = require('jsonwebtoken'); //Used to generate and verify tokens.
+const bcrypt = require('bcryptjs');
+const Users = require('../models/userSchema');
 
 
 //API endpoint for user registration.

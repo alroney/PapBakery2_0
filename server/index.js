@@ -1,16 +1,16 @@
 const port = 4000;
 
 //Import necessary packages -> const varname = require("packagename");.
-const express = require("express");
+const express = require('express');
 require('dotenv').config(); //Load environment variables.
 const app = express();
-const mongoose = require("mongoose"); //Allows connection to MongoDB
-const multer = require("multer"); //Allows for image storage handling.
+const mongoose = require('mongoose'); //Allows connection to MongoDB
+const multer = require('multer'); //Allows for image storage handling.
 const fs = require('fs');
-const path = require("path");
-const cors = require("cors"); //Allows client (React) to access the backend.
+const path = require('path');
+const cors = require('cors'); //Allows client (React) to access the backend.
 
-const bodyParser = require("body-parser")
+const bodyParser = require('body-parser')
 const helmet = require('helmet');
 const environment = process.env.ENVIRONMENT;
 
