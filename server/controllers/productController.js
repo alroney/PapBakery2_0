@@ -1,4 +1,7 @@
 const Products = require('../models/productSchema'); //Get & import the Products model.
+const fs = require('fs');
+const path = require("path");
+const serverUrl = process.env.SERVER_URL;
 
 
 
@@ -90,14 +93,14 @@ const removeProduct = async (req,res) => {
             });
         }
 
-        //Get only the image file name if `product.image` contains a full URL.
-        const imageName = product.image.split('/').pop(); //Extracts the file name
-        const imagePath = path.join(__dirname, 'upload/images', imageName);
+        //Construct the image URL for use in the response or front-end rendering.
+        const imageName = path.basename(product.image); //Extract image name only.
+        const imageURL = `${serverUrl}/images/${imageName}`; //URL that clients can access.
 
         
 
         //Delete the image file
-        fs.unlink(imagePath, async (error) => {
+        fs.unlink(imageURL, async (error) => {
             if(error) {
                 console.error("Error while deleting the image file: ", error);
             }
