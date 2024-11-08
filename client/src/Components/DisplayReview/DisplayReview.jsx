@@ -2,7 +2,7 @@ import React, { memo } from 'react';
 import './DisplayReview.css';
 
 export const DisplayReview = memo(({ reviews }) => {
-    console.log("Rendering DisplayReview.")
+    console.log("DisplayReview rendered");
     // const {product} = props;
     // const productId = product.id;
     // console.log("Product ID: ", productId);

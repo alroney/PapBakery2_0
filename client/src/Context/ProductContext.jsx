@@ -66,7 +66,6 @@ export const ProductProvider = ({ children }) => {
             try {
                 const response = await fetch(`${apiUrl}/products/all`);
                 const data = await response.json();
-                console.log("Fetch products: ", data);
                 dispatch({
                     type: SET_PRODUCTS, 
                     payload: data
@@ -78,10 +77,6 @@ export const ProductProvider = ({ children }) => {
     }
     fetchProducts();
 }, []); //The empty dependency array ensures this runs only once when the provider mounts.
-    
-    useEffect(() => {
-        console.log("State after dispatch: ", state); //Log state after updating.
-    }, [state]); //This will log whenever state changes.
 
     return (
         <ProductContext.Provider value={{ state, dispatch }}>

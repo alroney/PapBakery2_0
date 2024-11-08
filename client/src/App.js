@@ -8,6 +8,34 @@ import { Product } from './Pages/Product';
 import { Cart } from './Pages/Cart';
 import { LoginSignup } from './Pages/LoginSignup';
 import { Footer } from './Components/Footer/Footer';
+import Popular from './Components/Popular/Popular';
+import { useEffect, useState } from 'react';
+
+
+// function App() {
+//   console.log("App component rendered");
+//   return <ChildComponent />;
+// }
+
+// function ChildComponent() {
+//   console.log("Child rendered");
+//   const [someState, setSomeState] = useState(false);
+
+//   const handleClick = () => {
+//     setSomeState(!someState); //Only ChildComponent re-renders.
+//   };
+
+//   return (
+//     <div>
+//       <p>State: {someState.toString()}</p>
+//       <button onClick={handleClick}>Toggle State</button>
+//     </div>
+//   );
+// }
+
+
+
+
 
 function App() {
   const setBrowseMode = () => {
@@ -21,6 +49,7 @@ function App() {
       return "guestMode";
     }
   }
+
 
   return (
     <div>
