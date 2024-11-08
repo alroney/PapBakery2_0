@@ -89,30 +89,6 @@ const sendConfirmationEmail = async (email, cartSummary) => {
 }
 
 
-const updateAverageRating = async (productId) => {
-    try {
-        const product = await Product.findOne({id:productId});
-        let avgRating = 0;
-
-        if(product.reviews.length > 0) {
-            const totalRating = product.reviews.reduce((sum, review) => sum + review.rating, 0);
-            console.log("TotalRating: ", totalRating);
-            avgRating = totalRating / product.reviews.length;
-        }
-
-        else {
-            console.log("Product has no reviews.");
-        }
-
-        product.rating = avgRating;
-
-        await product.save();
-    }
-    catch(error) {
-        console.log("Error while updating rating: ", error);
-    }
-}
-
 
 
 const get_access_token = async () => {
@@ -148,4 +124,4 @@ const get_access_token = async () => {
 };
 
 
-module.exports = { sendConfirmationEmail, generateCartSummary, getCartData, rateLimiter, updateAverageRating, get_access_token };
+module.exports = { sendConfirmationEmail, generateCartSummary, getCartData, rateLimiter, get_access_token };
