@@ -1,4 +1,6 @@
 
+const jwt = require('jsonwebtoken');
+
 /** Explanation of Middleware Usage.
  * HOW THE MIDDLEWARE IS USED (authenticateUser)
  * 
