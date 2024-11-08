@@ -5,6 +5,11 @@ import { Routes, Route } from 'react-router-dom'
 import AddProduct from '../../Components/AddProduct/AddProduct'
 import ListProduct from '../../Components/ListProduct/ListProduct'
 
+
+/**
+ * @todo: Create a single path for handling product components and similarly to other major topics (user, image...).
+ */
+
 const Admin = () => {
   return (
     <div className="admin">

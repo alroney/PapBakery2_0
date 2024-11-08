@@ -1,5 +1,6 @@
 const multer = require('multer');
 const path = require('path');
+const serverUrl = process.env.SERVER_URL;
 
 
 //Image Storage Engine configuration
@@ -14,4 +15,19 @@ const storage = multer.diskStorage({
 //Multer configuration for file uploads.
 const upload = multer({storage:storage})
 
-module.exports = {upload}
+//API Endpoint to handle image uploads.
+const uploadImage = (req,res) => {//field name is product.
+    try {
+        //Respond with success and img url.
+        res.json({
+            success:1,
+            image_url:`${serverUrl}/images/${req.file.filename}`
+        })
+    }
+    catch(error) {
+        console.log("Upload error occurred: ", error);
+    }
+}
+
+
+module.exports = { upload, uploadImage }
