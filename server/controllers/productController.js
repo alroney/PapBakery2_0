@@ -1,7 +1,9 @@
-const Products = require('../models/productSchema');
+const Products = require('../models/productSchema'); //Get & import the Products model.
 
 
 
+
+//Function: Find and return all products in the MongoDB
 const fetchAllProducts = async () => {
     try {
         return await Products.find({});
@@ -65,6 +67,7 @@ const editProduct = async (req,res) => {
             res.json({
                 success: true,
                 name: product.name,
+                message: "Update Successful",
             })
         }
     }

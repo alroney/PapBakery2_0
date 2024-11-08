@@ -20,6 +20,7 @@ const pReviewRoutes = require('./routes/pReviewRoutes');
 const userRoutes = require('./routes/userRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 const orderRoutes = require('./routes/orderRoutes');
+const imageRoutes = require('./routes/imageRoutes');
 
 
 
@@ -51,17 +52,7 @@ mongoose.connect(uri)
     .catch((error) => console.error("Error connecting to MongoDB: ", error));
 
 
-//Image Storage Engine configuration
-const storage = multer.diskStorage({
-    destination: './upload/images', //Directory to save uploaded images.
-    filename: (req, file, cb) => {
-        //Generate unique filename with original extension.
-        cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`); //`cb` is a callback function that is provided by the Multer library (used for handling file uploads in Node.js).
-    }
-})
 
-//Multer configuration for file uploads.
-const upload = multer({storage:storage})
 
 
 //Start the server and listen on the specified port.
@@ -115,6 +106,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/pReviews', pReviewRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/images', imageRoutes);
 
 
 app.use((err, req, res, next) => {

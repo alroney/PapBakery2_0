@@ -1,11 +1,13 @@
-const orderSchema = new mongoose.Schema({
+const Mongoose = require('mongoose');
+
+const orderSchema = new Mongoose.Schema({
     id: {
         type: String,
         lowercase: true,
         unique: true,
     },
     user: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Mongoose.Schema.Types.ObjectId,
         required: false,
         ref: "users",
     },

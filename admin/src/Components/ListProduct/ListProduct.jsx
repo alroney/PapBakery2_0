@@ -4,7 +4,7 @@ import cross_icon from '../../assets/img/icon/cross_icon.png';
 import edit_icon from '../../assets/img/icon/edit_icon.svg';
 import save_icon from '../../assets/img/icon/confirm_icon.svg';
 import cancel_icon from '../../assets/img/icon/cancel_icon.svg';
-const apiUrl = "http://localhost:4000/api";
+const productAPIUrl = "http://localhost:4000/api/products";
 
 const ListProduct = () => {
 
@@ -13,7 +13,7 @@ const ListProduct = () => {
     const [editedProduct, setEditedProduct] = useState({});
 
     const fetchInfo = async () => {
-        await fetch(`${apiUrl}/products/all`) //Get the response from API Endpoint.
+        await fetch(`${productAPIUrl}/all`) //Get the response from API Endpoint.
         .then((res) => res.json()) //Converts the response to a json.
         .then((data) => {setAllProducts(data)}); //Saves data to allproducts state variable.
     }
@@ -26,7 +26,7 @@ const ListProduct = () => {
 
     //Remove product from database and allproducts list.
     const remove_product = async (id) => {
-        await fetch(`${apiUrl}/products/remove`, {
+        await fetch(`${productAPIUrl}/remove`, {
             method: 'POST',
             headers: {
                 Accept: 'application/json',
@@ -51,7 +51,7 @@ const ListProduct = () => {
 
 
     const saveEdit = async () => {
-        await fetch(`${apiUrl}/editproduct`, {
+        await fetch(`${productAPIUrl}/edit`, {
             method: 'POST',
             headers: {
                 Accept: 'application/json',
