@@ -11,8 +11,10 @@ import apiUrl from '@config';
 
 export const Product = () => {
   const { state, dispatch } = useProduct();
-  const {productId} = useParams();
+  const { productId } = useParams();
   const [product, setProduct] = useState(null);
+
+  const reviewAPIUrl = `${apiUrl}/pReviews`;
 
   useEffect(() => {
     console.log("State: ", state);
@@ -33,7 +35,7 @@ export const Product = () => {
     console.log("handleAddReview was triggered. newReview: ", newReview);
     try {
       //Post the new review to the backend.
-      await fetch(`${apiUrl}/addreview`, {
+      await fetch(`${reviewAPIUrl}/add`, {
         method: 'POST',
         headers: {
           Accept: 'application/json',

@@ -64,7 +64,7 @@ export const ProductProvider = ({ children }) => {
         //Fetch all products from the backend API when the provider is mounted
         const fetchProducts = async () => {
             try {
-                const response = await fetch(`${apiUrl}/allproducts`);
+                const response = await fetch(`${apiUrl}/products/all`);
                 const data = await response.json();
                 console.log("Fetch products: ", data);
                 dispatch({

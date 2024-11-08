@@ -47,7 +47,7 @@ const ShopContextProvider = (props) => {
     //Asynchronously fetches all products from the server and updates the state.
     const fetchProducts = async () => {
         try {
-            const response = await fetch(`${apiUrl}/allproducts`);
+            const response = await fetch(`${apiUrl}/products/all`);
             const data = await response.json();
             setAll_Product(data);
             setLoading(false);
@@ -63,7 +63,7 @@ const ShopContextProvider = (props) => {
         fetchProducts();
         //If user is logged in, load the user's cart from the backend.
         if(localStorage.getItem('auth-token')) {
-            fetch(`${apiUrl}/getcart`, {
+            fetch(`${apiUrl}/cart/get`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/form-data',
@@ -92,7 +92,7 @@ const ShopContextProvider = (props) => {
 
         //If user is logged in, update the backend cart.
         if(localStorage.getItem('auth-token')){
-            fetch(`${apiUrl}/addtocart`, {
+            fetch(`${apiUrl}/cart/add`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/form-data',
@@ -121,7 +121,7 @@ const ShopContextProvider = (props) => {
         
         //If user logged in, update the backend cart.
         if(localStorage.getItem('auth-token')) {
-            fetch(`${apiUrl}/removefromcart`, {
+            fetch(`${apiUrl}/cart/remove`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/form-data',

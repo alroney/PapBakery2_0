@@ -12,6 +12,7 @@ export const LoginSignup = () => {
     email: "",
   })
 
+  const userAPIUrl = `${apiUrl}/users`
 
 
 /** Explanation of login function.
@@ -22,7 +23,7 @@ export const LoginSignup = () => {
  * - `responseData`: Variable declared to store the response data from the server after the fetch request is completed.
  *
  * @async_operation
- * - `fetch()`: Makes an HTTP POST request to the specified URL (`${apiUrl}/login`) to authenticate the user.
+ * - `fetch()`: Makes an HTTP POST request to the specified URL (`${userAPIUrl}/login`) to authenticate the user.
  *   - `await` pauses execution until the fetch request completes.
  *   - Request Options:
  *     - `method: 'POST'`: Indicates that data is being sent to the server.
@@ -44,7 +45,7 @@ export const LoginSignup = () => {
   const login = async () => {
     console.log("login funtion executed: ", formData); //Debugging to indicate proper functionality.
     let responseData;
-    await fetch(`${apiUrl}/login`, {
+    await fetch(`${userAPIUrl}/login`, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -65,7 +66,7 @@ export const LoginSignup = () => {
   const signup = async () => {
     console.log("signup function executed: ", formData);
     let responseData;
-    await fetch(`${apiUrl}/signup`, {
+    await fetch(`${userAPIUrl}/signup`, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
