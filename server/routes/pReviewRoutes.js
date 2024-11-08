@@ -5,7 +5,7 @@ const { productReviews, addReview } = require('../controllers/pReviewController'
 
 
 
-router.post('/api/addReview', authenticateUser, addReview);
-router.get('/api/productReviews/:productId', productReviews);
+router.post('/add', authenticateUser, addReview);
+router.get('/reviews/:productId', productReviews);
 
 module.exports = router;

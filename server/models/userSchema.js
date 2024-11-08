@@ -1,9 +1,9 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+const Mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const saltRounds = process.env.BCRYPT_SALT_ROUNDS;
 
 //Define User schema and create Mongoose model.
-const userSchema = new mongoose.Schema({ 
+const userSchema = new Mongoose.Schema({ 
     name: {
         type: String,
         lowercase: true,
@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema({
     },
     reviews: [ //Storage for all reviews made by the user.
         {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Mongoose.Schema.Types.ObjectId,
             ref: 'Product',
         }
     ],
@@ -49,6 +49,6 @@ userSchema.pre("save", async function(next) {
     }
 })
 
-const Users = mongoose.model("Users", userSchema); //Create the Users model using the userSchema details.
+const Users = Mongoose.model("Users", userSchema); //Create the Users model using the userSchema details.
 
 module.exports = Users; //Export the model for use in other parts of the application.

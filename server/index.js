@@ -14,6 +14,13 @@ const bodyParser = require("body-parser")
 const helmet = require('helmet');
 const environment = process.env.ENVIRONMENT;
 
+//Import Routes
+const productRoutes = require('./routes/productRoutes');
+const pReviewRoutes = require('./routes/pReviewRoutes');
+const userRoutes = require('./routes/userRoutes');
+const cartRoutes = require('./routes/cartRoutes');
+const orderRoutes = require('./routes/orderRoutes');
+
 
 
 
@@ -33,14 +40,16 @@ app.use((req,res,next) => {
 })
 
 
-
 //Database credentials and connection string.
 let uri = process.env.MONGO_URI;
 
 
 
 //Database connection with MongoDB
-mongoose.connect(uri);
+mongoose.connect(uri)
+    .then(() => console.log("Connected to MongoDB."))
+    .catch((error) => console.error("Error connecting to MongoDB: ", error));
+
 
 //Image Storage Engine configuration
 const storage = multer.diskStorage({
@@ -97,12 +106,21 @@ app.use(bodyParser.json());
         }
     })
 
-
-
 //#endregion
 
 
+//Use the routes as middleware
+app.use('/api/products', productRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/pReviews', pReviewRoutes);
+app.use('/api/orders', orderRoutes);
 
+
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send("Something went wrong!");
+})
         
 
 

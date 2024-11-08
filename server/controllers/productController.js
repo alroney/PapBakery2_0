@@ -1,14 +1,24 @@
+const Products = require('../models/productSchema');
+
+
+
+const fetchAllProducts = async () => {
+    try {
+        return await Products.find({});
+    }
+    catch(error) {
+        console.error("Error while fetching products: ", error);
+        throw error;
+    }
+}
+
 
 //API endpoint to add a new product.
 const addProduct = async (req,res) => {
-            
-    let products = await Product.find({}); 
-    console.log("Product Length: "+ products.length);
     try {
-
+        let products = await fetchAllProducts();
         //Generate a new product ID. If there are exisiting products, it takes the last product's ID and increments it by 1. If no products exist, it starts with an ID of 1.
         let id = products.length > 0 ? products.slice(-1)[0].id + 1 : 1; //slice() method is used to return a shallow copy of a portion of an array. So, slice(-1) is used with a negative index, which means "get the last element of the array". This returns an array containing only the last product in the products array.
-        console.log("ID: ", id);
 
         //Create a new product with the provided values.
         const product = new Product({
@@ -46,7 +56,7 @@ const editProduct = async (req,res) => {
             category: req.body.category,
         }
 
-        let product = await Product.findOneAndUpdate(filter, update);
+        let product = await Products.findOneAndUpdate(filter, update);
         product;
         product.save();
         console.log("Product ID: "+ product.id +", has successfully updated!");
@@ -68,7 +78,7 @@ const editProduct = async (req,res) => {
 //API endpoint to remove a product by ID.
 const removeProduct = async (req,res) => {
     try {
-        const product = await Product.findOne({id:req.body.id});
+        const product = await Products.findOne({id:req.body.id});
 
         if(!product) {
             return res.status(404).json({
@@ -91,7 +101,7 @@ const removeProduct = async (req,res) => {
             else {
                 console.log("Image file deleted successfull.");
                 //Delete the product from the database.
-                await Product.findOneAndDelete({ id: req.body.id });
+                await Products.findOneAndDelete({ id: req.body.id });
                 res.json({
                     success: true,
                     name: req.body.name,
@@ -112,9 +122,7 @@ const removeProduct = async (req,res) => {
 //API endpoint to fetch all products.
 const allProducts = async (req,res) => {
     try {
-        let products = await Product.find({});
-        
-
+        let products = await fetchAllProducts();
         res.send(products); //Respond with list of all products.
     }
     catch(error) {
@@ -125,10 +133,9 @@ const allProducts = async (req,res) => {
 //API endpoint to fetch the newest items (last 8 added).
 const newProducts = async (req,res) => {
     try {
-        let products = await Product.find({}); //Get all products.
-        let newItems = products.slice(-8);
-        console.log("New Items Fetched.");
-        res.send(newItems);
+        let products = await fetchAllProducts();
+        let newProducts = products.slice(-8);
+        res.send(newProducts);
     }
     catch(error) {
         console.log("Error while getting new items: ", error);
@@ -142,10 +149,10 @@ const newProducts = async (req,res) => {
 //API endpoint to fetch popular flavors (first 4 items).
 const topProducts = async (req,res) => {
     try {
-        let products = await Product.find({}); //Get all products.
-        let popular_flavors = products.slice(0,4);
+        let products = await fetchAllProducts();
+        let topProducts = products.slice(0,4);
         console.log("Popular Flavors Fetched.");
-        res.send(popular_flavors);
+        res.send(topProducts);
     }
     catch(error) {
         console.log("Error while getting popular items: ", error);

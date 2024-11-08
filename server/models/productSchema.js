@@ -1,9 +1,11 @@
+const Mongoose = require("mongoose");
+
 /**
      * Product schema definition using Mongoose.
      * In MondoDB, data is stored in collections, not tables (as in SQL databases).
      * Therefore, This creates a model named "Product" which represents a collection in the MongoDB database.
      */
-const Product = mongoose.model("Product", {
+const productSchema = new Mongoose.Schema({
     //key: object -> { key: value,}.
     id: {
         type: Number,
@@ -67,7 +69,7 @@ const Product = mongoose.model("Product", {
                 required: false,
             },
             user: {//This property is created to assign the user to the review made.
-                type: mongoose.Schema.Types.ObjectId,
+                type: Mongoose.Schema.Types.ObjectId,
                 required: false,
                 ref: "users",
             },
@@ -88,4 +90,9 @@ const Product = mongoose.model("Product", {
         required: true,
         default: 0,
     }
-})
+});
+
+
+const Products = Mongoose.model("Products", productSchema);
+
+module.exports = Products;
