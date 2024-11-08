@@ -78,24 +78,12 @@ app.use(bodyParser.json());
         res.send("Express App is Running")//response.send displays the text on to web page.
     })
 
-    //Serve static images from the 'upload/images' folder.
+    //Middleware to serve static images from the 'upload/images' folder.
     app.use('/images', express.static('upload/images'))
 
 
 
-    //API Endpoint to handle image uploads.
-    app.post("/upload", upload.single('product'), (req,res) => {//field name is product.
-        try {
-            //Respond with success and img url.
-            res.json({
-                success:1,
-                image_url:`http://localhost:${port}/images/${req.file.filename}`
-            })
-        }
-        catch(error) {
-            console.log("Upload error occurred: ", error);
-        }
-    })
+    
 
 //#endregion
 

@@ -16,7 +16,7 @@ const storage = multer.diskStorage({
 const upload = multer({storage:storage})
 
 //API Endpoint to handle image uploads.
-const uploadImage = (req,res) => {//field name is product.
+const uploadImage = (req,res) => {
     try {
         //Respond with success and img url.
         res.json({

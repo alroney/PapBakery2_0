@@ -17,13 +17,13 @@ const fetchAllProducts = async () => {
 
 //API endpoint to add a new product.
 const addProduct = async (req,res) => {
+    let products = await fetchAllProducts();
     try {
-        let products = await fetchAllProducts();
         //Generate a new product ID. If there are exisiting products, it takes the last product's ID and increments it by 1. If no products exist, it starts with an ID of 1.
         let id = products.length > 0 ? products.slice(-1)[0].id + 1 : 1; //slice() method is used to return a shallow copy of a portion of an array. So, slice(-1) is used with a negative index, which means "get the last element of the array". This returns an array containing only the last product in the products array.
 
         //Create a new product with the provided values.
-        const product = new Product({
+        const product = new Products({
             id: id,
             name: req.body.name,
             image: req.body.image,
