@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import apiUrl from '@config';
 import DOMPurify from 'dompurify';
+import apiUrl from '@config';
 
 function Message({content}) {
     return <p>{content}</p>
@@ -15,6 +15,7 @@ export const PayPalPayment = () => {
     const guestEmail = localStorage.getItem("guestEmail");
     const currency = "USD";
     const intent = "capture";
+    const orderAPIUrl = `${apiUrl}/order`;
 
     const [loading, setLoading] = useState(true);
     const [alertMessage, setAlertMessage] = useState("");
@@ -78,7 +79,7 @@ export const PayPalPayment = () => {
                             "isGuest": guestMode,
                             "guestEmail": guestEmail,
                         }
-                        const response = await fetch(`${apiUrl}/create_order`, {
+                        const response = await fetch(`${orderAPIUrl}/create`, {
                             method: "POST",
                             headers: {
                                 "Content-Type": "application/json",
@@ -87,7 +88,7 @@ export const PayPalPayment = () => {
                             body: JSON.stringify(requestBody)
                         });
                         const data1 = await response.json();
-                        console.log("Response from /create_order: ", data1);
+                        console.log("Response from /api/order/create: ", data1);
                         return data1.id;
                     }
                     catch(error) {
@@ -113,7 +114,7 @@ export const PayPalPayment = () => {
                         "order_id": order_id,
                     }
 
-                    return fetch(`${apiUrl}/complete_order`, {
+                    return fetch(`${orderAPIUrl}/complete`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(requestBody)

@@ -7,25 +7,37 @@ const {
     PaymentsController
 } = require('@paypal/paypal-server-sdk');
 
-const {get_access_token, getCartData, generateCartSummary, sendConfirmationEmail} = require('../utils/helpers');
+const environment = process.env.ENVIRONMENT;
+const pp_client_id = process.env.PAYPAL_CLIENT_ID;
+const pp_client_secret = process.env.PAYPAL_CLIENT_SECRET;
+const paypal_endpoint_url = environment === 'sandbox' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
+
+const Products = require('../models/productSchema');
+const Users = require('../models/userSchema');
+const Orders = require('../models/orderSchema');
+const {getCartData, generateCartSummary, sendConfirmationEmail} = require('../utils/helpers');
 
 
 
 const create_order = async (req, res) => {
     console.log("Inside create_order api...");
+    const orders = await Orders.find({});
     try {
         
         const isGuest = !req.user; //Determine if it's a guest checkout.
         const { cartData, email } = await getCartData(req); //Use helper function to get the cart data. Use await to ensure it is given time to return the data needed.
-        
-        let total = 0.00;
+        let tax = 0.00;
+        let orderId = orders.length > 0 ? orders.slice(-1)[0].id + 1 : 1;
         
         //Find all products that are in the cart by querying the Product collection.
         let cartItemIds = Object.keys(cartData).filter(itemId => cartData[itemId] > 0);
-        let products = await Product.find({id: {$in: cartItemIds} });
+        let products = await Products.find({id: {$in: cartItemIds} });
 
-        total = products.reduce((sum, product) => sum + (product.price * cartData[product.id], 0).toFixed(2))
-
+        const total = products.reduce((sum, product) => {
+            return sum + (product.price * cartData[product.id]);
+        }, 0).toFixed(2);
+        
+        console.log("Total: ", total);
         console.log("Made it inside create_order. Now running get_access_token.");
 
         const access_token = await get_access_token();
@@ -33,12 +45,31 @@ const create_order = async (req, res) => {
         console.log("Body content: ", req.body);
         console.log("Intent in body: ", req.body.intent);
         const order_data_json = {
-            intent: req.body.intent.toUpperCase(),
+            intent: "CAPTURE",
             purchase_units: [{
-                currency_code: 'USD',
-                value: total,
+                amount: {
+                    currency_code: 'USD',
+                    value: total,
+                },
+                
             }],
         };
+
+        console.log("Order_data_Json: ", order_data_json);
+
+
+        const newOrder = {
+            id: orderId,
+            user: "",
+            guest: {
+                isGuest: false,
+                email: "",
+            },
+            cart: "",
+            subtotal: "",
+            tax: "",
+
+        }
 
 
         const response = await fetch(paypal_endpoint_url + '/v2/checkout/orders', {
@@ -51,10 +82,9 @@ const create_order = async (req, res) => {
         });
 
         
-        const json = await response.json({ orderID: "1"});
+        const json = await response.json({ orderID: orderId});
        
         res.send(json);
-        res.send({message: "Reached end of create_order successfully."});
     }
     catch(error) {
         console.log("Error in create_order: ", error);
@@ -130,5 +160,41 @@ const complete_order = async (req,res) => {
     //         res.status(500).send(error);
     //     })
 };
+
+
+
+const get_access_token = async () => {
+    const auth = `${pp_client_id}:${pp_client_secret}`;
+    const data = 'grant_type=client_credentials';
+    console.log("get_access_token reached!");
+
+    return fetch(paypal_endpoint_url + '/v1/oauth2/token', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Basic ${Buffer.from(auth).toString('base64')}`
+        },
+        body: data
+    })
+    .then(response => {
+        if(!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json(); //Parse the response as JSON. This allows access to json.access_token.
+    })
+    .then(json => {
+        console.log("Access token retrieved: ", json.access_token);
+        if(!json.access_token) {
+            throw new Error("Access token missing in response.");
+        }
+        return json.access_token;
+    })
+    .catch(error => {
+        console.error("Error fetching access token: ", error);
+        throw error; //Propagate the error so it can be handled by the caller
+    });
+};
+
+
 
 module.exports = { create_order, complete_order };

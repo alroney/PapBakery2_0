@@ -5,6 +5,10 @@ const pp_client_id = process.env.PAYPAL_CLIENT_ID;
 const pp_client_secret = process.env.PAYPAL_CLIENT_SECRET;
 const paypal_endpoint_url = environment === 'sandbox' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
 
+const Users = require('../models/userSchema');
+const Products = require('../models/productSchema');
+
+
 const rateLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, //15 minutes
     max: 100, //Limit each IP to 100 requests per windowMs (15mins).
@@ -38,7 +42,7 @@ const getCartData = async (req) =>  {
 //Helper function to generate cart summary.
 const generateCartSummary = async (cartData) => {
     let cartItemIds = Object.keys(cartData).filter(itemId => cartData[itemId] > 0);
-        let products = await Product.find({id: {$in: cartItemIds} });
+        let products = await Products.find({id: {$in: cartItemIds} });
 
         
         let cartSummary = "Your cart summary includes the following items: \n\n";
@@ -88,40 +92,11 @@ const sendConfirmationEmail = async (email, cartSummary) => {
     });
 }
 
+const getSalesTaxByState = async (state) => {
+    
+}
 
 
 
-const get_access_token = async () => {
-    const auth = `${pp_client_id}:${pp_client_secret}`;
-    const data = 'grant_type=client_credentials';
-    console.log("get_access_token reached!");
 
-    return fetch(paypal_endpoint_url + '/v1/oauth2/token', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': `Basic ${Buffer.from(auth).toString('base64')}`
-        },
-        body: data
-    })
-    .then(response => {
-        if(!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return response.json(); //Parse the response as JSON. This allows access to json.access_token.
-    })
-    .then(json => {
-        console.log("Access token retrieved: ", json.access_token);
-        if(!json.access_token) {
-            throw new Error("Access token missing in response.");
-        }
-        return json.access_token;
-    })
-    .catch(error => {
-        console.error("Error fetching access token: ", error);
-        throw error; //Propagate the error so it can be handled by the caller
-    });
-};
-
-
-module.exports = { sendConfirmationEmail, generateCartSummary, getCartData, rateLimiter, get_access_token };
+module.exports = { sendConfirmationEmail, generateCartSummary, getCartData, rateLimiter };
