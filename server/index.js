@@ -78,10 +78,12 @@ app.use(bodyParser.json());
         res.send("Express App is Running")//response.send displays the text on to web page.
     })
 
+    app.get('/api/health', (req, res) => {
+        res.status(200).json({ status: 'ok' });
+    });
+
     //Middleware to serve static images from the 'upload/images' folder.
     app.use('/images', express.static(path.join(__dirname, 'upload/images')));
-
-
 
     
 
