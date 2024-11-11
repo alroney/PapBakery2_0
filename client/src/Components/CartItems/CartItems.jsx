@@ -1,4 +1,4 @@
-import React, { useContext, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import './CartItems.css';
 import { ShopContext } from '../../Context/ShopContext';
 import { PayPalPayment } from '../PayPalPayment/PayPalPayment';
@@ -8,23 +8,26 @@ import { CartContext } from '../../Context/CartContext';
 
 export const CartItems = () => {
     const {all_product, loading} = useContext(ShopContext);
-    const {cartItems, getTotalCartItems, getTotalCartAmount, removeFromCart} = useContext(CartContext);
+    const {cartItems, getTotalCartItems, calculateSubtotal, removeFromCart} = useContext(CartContext);
     const authToken = localStorage.getItem('auth-token');
     const [guestData, setGuestData] = useState({
         guestName: "",
         guestPhone: "",
         guestEmail: "",
       });
+    const [isPaynowVisible, setIsPaynowVisible] = useState(false);
+    const [subtotal, setSubtotal] = useState(0);
+    const [promoCode, setPromoCode] = useState('');
     const payRef = useRef();
-
-    if(loading) {
-        return <div>Loading...</div>;
-    }
-
-    const subtotal = getTotalCartAmount(all_product);
-    const shippingFee = 0.00;
-    const total = subtotal + shippingFee;
     
+
+    useEffect(() => {
+        if(!loading) {
+            setSubtotal(calculateSubtotal(all_product));
+        }
+    }, [cartItems, all_product, loading]);
+
+
     const changeHandler = (e) => {
         setGuestData({...guestData, [e.target.name]:e.target.value});
     }
@@ -39,10 +42,23 @@ export const CartItems = () => {
         
     }
 
+    const total = {
+        subtotal: subtotal,
+        shipping: 0,
+        discounts: [],
+    }
+
+    const applyPromoCode = () => {
+        //Logic to verify and apply promo code, adjusting the total as necessary.
+    }
 
     
+    
     const paynow_toggle = (e) => {
-        payRef.current.classList.toggle('paynow-visible');
+        //Update subtotal
+        const currentSubtotal = calculateSubtotal(all_product);
+        setSubtotal(currentSubtotal);
+        setIsPaynowVisible(!isPaynowVisible);
         e.target.classList.toggle('open');
 
         localStorage.setItem("guestEmail", guestData.guestEmail);
@@ -83,25 +99,25 @@ export const CartItems = () => {
                 <div>
                     <div className="cartitems-total-item">
                         <p>Subtotal</p>
-                        <p>${subtotal}</p>
+                        <p>${total.subtotal}</p>
                     </div>
                     <hr />
                     <div className="cartitems-total-item">
                         <p>Shipping Fee</p>
-                        {shippingFee <= 0 ? <p>Free</p> : <p>{shippingFee}</p>}
+                        {total.shipping <= 0 ? <p>Free</p> : <p>{total.shipping}</p>}
                     </div>
                     <hr />
                     <div className="cartitems-total-item">
                         <h3>Total</h3>
-                        <h3>${total}</h3>
+                        <h3>${Object.values(total).reduce((t, value) => t + value, 0)}</h3>
                     </div>
                 </div>
 
                 <div className="cartitems-promocode">
                     <p>If you have a promo code, Enter it here</p>
                     <div className="cartitems-promobox">
-                        <input type="text" placeholder="PROMO-CODE"/>
-                        <button>SUBMIT</button>
+                        <input type="text" placeholder="PROMO-CODE" value={promoCode} onChange={(e) => setPromoCode(e.target.value)}/>
+                        <button onClick={applyPromoCode}>SUBMIT</button>
                     </div>
                 </div>
 
@@ -112,7 +128,7 @@ export const CartItems = () => {
                         </div>
                 }
                 <button className="paynow-button" onClick={(e) => getTotalCartItems() > 0 ? paynow_toggle(e) : alert("Cart is Empty")}>Pay Now</button>
-                <div ref={payRef} className="paynow">
+                <div ref={payRef} className={`paynow ${isPaynowVisible ? 'paynow-visible' : ''}`}>
                     <PayPalPayment guestData={ !authToken ? guestData : null }/>
                 </div>
             </div>

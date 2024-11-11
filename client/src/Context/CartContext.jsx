@@ -57,10 +57,10 @@ export const CartProvider = ({ children }) => {
 
 
     //Function: Calculate the total cart amount.
-    const getTotalCartAmount = (allProducts) => {
-        return Object.entries(cartItems).reduce((total, [itemId, quantity]) => {
-            const itemInfo = allProducts.find((product) => product.id === Number(itemId));
-            return itemInfo ? total + itemInfo.price * quantity : total;
+    const calculateSubtotal = (allProducts) => {
+        return allProducts.reduce((sum, product) => {
+            const quantity = cartItems[product.id] || 0;
+            return sum + product.price * quantity;
         }, 0);
     };
 
@@ -79,7 +79,7 @@ export const CartProvider = ({ children }) => {
         cartItems,
         addToCart,
         removeFromCart,
-        getTotalCartAmount,
+        calculateSubtotal,
         getTotalCartItems
     }
 
