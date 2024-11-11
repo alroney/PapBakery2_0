@@ -1,15 +1,15 @@
-import React, {useContext, useRef, useState} from 'react'
-import './Navbar.css'
-import navLogo from '../Assets/img/logo/papbakery_logo_dark.png'
-import cart_icon from '../Assets/img/icon/cart_icon.png'
-import nav_dropdown from '../Assets/img/icon/nav_dropdown.png'
-import { Link } from 'react-router-dom'
-import { ShopContext } from '../../Context/ShopContext'
+import React, {useContext, useRef, useState} from 'react';
+import './Navbar.css';
+import navLogo from '../Assets/img/logo/papbakery_logo_dark.png';
+import cart_icon from '../Assets/img/icon/cart_icon.png';
+import nav_dropdown from '../Assets/img/icon/nav_dropdown.png';
+import { Link } from 'react-router-dom';
+import { CartContext } from '../../Context/CartContext';
 
 export const Navbar = () => {
 
     const [menu, setMenu] = useState("shop"); //Initialize the menu selection
-    const {getTotalCartItems} = useContext(ShopContext);
+    const {getTotalCartItems} = useContext(CartContext);
     const menuRef = useRef();
 
     const dropdown_toggle = (e) => {

@@ -1,6 +1,6 @@
 const Mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const saltRounds = process.env.BCRYPT_SALT_ROUNDS;
+const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS, 10); //Convert incoming .env value into an integer.
 
 //Define User schema and create Mongoose model.
 const userSchema = new Mongoose.Schema({ 
@@ -34,11 +34,11 @@ const userSchema = new Mongoose.Schema({
     ],
 });
 
+//Pre-save hook to hash the password.
 userSchema.pre("save", async function(next) {
     try {
-        const user = this; //`this` refers to the document.
-        if(user.isModified("password")) {
-            console.log("hashing password...");
+        const user = this; //`this` refers to the current user document.
+        if(user.isModified("password")) { //Hash only if password is new or modified.
             user.password = await bcrypt.hash(user.password, saltRounds);
         }
 
@@ -46,6 +46,7 @@ userSchema.pre("save", async function(next) {
     }
     catch(error) {
         console.log("Error occurred while hashing password: ", error);
+        next(error); //Pass the error to the next middleware if necessary.
     }
 })
 

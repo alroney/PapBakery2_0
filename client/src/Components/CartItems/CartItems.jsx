@@ -4,9 +4,11 @@ import { ShopContext } from '../../Context/ShopContext';
 import { PayPalPayment } from '../PayPalPayment/PayPalPayment';
 import remove_icon from '../Assets/img/icon/cart_cross_icon.png';
 import apiUrl from '@config';
+import { CartContext } from '../../Context/CartContext';
 
 export const CartItems = () => {
-    const {getTotalCartItems, getTotalCartAmount, all_product, cartItems, removeFromCart, loading} = useContext(ShopContext);
+    const {all_product, loading} = useContext(ShopContext);
+    const {cartItems, getTotalCartItems, getTotalCartAmount, removeFromCart} = useContext(CartContext);
     const authToken = localStorage.getItem('auth-token');
     const [guestData, setGuestData] = useState({
         guestName: "",
@@ -19,7 +21,7 @@ export const CartItems = () => {
         return <div>Loading...</div>;
     }
 
-    const subtotal = getTotalCartAmount();
+    const subtotal = getTotalCartAmount(all_product);
     const shippingFee = 0.00;
     const total = subtotal + shippingFee;
     

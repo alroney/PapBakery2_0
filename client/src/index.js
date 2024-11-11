@@ -6,6 +6,7 @@ import reportWebVitals from './reportWebVitals';
 import ShopContextProvider from './Context/ShopContext';
 import { ProductProvider } from './Context/ProductContext';
 import apiUrl from '@config'
+import { CartProvider } from './Context/CartContext';
 
 
 
@@ -14,7 +15,9 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
     <ProductProvider>
       <ShopContextProvider>
-        <App />
+        <CartProvider>
+          <App/>
+        </CartProvider>
       </ShopContextProvider>
     </ProductProvider>
 );
