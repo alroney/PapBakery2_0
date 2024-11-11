@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { CartContext } from '../../Context/CartContext';
 import DOMPurify from 'dompurify';
 import apiUrl from '@config';
 
@@ -16,7 +17,7 @@ export const PayPalPayment = () => {
     const currency = "USD";
     const intent = "capture";
     const orderAPIUrl = `${apiUrl}/order`;
-
+    const {cartItems} = useContext(CartContext);
     const [loading, setLoading] = useState(true);
     const [alertMessage, setAlertMessage] = useState("");
     const contentRef = useRef(null);
@@ -155,7 +156,7 @@ export const PayPalPayment = () => {
                 paymentOptionsRef.current.innerHTML = "";
             }
         };
-    }, []);
+    }, [cartItems]);
 
     return (
         <div className="paypalpayment">
