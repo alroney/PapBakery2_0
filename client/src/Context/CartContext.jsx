@@ -8,52 +8,82 @@ export const CartProvider = ({ children }) => {
         const storedCart = localStorage.getItem("cartData");
         return storedCart ? JSON.parse(storedCart) : {};
     });
+    
 
-    //Function: Add an item to the cart.
+    useEffect(() => {
+        //If user is logged in, load the user's cart from the backend.
+        if(localStorage.getItem('auth-token')) {
+            fetch(`${apiUrl}/cart/get`, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/form-data',
+                    'auth-token': `${localStorage.getItem('auth-token')}`,
+                    'Content-Type': 'application/json',
+                },
+                body: "",
+            })
+            .then((response) => response.json())
+            .then((data) => setCartItems(data));
+            
+        }
+    }, []) //Load only once per mount.
+
+
     const addToCart = (itemId) => {
         setCartItems((prev) => {
-            const updatedCart = { ...prev, [itemId]: (prev[itemId] || 0) + 1};
+            const updatedCart = { ...prev, [itemId]: (prev[itemId] || 0) + 1}; //Increment.
+            //Save to localStorage if user is a guest.
             if(!localStorage.getItem("auth-token")) {
                 localStorage.setItem("cartData", JSON.stringify(updatedCart));
             }
             return updatedCart;
         });
 
-        if(localStorage.getItem('auth-token')) {
+        //If user is logged in, update the backend cart.
+        if(localStorage.getItem('auth-token')){
             fetch(`${apiUrl}/cart/add`, {
                 method: 'POST',
                 headers: {
-                    Accept: 'application/json',
-                    'auth-token': localStorage.getItem('auth-token'),
+                    Accept: 'application/form-data',
+                    'auth-token': `${localStorage.getItem('auth-token')}`,
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ "itemId": itemId })
-            });
+                body: JSON.stringify({"itemId": itemId})
+            })
+            .then((response) => response.json())
+            .then((data) => setCartItems(data));
         }
-    };
+    }
 
-    //Function: Remove an item from the cart.
-    const removeFromCart =(itemId) => {
+    
+
+    const removeFromCart = (itemId) => {
         setCartItems((prev) => {
-            const updatedCart = { ...prev, [itemId]: (prev[itemId] || 0) - 1};
+            const updatedCart = { ...prev, [itemId]: (prev[itemId] || 1) - 1}; //Decrement.
+            //Remove item if quantity reaches 0.
+            if(updatedCart[itemId] <= 0) delete updatedCart[itemId];
+            //Update localStorage for guests.
             if(!localStorage.getItem("auth-token")) {
                 localStorage.setItem("cartData", JSON.stringify(updatedCart));
             }
             return updatedCart;
         });
-
+        
+        //If user logged in, update the backend cart.
         if(localStorage.getItem('auth-token')) {
             fetch(`${apiUrl}/cart/remove`, {
                 method: 'POST',
                 headers: {
-                    Accept: 'application/json',
-                    'auth-token': localStorage.getItem('auth-token'),
+                    Accept: 'application/form-data',
+                    'auth-token': `${localStorage.getItem('auth-token')}`,
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ "itemId": itemId })
-            });
+                body: JSON.stringify({"itemId": itemId})
+            })
+            .then((response) => response.json())
+            .then((data) => setCartItems(data));
         }
-    };
+    }
 
 
     //Function: Calculate the total cart amount.
