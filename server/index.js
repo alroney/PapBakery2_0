@@ -2,7 +2,6 @@ const port = 4000;
 
 //Import necessary packages -> const varname = require("packagename");.
 const express = require('express');
-require('dotenv').config(); //Load environment variables.
 const app = express();
 const mongoose = require('mongoose'); //Allows connection to MongoDB
 const multer = require('multer'); //Allows for image storage handling.

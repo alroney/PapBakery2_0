@@ -1,0 +1,20 @@
+{
+    "private": true,
+    "worspaces": [
+        "admin",
+        "client",
+        "server"
+    ],
+    "dependencies": {
+        "express": "^4.21.1",
+        "mongoose": "^8.7.1",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
+        "react-router-dom": "^6.26.2"
+    },
+    "scripts": {
+        "start:client": "npm run start --workspace client",
+        "start:server": "npm run start --workspace server",
+        "start:admin": "npm run start --workspace admin"
+    }
+}
