@@ -16,6 +16,7 @@
         "cors": "^2.8.5",
         "dompurify": "^3.1.7",
         "dotenv": "^16.4.5",
+        "eslint": "^8.57.1",
         "express": "^4.21.1",
         "express-rate-limit": "^7.4.1",
         "fs": "^0.0.1-security",
@@ -33,20 +34,42 @@
         "web-vitals": "^2.1.4"
     },
     "devDependencies": {
+        "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+        "@craco/craco": "^7.1.0",
         "@eslint/js": "^9.11.1",
         "@types/react": "^18.3.10",
         "@types/react-dom": "^18.3.0",
         "@vitejs/plugin-react": "^4.3.2",
-        "eslint": "^9.11.1",
+        "eslint-config-react-app": "^7.0.1",
         "eslint-plugin-react": "^7.37.0",
         "eslint-plugin-react-hooks": "^5.1.0-rc.0",
         "eslint-plugin-react-refresh": "^0.4.12",
         "globals": "^15.9.0",
+        "os-browserify": "^0.3.0",
+        "path-browserify": "^1.0.1",
         "vite": "^5.4.8"
     },
     "scripts": {
         "start:client": "npm run start --workspace client",
         "start:server": "npm run start --workspace server",
         "start:admin": "npm run start --workspace admin"
+    },
+    "eslintConfig": {
+        "extends": [
+            "react-app",
+            "react-app/jest"
+        ]
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
     }
 }
