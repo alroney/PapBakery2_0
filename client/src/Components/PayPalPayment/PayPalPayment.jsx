@@ -7,13 +7,10 @@ function Message({content}) {
     return <p>{content}</p>
 }
 
-export const PayPalPayment = () => {
+export const PayPalPayment = ({ guestData }) => {
 
     const paypal_sdk_url = "https://www.paypal.com/sdk/js";
     const client_id = process.env.REACT_APP_PAYPAL_CLIENT_ID;
-    const userAuthToken = localStorage.getItem("auth-token");
-    const guestMode = localStorage.getItem("isGuest");
-    const guestEmail = localStorage.getItem("guestEmail");
     const currency = "USD";
     const intent = "capture";
     const orderAPIUrl = `${apiUrl}/order`;
@@ -25,6 +22,19 @@ export const PayPalPayment = () => {
 
 
     useEffect(() => {
+        const userAuthToken = localStorage.getItem("auth-token");
+        const guestMode = localStorage.getItem("isGuest");
+        let guestEmail = "";
+        let guestCart = {};
+        console.log("Guest Mode: ", guestMode)
+
+        if(guestMode) {
+             guestEmail = guestData.guestEmail;
+             guestCart = localStorage.getItem("cartData");
+        }
+
+        console.log("Received guestEmail in PayPalPayment: ", guestData.guestEmail);
+
         const loadPayPalScript = async () => {
             try {
                 const script = document.createElement('script');
@@ -69,9 +79,13 @@ export const PayPalPayment = () => {
                     label: 'paypal'
                 },
                 createOrder: async (data, actions) => {
+                    if(guestMode) {
+                        console.log("Guest email: ", guestEmail);
+                        console.log("Is Guest: ", guestMode);
+                        console.log("CartData: ", guestCart);
+                    }
                     console.log("Create order has been called with Auth-Token of: ", userAuthToken);
-                    console.log("Guest email: ", guestEmail);
-                    console.log("Is Guest: ", guestMode);
+                    
                     try {
                         console.log("Start of try in createOrder:...")
                         console.log("createOrder Intent: ", intent);
@@ -79,6 +93,7 @@ export const PayPalPayment = () => {
                             "intent": intent,
                             "isGuest": guestMode,
                             "guestEmail": guestEmail,
+                            "guestCart": guestCart
                         }
                         const response = await fetch(`${orderAPIUrl}/create`, {
                             method: "POST",
@@ -129,6 +144,7 @@ export const PayPalPayment = () => {
                             `Thank you ${orderDetails.payer.name.given_name} ${orderDetails.payer.name.surname} for your payment of ${orderDetails.purchase_units[0].payments[intent][0].amount.value} ${orderDetails.purchase_units[0].payments[intent][0].amount.currency_code}!`
                         );
                         setAlertMessage(sanitizedMessage);
+                        
                         paypalButtons.close();
                     })
                     .catch(error => {

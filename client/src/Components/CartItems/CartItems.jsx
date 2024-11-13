@@ -11,8 +11,6 @@ export const CartItems = () => {
     const {cartItems, getTotalCartItems, calculateSubtotal, removeFromCart} = useContext(CartContext);
     const authToken = localStorage.getItem('auth-token');
     const [guestData, setGuestData] = useState({
-        guestName: "",
-        guestPhone: "",
         guestEmail: "",
       });
     const [isPaynowVisible, setIsPaynowVisible] = useState(false);
@@ -31,6 +29,15 @@ export const CartItems = () => {
     const changeHandler = (e) => {
         setGuestData({...guestData, [e.target.name]:e.target.value});
     }
+
+    useEffect(() => {
+        console.log("GuestEmail: ", guestData.guestEmail);
+    }, [guestData.guestEmail])
+
+    const confirmEmail = () => {
+        localStorage.setItem("guestEmail", guestData.guestEmail);
+        console.log("Email Saved as: ", localStorage.getItem("guestEmail"));
+    }    
 
     const confirmation = async () => {
         const headers = {
@@ -60,8 +67,6 @@ export const CartItems = () => {
         setSubtotal(currentSubtotal);
         setIsPaynowVisible(!isPaynowVisible);
         e.target.classList.toggle('open');
-
-        localStorage.setItem("guestEmail", guestData.guestEmail);
     }
 
   return (
@@ -76,6 +81,7 @@ export const CartItems = () => {
         </div>
         <hr />
         {all_product.map((e) => {
+            console.log("CartItems: ", cartItems);
             if(cartItems[e.id] > 0) {
                 return (
                         <div key={e.id}>
@@ -125,11 +131,17 @@ export const CartItems = () => {
                     ? <></> //If true.
                     :   <div className="guest-info-fields">
                             <input type='email' name='guestEmail' value={guestData.guestEmail} onChange={changeHandler}  placeholder='Email' required />
+                            <button onClick={confirmEmail}>Confirm</button>
                         </div>
                 }
                 <button className="paynow-button" onClick={(e) => getTotalCartItems() > 0 ? paynow_toggle(e) : alert("Cart is Empty")}>Pay Now</button>
                 <div ref={payRef} className={`paynow ${isPaynowVisible ? 'paynow-visible' : ''}`}>
-                    <PayPalPayment guestData={ !authToken ? guestData : null }/>
+                    {isPaynowVisible && (
+                        <PayPalPayment 
+                            key={authToken ? "userPayment" : "guestPayment"} //Unique key for each condition.
+                            guestData={authToken ? {} : guestData} //Pass empty object for users, guestData for guests.
+                        />
+                    )}
                 </div>
             </div>
 

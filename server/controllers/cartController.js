@@ -10,7 +10,7 @@ const getLoggedInUserData = async (req) => {
 const addToCart = async (req,res) => {
     try {
         let userData = await getLoggedInUserData(req); //Wait for server to find a single user.
-        userData.cartData[req.body.itemId] += 1;
+        userData.cartData[req.body.itemId] += 1; //Add +1 product with the corresponding itemId.
         await Users.findOneAndUpdate({_id: req.user.id}, {cartData: userData.cartData});
     }
     catch(error) {
@@ -42,5 +42,15 @@ const getCart = async (req,res) => {
         console.log("Get Cart error occurred: ", error);
     }
 };
+
+const clearCart = async (req,res) => {
+    try {
+        let userData = await getLoggedInUserData(req);
+        await Users.findOneAndUpdate({ _id: req.user.id }, {cartData:[{}] })
+    }
+    catch(error) {
+        console.log("Error in clearCart: ", error);
+    }
+}
 
 module.exports = { getCart, addToCart, removeFromCart };

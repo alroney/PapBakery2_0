@@ -34,13 +34,14 @@ const jwt = require('jsonwebtoken');
 
 const authenticateUser = async (req,res,next) => {
     const token = req.header('auth-token'); //Extract JWT token value from the key 'auth-token' located in the 'headers' key's object value in the fetch functions object parameter -> fetch(('api_endpoint_url'), {}).
-    
-    if(!token) {
-        req.user = null; //Set req.user to null for guest users.
-        return res.status(401).send("Access Denied"); ///Proceed without user authentication.
+    console.log("Token: ", token)
+    if(token.toString() === "null") {
+        console.log("Token was not token...");
+        return next();
     }
-
     try {
+
+        
         /** Explanation of JWT verification process.
          * Verify JWT token and extract user data.
          * 
@@ -67,6 +68,7 @@ const authenticateUser = async (req,res,next) => {
         next();
     }
     catch (error) {
+        console.log("....In catch of authenticateUser....")
         res.status(401).send({errors: "Invalid token."});
     }
 };

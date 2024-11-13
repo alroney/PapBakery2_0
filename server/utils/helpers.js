@@ -23,33 +23,34 @@ const getCartData = async (req) =>  {
     if(req.user) {
         console.log("User found! Using user cart.");
         const userData = await Users.findOne({_id: req.user.id});
-
+        //userData.cartData is already in proper JSON format. Therefore no parsing is required.
         return { cartData: userData.cartData, email: userData.email };
     }
     else if(req.user === undefined && req.body.isGuest) {
         console.log("No user found. Searching for guest email...");
+        console.log("req.body: ", req.body);
         if(!req.body.guestEmail) throw new Error("Guest email is required for guest checkout");
-        console.log("Guest email found. Returning cartData and email...");
-        return { cartData: req.body.cartData, email: req.body.guestEmail };
+        
+        parsedCartData = JSON.parse(req.body.guestCart.trim())//Remove an whitespace in the string, then parse into JSON, then set as parsedCartData.
+        return { cartData: parsedCartData, email: req.body.guestEmail };
     }
     else {
         console.log("Cart data not found.");
+        return {cartData: {}, email: null}
     }
 }
 
 
 
-//Helper function to generate cart summary.
-const generateCartSummary = async (cartData) => {
-    let cartItemIds = Object.keys(cartData).filter(itemId => cartData[itemId] > 0);
-        let products = await Products.find({id: {$in: cartItemIds} });
 
-        
+//Helper function to generate cart summary.
+const generateCartSummary = async (cart) => {
         let cartSummary = "Your cart summary includes the following items: \n\n";
         let totalAmount = 0;
 
-        products.forEach((product) => {
-            const quantity = cartData[product.id];
+        //Loop through the cart assigning each item as `product`
+        cart.forEach((product) => {
+            const quantity = cart[product.id];
             const itemTotal = product.price * quantity;
             totalAmount += itemTotal;
 
@@ -96,7 +97,16 @@ const getSalesTaxByState = async (state) => {
     
 }
 
+const isValidJSON = (str) => {
+    try {
+        JSON.parse(str);
+        return true;
+    }
+    catch(error) {
+        return false;
+    }
+};
 
 
 
-module.exports = { sendConfirmationEmail, generateCartSummary, getCartData, rateLimiter };
+module.exports = { sendConfirmationEmail, generateCartSummary, getCartData, rateLimiter, isValidJSON };

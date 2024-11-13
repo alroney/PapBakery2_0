@@ -29,6 +29,9 @@ const orderSchema = new Mongoose.Schema({
     tax: {
         type: Number,
     },
+    total: {
+        type: Number,
+    },
     date: {
         type: Date,
         default: Date().now,

@@ -4,15 +4,14 @@ import apiUrl from '@config';
 export const CartContext = createContext(null);
 
 export const CartProvider = ({ children }) => {
-    const [cartItems, setCartItems] = useState(() => {
-        const storedCart = localStorage.getItem("cartData");
-        return storedCart ? JSON.parse(storedCart) : {};
-    });
+    const [cartItems, setCartItems] = useState({});
     
 
     useEffect(() => {
+        const guestCart = localStorage.getItem("cartData");
         //If user is logged in, load the user's cart from the backend.
         if(localStorage.getItem('auth-token')) {
+            clearGuestCart();
             fetch(`${apiUrl}/cart/get`, {
                 method: 'POST',
                 headers: {
@@ -26,12 +25,16 @@ export const CartProvider = ({ children }) => {
             .then((data) => setCartItems(data));
             
         }
+        else if(!localStorage.getItem("auth-token") && guestCart) {
+            setCartItems(JSON.parse(guestCart));
+        }
     }, []) //Load only once per mount.
 
 
     const addToCart = (itemId) => {
         setCartItems((prev) => {
             const updatedCart = { ...prev, [itemId]: (prev[itemId] || 0) + 1}; //Increment.
+
             //Save to localStorage if user is a guest.
             if(!localStorage.getItem("auth-token")) {
                 localStorage.setItem("cartData", JSON.stringify(updatedCart));
@@ -60,6 +63,7 @@ export const CartProvider = ({ children }) => {
     const removeFromCart = (itemId) => {
         setCartItems((prev) => {
             const updatedCart = { ...prev, [itemId]: (prev[itemId] || 1) - 1}; //Decrement.
+
             //Remove item if quantity reaches 0.
             if(updatedCart[itemId] <= 0) delete updatedCart[itemId];
             //Update localStorage for guests.
@@ -103,6 +107,11 @@ export const CartProvider = ({ children }) => {
             }
         }
         return totalItems;
+    }
+
+    const clearGuestCart = () => {
+        setCartItems({});
+        localStorage.removeItem("cartData")
     }
 
     const contextValue = {

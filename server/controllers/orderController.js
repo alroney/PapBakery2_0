@@ -1,12 +1,3 @@
-const {
-    ApiError,
-    Client,
-    Environment,
-    LogLevel,
-    OrdersController,
-    PaymentsController
-} = require('@paypal/paypal-server-sdk');
-
 const environment = process.env.ENVIRONMENT;
 const pp_client_id = process.env.PAYPAL_CLIENT_ID;
 const pp_client_secret = process.env.PAYPAL_CLIENT_SECRET;
@@ -15,7 +6,7 @@ const paypal_endpoint_url = environment === 'sandbox' ? 'https://api-m.sandbox.p
 const Products = require('../models/productSchema');
 const Users = require('../models/userSchema');
 const Orders = require('../models/orderSchema');
-const {getCartData, generateCartSummary, sendConfirmationEmail} = require('../utils/helpers');
+const {getCartData, generateCartSummary, sendConfirmationEmail, isValidJSON} = require('../utils/helpers');
 
 
 
@@ -26,21 +17,29 @@ const create_order = async (req, res) => {
         
         const isGuest = !req.user; //Determine if it's a guest checkout.
         const { cartData, email } = await getCartData(req); //Use helper function to get the cart data. Use await to ensure it is given time to return the data needed.
+        // Log character codes to detect hidden issues
+        
+        
         let tax = 0.00;
         let orderId = orders.length > 0 ? orders.slice(-1)[0].id + 1 : 1;
         
+
+
         //Find all products that are in the cart by querying the Product collection.
-        let cartItemIds = Object.keys(cartData).filter(itemId => cartData[itemId] > 0);
-        let products = await Products.find({id: {$in: cartItemIds} });
+        const cartItemIds = Object.keys(cartData).filter(itemId => cartData[itemId] > 0);
+        
+        const products = await Products.find({id: {$in: cartItemIds} });
 
         const total = products.reduce((sum, product) => {
             return sum + (product.price * cartData[product.id]);
         }, 0).toFixed(2);
 
+        console.log("Total: ", total)
+
         const access_token = await get_access_token();
 
-        console.log("Body content: ", req.body);
-        console.log("Intent in body: ", req.body.intent);
+        // console.log("Body content: ", req.body);
+        // console.log("Intent in body: ", req.body.intent);
         const order_data_json = {
             intent: "CAPTURE",
             purchase_units: [{
@@ -52,7 +51,7 @@ const create_order = async (req, res) => {
             }],
         };
 
-
+        console.log("order_data_json: ", JSON.stringify(order_data_json));
         const response = await fetch(paypal_endpoint_url + '/v2/checkout/orders', {
             method: 'POST',
             headers: {
@@ -73,6 +72,9 @@ const create_order = async (req, res) => {
     }
     
 };
+
+
+
 
 
 
