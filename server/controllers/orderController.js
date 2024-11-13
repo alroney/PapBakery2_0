@@ -107,7 +107,8 @@ const create_order = async (req, res) => {
 const complete_order = async (req,res) => {
     try {
         const isGuest = !req.user;
-        const access_token = get_access_token();
+        const access_token = await get_access_token();
+        console.log("access_token: ", access_token)
         const response = await fetch(paypal_endpoint_url + '/v2/checkout/orders/' + req.body.order_id + '/' + req.body.intent, {
             method: 'POST',
             headers: {
@@ -117,19 +118,23 @@ const complete_order = async (req,res) => {
         });
 
         const json = await response.json();
+        console.log("JSON in complete_order: ", json);
         if(json.status === 'COMPLETED') {
-            const orderDetails = await getOrderDetails(req, isGuest);
-            const cartSummary = await generateCartSummary(orderDetails.cart);
-
-            await sendConfirmationEmail(orderDetails.guest ? orderDetails.guest.email : req.user.email, cartSummary);
-
-            res.json({ success: true, message: "Order completed and email sent successfully!", paymentDetails: json });
-            if(!isGuest) {
-                Users.findOneAndUpdate({ _id: req.user.id }, { cartData: {} });
+            try {
+                const orderDetails = await getOrderDetails(req, isGuest);
+                const cartSummary = await generateCartSummary(orderDetails.cart);
+    
+                await sendConfirmationEmail(orderDetails.guest ? orderDetails.guest.email : req.user.email, cartSummary);
+    
+                res.json(json);
+                if(!isGuest) {
+                    Users.findOneAndUpdate({ _id: req.user.id }, { cartData: {} });
+                }
             }
-            else {
-                localStorage.removeItem("guestCart");
+            catch(error) {
+                console.log("Error in completed transaction statement: ", error)
             }
+            
         }
         else {
             res.json({ success: false, message: "Payment could not be completed.", details: json});

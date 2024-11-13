@@ -81,7 +81,6 @@ export const CartItems = () => {
         </div>
         <hr />
         {all_product.map((e) => {
-            console.log("CartItems: ", cartItems);
             if(cartItems[e.id] > 0) {
                 return (
                         <div key={e.id}>

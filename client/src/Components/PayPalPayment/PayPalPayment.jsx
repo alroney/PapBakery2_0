@@ -92,31 +92,23 @@ export const PayPalPayment = ({ guestData }) => {
                             },
                             body: JSON.stringify(requestBody)
                         });
-                        const data1 = await response.json();
-                        console.log("Response from /api/order/create: ", data1);
-                        return data1.id;
+                        const data = await response.json();
+                        console.log("Response from /api/order/create: ", data);
+                        return data.id;
                     }
                     catch(error) {
                         console.error("Error in createOrder: ", error);
                     }
-                    // return fetch(`${apiUrl}/create_order`, {
-                    //     method: "POST",
-                    //     headers: { "Content-Type": "application/json" },
-                    //     body: JSON.stringify({ "intent": intent })
-                    // })
-                    // .then(response => {
-                    //     if (!response.ok) throw new Error('Failed to create order.');
-                    //     return "Response.json = " + response.json();
-                    // })
-                    // .then(order => order.id);
                 },
                 onApprove: (data) => {
-                    console.log("Inside OnApprove...");
                     const order_id = data.orderID;
 
                     const requestBody = {
                         "intent": intent,
                         "order_id": order_id,
+                        "isGuest": guestMode,
+                        "guestEmail": guestEmail,
+                        "guestCart": guestCart,
                     }
 
                     return fetch(`${orderAPIUrl}/complete`, {
@@ -125,15 +117,24 @@ export const PayPalPayment = ({ guestData }) => {
                         body: JSON.stringify(requestBody)
                     })
                     .then(response => {
+                        console.log("Response: ", response);
                         if (!response.ok) throw new Error('Order completion failed.');
                         return response.json();
                     })
                     .then(orderDetails => {
+                        console.log("OrderDetails: ", orderDetails)
+                        console.log("orderDetails.payer.name.given_name: ", orderDetails.payer.name.given_name);
+                        console.log("orderDetails.payer.name.surname: ", orderDetails.payer.name.surname);
+                        console.log("orderDetails.purchase_units[0].payments[intent][0].amount.value: ", orderDetails.purchase_units[0].payments[intent+'s'][0].amount.value);
+                        console.log("orderDetails.purchase_units[0].payments[intent][0].amount.currency_code: ", orderDetails.purchase_units[0].payments[intent+'s'][0].amount.currency_code);
+
                         const sanitizedMessage = DOMPurify.sanitize(
-                            `Thank you ${orderDetails.payer.name.given_name} ${orderDetails.payer.name.surname} for your payment of ${orderDetails.purchase_units[0].payments[intent][0].amount.value} ${orderDetails.purchase_units[0].payments[intent][0].amount.currency_code}!`
+                            `Thank you ${orderDetails.payer.name.given_name} ${orderDetails.payer.name.surname} for your payment of ${orderDetails.purchase_units[0].payments[intent+'s'][0].amount.value} ${orderDetails.purchase_units[0].payments[intent+'s'][0].amount.currency_code}!`
                         );
                         setAlertMessage(sanitizedMessage);
-                        
+                        if(guestMode) {
+                            localStorage.removeItem("guestCart");
+                        }
                         paypalButtons.close();
                     })
                     .catch(error => {
