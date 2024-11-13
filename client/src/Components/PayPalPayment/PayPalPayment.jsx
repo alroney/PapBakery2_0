@@ -30,10 +30,8 @@ export const PayPalPayment = ({ guestData }) => {
 
         if(guestMode) {
              guestEmail = guestData.guestEmail;
-             guestCart = localStorage.getItem("cartData");
+             guestCart = localStorage.getItem("guestCart");
         }
-
-        console.log("Received guestEmail in PayPalPayment: ", guestData.guestEmail);
 
         const loadPayPalScript = async () => {
             try {
@@ -79,16 +77,7 @@ export const PayPalPayment = ({ guestData }) => {
                     label: 'paypal'
                 },
                 createOrder: async (data, actions) => {
-                    if(guestMode) {
-                        console.log("Guest email: ", guestEmail);
-                        console.log("Is Guest: ", guestMode);
-                        console.log("CartData: ", guestCart);
-                    }
-                    console.log("Create order has been called with Auth-Token of: ", userAuthToken);
-                    
                     try {
-                        console.log("Start of try in createOrder:...")
-                        console.log("createOrder Intent: ", intent);
                         const requestBody = {
                             "intent": intent,
                             "isGuest": guestMode,

@@ -45,7 +45,7 @@ export const CartItems = () => {
             'Content-Type': 'application/json',
         };
 
-        const cartData = JSON.parse(localStorage.getItem('cartData')) || {};
+        const guestCart = JSON.parse(localStorage.getItem('guestCart')) || {};
         
     }
 

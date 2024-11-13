@@ -8,33 +8,42 @@ const Users = require('../models/userSchema');
 const Orders = require('../models/orderSchema');
 const {getCartData, generateCartSummary, sendConfirmationEmail, isValidJSON} = require('../utils/helpers');
 
+const getNextOrderId = () => {
+    const orders = Orders.find({});
+    const orderId = orders.length > 0 ? orders.slice(-1)[0].id + 1 : 1;
+    return orderId;
+}
 
+const getOrderDetails = async (req, isGuest) => {
+    const { cartData, email } = await getCartData(req); // Fetch cart data
+    const cartItemIds = Object.keys(cartData).filter(itemId => cartData[itemId] > 0);
+    const productsInCart = await Products.find({ id: { $in: cartItemIds } });
+    
+    const subtotal = productsInCart.reduce((sum, product) => {
+        return sum + (product.price * cartData[product.id]);
+    }, 0).toFixed(2);
+    
+    const tax = 0.10;
+    const total = parseFloat(subtotal) + parseFloat(tax);
+
+    return {
+        orderId: await getNextOrderId(), // Assume helper function to get unique order ID
+        user: isGuest ? null : req.user,
+        guest: isGuest ? { isGuest, email } : null,
+        cart: productsInCart,
+        subtotal,
+        tax,
+        total,
+    };
+};
 
 const create_order = async (req, res) => {
     console.log("Inside create_order api...");
     const orders = await Orders.find({});
     try {
-        
         const isGuest = !req.user; //Determine if it's a guest checkout.
-        const { cartData, email } = await getCartData(req); //Use helper function to get the cart data. Use await to ensure it is given time to return the data needed.
-        // Log character codes to detect hidden issues
-        
-        
-        let tax = 0.00;
-        let orderId = orders.length > 0 ? orders.slice(-1)[0].id + 1 : 1;
-        
+        const orderDetails = await getOrderDetails(req, isGuest);
 
-
-        //Find all products that are in the cart by querying the Product collection.
-        const cartItemIds = Object.keys(cartData).filter(itemId => cartData[itemId] > 0);
-        
-        const products = await Products.find({id: {$in: cartItemIds} });
-
-        const total = products.reduce((sum, product) => {
-            return sum + (product.price * cartData[product.id]);
-        }, 0).toFixed(2);
-
-        console.log("Total: ", total)
 
         const access_token = await get_access_token();
 
@@ -45,7 +54,7 @@ const create_order = async (req, res) => {
             purchase_units: [{
                 amount: {
                     currency_code: 'USD',
-                    value: total,
+                    value: JSON.parse(orderDetails.total),
                 },
                 
             }],
@@ -62,7 +71,7 @@ const create_order = async (req, res) => {
         });
 
         
-        const json = await response.json({ orderID: orderId});
+        const json = await response.json({ orderID: orderDetails.orderId});
        
         res.send(json);
     }
@@ -97,6 +106,7 @@ const create_order = async (req, res) => {
 
 const complete_order = async (req,res) => {
     try {
+        const isGuest = !req.user;
         const access_token = get_access_token();
         const response = await fetch(paypal_endpoint_url + '/v2/checkout/orders/' + req.body.order_id + '/' + req.body.intent, {
             method: 'POST',
@@ -108,25 +118,18 @@ const complete_order = async (req,res) => {
 
         const json = await response.json();
         if(json.status === 'COMPLETED') {
-            const { cartData, email } = await getCartData(req);
-            const cartSummary = await generateCartSummary(cartData);
+            const orderDetails = await getOrderDetails(req, isGuest);
+            const cartSummary = await generateCartSummary(orderDetails.cart);
 
-            const newOrder = {
-                id: orderId,
-                user: "",
-                guest: {
-                    isGuest: false,
-                    email: "",
-                },
-                cart: "",
-                subtotal: "",
-                tax: "",
-    
-            }
-
-            await sendConfirmationEmail(email, cartSummary);
+            await sendConfirmationEmail(orderDetails.guest ? orderDetails.guest.email : req.user.email, cartSummary);
 
             res.json({ success: true, message: "Order completed and email sent successfully!", paymentDetails: json });
+            if(!isGuest) {
+                Users.findOneAndUpdate({ _id: req.user.id }, { cartData: {} });
+            }
+            else {
+                localStorage.removeItem("guestCart");
+            }
         }
         else {
             res.json({ success: false, message: "Payment could not be completed.", details: json});
