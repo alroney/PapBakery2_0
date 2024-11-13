@@ -8,7 +8,7 @@ export const CartProvider = ({ children }) => {
     
 
     useEffect(() => {
-        const guestCart = localStorage.getItem("cartData");
+        const guestCart = localStorage.getItem("guestCart");
         //If user is logged in, load the user's cart from the backend.
         if(localStorage.getItem('auth-token')) {
             clearGuestCart();
@@ -37,7 +37,7 @@ export const CartProvider = ({ children }) => {
 
             //Save to localStorage if user is a guest.
             if(!localStorage.getItem("auth-token")) {
-                localStorage.setItem("cartData", JSON.stringify(updatedCart));
+                localStorage.setItem("guestCart", JSON.stringify(updatedCart));
             }
             return updatedCart;
         });
@@ -68,7 +68,7 @@ export const CartProvider = ({ children }) => {
             if(updatedCart[itemId] <= 0) delete updatedCart[itemId];
             //Update localStorage for guests.
             if(!localStorage.getItem("auth-token")) {
-                localStorage.setItem("cartData", JSON.stringify(updatedCart));
+                localStorage.setItem("guestCart", JSON.stringify(updatedCart));
             }
             return updatedCart;
         });
@@ -111,7 +111,7 @@ export const CartProvider = ({ children }) => {
 
     const clearGuestCart = () => {
         setCartItems({});
-        localStorage.removeItem("cartData")
+        localStorage.removeItem("guestCart")
     }
 
     const contextValue = {
