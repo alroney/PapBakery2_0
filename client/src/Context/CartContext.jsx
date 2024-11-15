@@ -40,17 +40,17 @@ export const CartProvider = ({ children }) => {
     const handleAddToCart = useCallback(async (product) => {
         try {
             if(localStorage.getItem('auth-token')) {
-                const updatedCart = await addToCart(product.id, 1);
+                const updatedCart = await addToCart(product._id, 1);
                 setCart(updatedCart.items);
             } 
             else {
                 const updatedGuestCart = [...cart];
-                const itemIndex = updatedGuestCart.findIndex((item) => item.productId === product.id);
+                const itemIndex = updatedGuestCart.findIndex((item) => item.productId === product._id);
                 if(itemIndex > -1) {
                     updatedGuestCart[itemIndex].quantity += 1;
                 } 
                 else {
-                    updatedGuestCart.push({ productId: product.id, name: product.name, price: product.price, quantity: 1 });
+                    updatedGuestCart.push({ productId: product._id, name: product.name, price: product.price, quantity: 1, image: product.image });
                 }
                 setCart(updatedGuestCart);
                 localStorage.setItem('guestCart', JSON.stringify(updatedGuestCart));

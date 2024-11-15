@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React, { useContext, useEffect } from 'react'
 import './ProductDisplay.css'
 import star_icon from '../Assets/img/icon/star_icon.png'
 import star_dull_icon from '../Assets/img/icon/star_dull_icon.png'
@@ -7,6 +7,10 @@ import { CartContext } from '../../Context/CartContext'
 export const ProductDisplay = (props) => {
     const {product} = props;
     const {handleAddToCart} = useContext(CartContext);
+
+    useEffect(() => {
+        console.log("In ProductDisplay");
+    }, [])
 
     //Function to render stars based on rating
     const renderStars = (rating) => {

@@ -40,7 +40,7 @@ const ListProduct = () => {
 
 
     const startEditing = (product) => {
-        setEditingProductId(product.id);
+        setEditingProductId(product._id);
         setEditedProduct({ ...product });
     }
 
@@ -85,7 +85,7 @@ const ListProduct = () => {
             <hr />
             {/* Create an array of products from mapping allproducts. Pass on individual 'product' and 'index'. */}
             {allproducts.map((product, index) => {
-                const isEditing = editingProductId === product.id;
+                const isEditing = editingProductId === product._id;
                 //Template to map each product according to its key (index).
                 return (
                     <div>
@@ -107,7 +107,7 @@ const ListProduct = () => {
                                 <p>${product.price}</p>
                                 <p>{product.category}</p>
                                 <img onClick={() => {startEditing(product)}} src={edit_icon} alt='edit' className="listproduct-edit-icon"/>
-                                <img onClick={() => {remove_product(product.id)}} src={cross_icon} alt="X" className="listproduct-remove-icon" />                          
+                                <img onClick={() => {remove_product(product._id)}} src={cross_icon} alt="X" className="listproduct-remove-icon" />                          
                             </div>
                         )}
                         <hr />

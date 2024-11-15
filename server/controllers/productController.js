@@ -25,11 +25,10 @@ const addProduct = async (req,res) => {
     let products = await fetchAllProducts();
     try {
         //Generate a new product ID. If there are exisiting products, it takes the last product's ID and increments it by 1. If no products exist, it starts with an ID of 1.
-        let id = products.length > 0 ? products.slice(-1)[0].id + 1 : 1; //slice() method is used to return a shallow copy of a portion of an array. So, slice(-1) is used with a negative index, which means "get the last element of the array". This returns an array containing only the last product in the products array.
+        // let id = products.length > 0 ? products.slice(-1)[0].id + 1 : 1; //slice() method is used to return a shallow copy of a portion of an array. So, slice(-1) is used with a negative index, which means "get the last element of the array". This returns an array containing only the last product in the products array.
 
         //Create a new product with the provided values.
         const product = new Products({
-            id: id,
             name: req.body.name,
             image: req.body.image,
             category: req.body.category,
@@ -44,11 +43,17 @@ const addProduct = async (req,res) => {
         res.json({
             success: true,
             name: req.body.name,
+            product: product, //Respond with the created product.
         })
     }
     catch(error) {
         console.log("Product Length was: ", products.length);
         console.log("Error while adding product: ", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to add product",
+            error: error.message,
+        })
     }
 };
 
@@ -56,7 +61,7 @@ const addProduct = async (req,res) => {
 //API endpoint to edit product by ID.
 const editProduct = async (req,res) => {
     try {
-        const filter = {id:req.body.id};
+        const filter = {_id:req.body._id};
         const update = {
             name: req.body.name,
             price: req.body.price,
@@ -66,7 +71,7 @@ const editProduct = async (req,res) => {
         let product = await Products.findOneAndUpdate(filter, update);
         product;
         product.save();
-        console.log("Product ID: "+ product.id +", has successfully updated!");
+        console.log("Product ID: "+ product._id +", has successfully updated!");
 
         if(product){
             res.json({
@@ -86,7 +91,7 @@ const editProduct = async (req,res) => {
 //API endpoint to remove a product by ID.
 const removeProduct = async (req,res) => {
     try {
-        const product = await Products.findOne({id:req.body.id});
+        const product = await Products.findOne({id:req.body._id});
 
         if(!product) {
             return res.status(404).json({
@@ -109,7 +114,7 @@ const removeProduct = async (req,res) => {
             else {
                 console.log("Image file deleted successfull.");
                 //Delete the product from the database.
-                await Products.findOneAndDelete({ id: req.body.id });
+                await Products.findOneAndDelete({ id: req.body._id });
                 res.json({
                     success: true,
                     name: req.body.name,

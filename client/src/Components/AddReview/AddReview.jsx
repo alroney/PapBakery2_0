@@ -32,7 +32,7 @@ export const AddReview = (props) => {
     useEffect(() => {
         setReviewDetails((prevDetails) => ({
             ...prevDetails,
-            productId: product.id,
+            productId: product._id,
         }));
     }, []);
 

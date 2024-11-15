@@ -25,7 +25,7 @@ export const Popular = memo(() => {
         <div className="popular-item">
             {
               topProducts.map((item, i) => {
-                return <Item key={i} id={item.id} name={item.name} image={item.image} price={item.price} /> 
+                return <Item key={i} id={item._id} name={item.name} image={item.image} price={item.price} /> 
               })
             }
         </div>

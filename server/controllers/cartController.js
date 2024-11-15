@@ -16,9 +16,12 @@ const getCart = async (req, res) => {
 
 // Add to Cart - Add an item or update its quantity in the cart
 const addToCart = async (req, res) => {
-    const { itemId, quantity } = req.body;
-
     try {
+        const { itemId, quantity } = req.body;
+        if(!mongoose.Types.ObjectId.isValid(itemId)) {
+            console.log("Invalid product ID.");
+            return res.status(400).json({message: 'Invalid product ID'});
+        }
         let cart = await Cart.findOne({ userId: req.user.id });
         const product = await Product.findById(itemId);
 
@@ -30,7 +33,7 @@ const addToCart = async (req, res) => {
 
             if(itemIndex > -1) {
                 // Item exists in cart, update quantity
-                cart.items[itemIndex].quantity += quantity;
+                cart.items[itemIndex].quantity += quantity; //Increment quantity.
             } 
             else {
                 // Item does not exist, add to cart
@@ -39,6 +42,7 @@ const addToCart = async (req, res) => {
                     name: product.name,
                     price: product.price,
                     quantity,
+                    image: product.image,
                 });
             }
         } 
@@ -51,6 +55,7 @@ const addToCart = async (req, res) => {
                     name: product.name,
                     price: product.price,
                     quantity,
+                    image: product.image,
                 }]
             });
         }
@@ -58,6 +63,7 @@ const addToCart = async (req, res) => {
         await cart.save();
         res.json(cart);
     } catch (error) {
+        console.log("Error in addToCart: ", error);
         res.status(500).json({ error: error.message });
     }
 };

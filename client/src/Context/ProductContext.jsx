@@ -32,7 +32,7 @@ const productReducer = (state, action) => {
             return {
                 ...state,
                 products: state.products.map((product) => {
-                    if(product.id === action.payload.productId) {
+                    if(product._id === action.payload.productId) {
                         const updatedReviews = [...product.reviews, action.payload.review];
                         return {
                             ...product,//Get all previous values (unchanged).
@@ -88,7 +88,7 @@ export const ProductProvider = ({ children }) => {
 //Custom hook to use product context
 export const useProduct = () => {
     const context = useContext(ProductContext);
-    console.log("context = ", context);
+    console.log("(ProductContext.jsx) Context = ", context);
     if(context === undefined) {
         throw new Error('useProduct must be used within a ProductProvider');
     }

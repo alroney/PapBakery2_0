@@ -11,7 +11,8 @@ import apiUrl from '@config';
 
 export const Product = () => {
   const { state, dispatch } = useProduct();
-  const { productId } = useParams();
+  const { productId, name } = useParams();
+  console.log("useParams output: ", useParams());
   const [product, setProduct] = useState(null);
 
   const reviewAPIUrl = `${apiUrl}/pReviews`;
@@ -19,8 +20,13 @@ export const Product = () => {
   useEffect(() => {
     //Find product by ID
     const foundProduct = state.products.find(
-      (p) => p.id === Number(productId)
+      (p) => {
+        console.log("productId: ", productId);
+        console.log("name: ", name)
+        return p._id === productId;
+      } 
     );
+    console.log("ID: ", foundProduct);
     setProduct(foundProduct);
   }, [state.products, productId]);
 
@@ -52,7 +58,7 @@ export const Product = () => {
             dispatch({ 
               type: 'ADD_REVIEW',
               payload: {
-                productId: Number(productId),
+                productId: productId,
                 review: newReview,
               }
             });

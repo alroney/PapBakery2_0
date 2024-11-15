@@ -13,17 +13,7 @@ export const CartItems = () => {
     return (
         <div>
             <h2>Shopping Cart</h2>
-            <ul>
-                {cart.map((item) => (
-                    
-                    <li key={item.productId}>
-                        {item.name} - ${item.price} x {item.quantity}
-                        <button onClick={() => handleUpdateCartItem(item.productId, item.quantity + 1)}>+</button>
-                        <button onClick={() => handleUpdateCartItem(item.productId, item.quantity - 1)}>-</button>
-                    </li>
-                ))}
-            </ul>
-            <button onClick={handleClearCart}>Clear Cart</button>
+            
             <div className="cartitems-format-main">
             <p>Products</p>
             <p>Title</p>
@@ -50,6 +40,7 @@ export const CartItems = () => {
                                 <img className="caritems-remove-icon" src={remove_icon} alt="X" onClick={()=>{handleUpdateCartItem(item.productId, 0)}}/>
                             </div>
                             <hr />
+                            <button className="cartitems-clearcart" onClick={handleClearCart}>Clear Cart</button>
                         </div>
                 )
             }
