@@ -111,7 +111,7 @@ export const CartProvider = ({ children }) => {
 
     const calculateSubtotal = useCallback(() => {
         const subtotal = cart.reduce((price, item) => price + item.price * item.quantity, 0) || 0;
-        console.log("(CartContext.jsx) Subtotal: ", subtotal)
+        return subtotal;
     })
 
     return (

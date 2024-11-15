@@ -11,21 +11,21 @@ export const CartItems = () => {
     const { cart, handleAddToCart, handleUpdateCartItem, handleClearCart } = useContext(CartContext);
 
     return (
-        <div>
+        <div className='cartItems'>
             <h2>Shopping Cart</h2>
-            
+            {cart.length > 0 ? <button className="cartitems-clearcart" onClick={handleClearCart}>Clear Cart</button> : <></>}
             <div className="cartitems-format-main">
-            <p>Products</p>
-            <p>Title</p>
-            <p>Price</p>
-            <p>Quantity</p>
-            <p>Total</p>
-            <p>Remove</p>
-        </div>
-        <hr />
-        {cart.map((item) => {
-            if(cart) {
-                return (
+                <p>Products</p>
+                <p>Title</p>
+                <p>Price</p>
+                <p>Quantity</p>
+                <p>Total</p>
+                <p>Remove</p>
+            </div>
+            <hr />
+            {cart.map((item) => {
+                if(cart) {
+                    return (
                         <div key={item.productId}>
                             <div className="cartitems-format cartitems-format-main">
                                 <img src={item.image} alt="" className="cartitems-product-icon" />
@@ -40,19 +40,10 @@ export const CartItems = () => {
                                 <img className="caritems-remove-icon" src={remove_icon} alt="X" onClick={()=>{handleUpdateCartItem(item.productId, 0)}}/>
                             </div>
                             <hr />
-                            <button className="cartitems-clearcart" onClick={handleClearCart}>Clear Cart</button>
                         </div>
-                )
-            }
-            else {
-                return (
-                    <div>
-                        No cart
-                    </div>
-                )
-            }
-            return null;
-        })}
+                    )
+                }
+            })}
         </div>
     );
 };

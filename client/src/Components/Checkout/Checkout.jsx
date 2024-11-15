@@ -6,7 +6,7 @@ import { CartContext } from '../../Context/CartContext';
 
 export const Checkout = () => {
     const {all_product, loading} = useContext(ShopContext);
-    const {cart, getTotalcheckout, calculateSubtotal} = useContext(CartContext);
+    const {cart, getTotalCartItems, calculateSubtotal} = useContext(CartContext);
     const authToken = localStorage.getItem('auth-token');
     const [guestData, setGuestData] = useState({
         guestEmail: "",
@@ -14,6 +14,7 @@ export const Checkout = () => {
     const [emailError, setEmailError] = useState('');
     const [isPaynowVisible, setIsPaynowVisible] = useState(false);
     const [subtotal, setSubtotal] = useState(0);
+    const [total, setTotal] = useState(0);
     const [promoCode, setPromoCode] = useState('');
     const payRef = useRef();
     
@@ -35,10 +36,9 @@ export const Checkout = () => {
         return emailRegex.test(email);
     }
 
-    const total = {
-        subtotal: subtotal,
+    const fees = {
+        tax: 0.06,
         shipping: 0,
-        discounts: [],
     }
 
     const applyPromoCode = () => {
@@ -75,13 +75,16 @@ export const Checkout = () => {
                     </div>
                     <hr />
                     <div className="checkout-total-item">
-                        <p>Shipping Fee</p>
-                        {total.shipping <= 0 ? <p>Free</p> : <p>{total.shipping}</p>}
+                        <div className="checkout-total-fees">
+
+                            <p>Shipping Fee</p>
+                            {total.shipping <= 0 ? <p>Free</p> : <p>{total.shipping}</p>}
+                        </div>
                     </div>
                     <hr />
                     <div className="checkout-total-item">
                         <h3>Total</h3>
-                        <h3>${Object.values(total).reduce((t, value) => t + value, 0)}</h3>
+                        <h3>$</h3>
                     </div>
                 </div>
 
@@ -104,7 +107,7 @@ export const Checkout = () => {
                         </div>
                         
                 }
-                <button className="paynow-button" onClick={(e) => getTotalcheckout() > 0 ? paynow_toggle(e) : alert("Cart is Empty")}>Pay Now</button>
+                <button className="paynow-button" onClick={(e) => getTotalCartItems() > 0 ? paynow_toggle(e) : alert("Cart is Empty")}>Pay Now</button>
                 <div ref={payRef} className={`paynow ${isPaynowVisible ? 'paynow-visible' : ''}`}>
                     {isPaynowVisible && (
                         <PayPalPayment 

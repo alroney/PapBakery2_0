@@ -6,7 +6,12 @@ const paypal_endpoint_url = environment === 'sandbox' ? 'https://api-m.sandbox.p
 const Products = require('../models/productSchema');
 const Users = require('../models/userSchema');
 const Orders = require('../models/orderSchema');
-const {getCartData, generateCartSummary, sendConfirmationEmail, isValidJSON} = require('../utils/helpers');
+const {getCartData, generateCartSummary, sendConfirmationEmail, isValidJSON, getStateTaxRates} = require('../utils/helpers');
+
+
+
+
+
 
 const getNextOrderId = () => {
     const orders = Orders.find({});
@@ -14,17 +19,31 @@ const getNextOrderId = () => {
     return orderId;
 }
 
+
+
 const getOrderDetails = async (req, isGuest) => {
     const { cartData, email } = await getCartData(req); // Fetch cart data
-    const cartItemIds = Object.keys(cartData).filter(itemId => cartData[itemId] > 0);
-    const productsInCart = await Products.find({ id: { $in: cartItemIds } });
-    
-    const subtotal = productsInCart.reduce((sum, product) => {
-        return sum + (product.price * cartData[product.id]);
+
+    console.log("(getOrderDetails) parsedCartData: ", cartData);
+
+    const cartItemIds = cartData
+        .filter((item) => item.quantity > 0) //Include items with quantity > 0.
+        .map((item) => item.productId) //Extract product IDs.
+    const productsInCart = await Products.find({ _id: { $in: cartItemIds } });
+
+    console.log("(getOrderDetails) productsInCart: ", productsInCart);
+
+    const subtotal = cartData.reduce((sum, cartItem) => {
+        const product = productsInCart.find((p) => p._id.toString() === cartItem.productId);
+        if(product) {
+            return sum + product.price * cartItem.quantity;
+        }
+        return sum;
     }, 0).toFixed(2);
     
-    const tax = 0.10;
-    const total = parseFloat(subtotal) + parseFloat(tax);
+    const tax = await (getStateTaxRates("MD"));
+    console.log("Taxes: ", tax);
+    const total = parseFloat(subtotal) + (parseFloat(tax) * parseFloat(subtotal));
 
     return {
         orderId: await getNextOrderId(), // Assume helper function to get unique order ID
@@ -37,6 +56,8 @@ const getOrderDetails = async (req, isGuest) => {
     };
 };
 
+
+
 const create_order = async (req, res) => {
     console.log("Inside create_order api...");
     const orders = await Orders.find({});
@@ -44,6 +65,8 @@ const create_order = async (req, res) => {
         const isGuest = !req.user; //Determine if it's a guest checkout.
         const orderDetails = await getOrderDetails(req, isGuest);
         const access_token = await get_access_token();
+
+        console.log("(create_order) orderDetails: ", orderDetails);
 
         const order_data_json = {
             intent: "CAPTURE",
@@ -177,4 +200,4 @@ const get_access_token = async () => {
 
 
 
-module.exports = { create_order, complete_order };
+module.exports = { create_order, complete_order, getFees };

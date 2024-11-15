@@ -4,6 +4,7 @@ const environment = process.env.ENVIRONMENT;
 const pp_client_id = process.env.PAYPAL_CLIENT_ID;
 const pp_client_secret = process.env.PAYPAL_CLIENT_SECRET;
 const paypal_endpoint_url = environment === 'sandbox' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
+const axios = require('axios');
 
 const Users = require('../models/userSchema');
 const Products = require('../models/productSchema');
@@ -30,8 +31,8 @@ const getCartData = async (req) =>  {
         console.log("No user found. Searching for guest email...");
         console.log("req.body: ", req.body);
         if(!req.body.guestEmail) throw new Error("Guest email is required for guest checkout");
-        
         parsedCartData = JSON.parse(req.body.guestCart.trim())//Remove an whitespace in the string, then parse into JSON, then set as parsedCartData.
+        
         return { cartData: parsedCartData, email: req.body.guestEmail };
     }
     else {
@@ -45,7 +46,8 @@ const getCartData = async (req) =>  {
 
 //Helper function to generate cart summary.
 const generateCartSummary = async (orderDetails) => {
-        const order = JSON.parse(orderDetails)
+        console.log("(generateCartSummary) orderDetails: ", orderDetails);
+        
         let cartSummary = "Your cart summary includes the following items: \n\n";
         const cart = order.cart;
         let totalAmount = order.total;
@@ -92,9 +94,27 @@ const sendConfirmationEmail = async (email, cartSummary) => {
         text: `Your order has been confirmed.\n\n ${cartSummary}`,
     });
 }
+const stateTaxRates = {
+    MD: 0.06,
+}
 
-const getSalesTaxByState = async (state) => {
-    
+const getStateTaxRates = async (state) => {
+    try {
+        if(!state || typeof state !== "string") {
+            throw new Error("Invalid state provided.");
+        }
+
+        const taxRate = stateTaxRates[state.toUpperCase()];
+        if(taxRate === undefined) {
+            throw new Error(`Sales tax rate not found for state: ${state}`);
+        }
+
+        return taxRate;
+    } 
+    catch (error) {
+        console.error("Error fetching sales tax rate: ", error.message);
+        return 0;     
+    }
 }
 
 const isValidJSON = (str) => {
@@ -109,4 +129,4 @@ const isValidJSON = (str) => {
 
 
 
-module.exports = { sendConfirmationEmail, generateCartSummary, getCartData, rateLimiter, isValidJSON };
+module.exports = { sendConfirmationEmail, generateCartSummary, getCartData, rateLimiter, isValidJSON, getStateTaxRates };
