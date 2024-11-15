@@ -13,7 +13,7 @@ export const CartProvider = ({ children }) => {
                 const lastFetched = localStorage.getItem('cartLastFetch');
                 const now = Date.now();
                 if(!lastFetched || now - lastFetched > 5 * 60 * 1000) { //5 minutes
-                    if (localStorage.getItem('auth-token')) {
+                    if(localStorage.getItem('auth-token')) {
                         const cartData = await getCart();
                         setCart(Array.isArray(cartData.items) ? cartData.items : []);
                     } 
@@ -39,19 +39,21 @@ export const CartProvider = ({ children }) => {
     // Add item to the cart (auth or guest)
     const handleAddToCart = useCallback(async (product) => {
         try {
-            if (localStorage.getItem('auth-token')) {
+            if(localStorage.getItem('auth-token')) {
                 const updatedCart = await addToCart(product.id, 1);
                 setCart(updatedCart.items);
-            } else {
-                const guestCart = [...cart];
-                const itemIndex = guestCart.findIndex((item) => item.productId === product.id);
-                if (itemIndex > -1) {
-                    guestCart[itemIndex].quantity += 1;
-                } else {
-                    guestCart.push({ productId: product.id, name: product.name, price: product.price, quantity: 1 });
+            } 
+            else {
+                const updatedGuestCart = [...cart];
+                const itemIndex = updatedGuestCart.findIndex((item) => item.productId === product.id);
+                if(itemIndex > -1) {
+                    updatedGuestCart[itemIndex].quantity += 1;
+                } 
+                else {
+                    updatedGuestCart.push({ productId: product.id, name: product.name, price: product.price, quantity: 1 });
                 }
-                setCart(guestCart);
-                localStorage.setItem('guestCart', JSON.stringify(guestCart));
+                setCart(updatedGuestCart);
+                localStorage.setItem('guestCart', JSON.stringify(updatedGuestCart));
             }
         } 
         catch (error) {
@@ -63,15 +65,19 @@ export const CartProvider = ({ children }) => {
     // Update item quantity in the cart
     const handleUpdateCartItem = useCallback(async (itemId, quantity) => {
         try {
-            if (localStorage.getItem('auth-token')) {
+            if(localStorage.getItem('auth-token')) {
                 const updatedCart = await updateCartItem(itemId, quantity);
                 setCart(updatedCart.items);
-            } else {
-                const guestCart = cart.map((item) =>
+            } 
+            else {
+                //For guest users, modify the local cart.
+                const updatedGuestCart = cart.map((item) =>
                     item.productId === itemId ? { ...item, quantity } : item
-                );
-                setCart(guestCart);
-                localStorage.setItem('guestCart', JSON.stringify(guestCart));
+                )
+                .filter((item) => item.quantity > 0); //Remove items with quantity 0.
+                
+                setCart(updatedGuestCart);
+                localStorage.setItem('guestCart', JSON.stringify(updatedGuestCart));
             }
         } 
         catch (error) {
@@ -83,10 +89,11 @@ export const CartProvider = ({ children }) => {
     // Clear the cart (auth or guest)
     const handleClearCart = useCallback(async () => {
         try {
-            if (localStorage.getItem('auth-token')) {
+            if(localStorage.getItem('auth-token')) {
                 await clearCart();
                 setCart([]);
-            } else {
+            } 
+            else {
                 setCart([]);
                 localStorage.removeItem('guestCart');
             }

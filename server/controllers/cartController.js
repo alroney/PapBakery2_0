@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 const getCart = async (req, res) => {
     try {
         const cart = await Cart.findOne({ userId: req.user.id }).populate('items.productId');
-        if (!cart) return res.status(404).json({ message: "Cart not found" });
+        if(!cart) return res.status(404).json({ message: "Cart not found" });
 
         res.json(cart);
     } catch (error) {
@@ -22,16 +22,17 @@ const addToCart = async (req, res) => {
         let cart = await Cart.findOne({ userId: req.user.id });
         const product = await Product.findById(itemId);
 
-        if (!product) return res.status(404).json({ message: "Product not found" });
+        if(!product) return res.status(404).json({ message: "Product not found" });
 
-        if (cart) {
+        if(cart) {
             // Check if item is already in cart
             const itemIndex = cart.items.findIndex(item => item.productId.equals(itemId));
 
-            if (itemIndex > -1) {
+            if(itemIndex > -1) {
                 // Item exists in cart, update quantity
                 cart.items[itemIndex].quantity += quantity;
-            } else {
+            } 
+            else {
                 // Item does not exist, add to cart
                 cart.items.push({
                     productId: itemId,
@@ -40,7 +41,8 @@ const addToCart = async (req, res) => {
                     quantity,
                 });
             }
-        } else {
+        } 
+        else {
             // No cart for user, create a new cart
             cart = new Cart({
                 userId: req.user.id,
@@ -66,10 +68,19 @@ const updateCartItem = async (req, res) => {
 
     try {
         const cart = await Cart.findOne({ userId: req.user.id });
-        if (!cart) return res.status(404).json({ message: "Cart not found" });
+        if(!cart) return res.status(404).json({ message: "Cart not found" });
 
         const itemIndex = cart.items.findIndex(item => item.productId.equals(itemId));
-        if (itemIndex === -1) return res.status(404).json({ message: "Item not found in cart" });
+        if(itemIndex > -1) {
+            if(quantity > 0) {
+                cart.items[itemIndex].quantity= quantity; //Update quantity.
+            }
+            else {
+                cart.items.splice(itemIndex, 1); //Remove item with quantity of 0.
+            }
+        }
+
+        if(itemIndex === -1) return res.status(404).json({ message: "Item not found in cart" });
 
         // Update item quantity
         cart.items[itemIndex].quantity = quantity;
@@ -82,11 +93,11 @@ const updateCartItem = async (req, res) => {
     }
 };
 
-// Clear Cart - Remove all items from the cart
+// Clear Cart - Remove all items from the cart.
 const clearCart = async (req, res) => {
     try {
         const cart = await Cart.findOne({ userId: req.user.id });
-        if (!cart) return res.status(404).json({ message: "Cart not found" });
+        if(!cart) return res.status(404).json({ message: "Cart not found" });
 
         cart.items = [];
         await cart.save();

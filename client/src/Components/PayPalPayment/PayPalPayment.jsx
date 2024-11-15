@@ -118,7 +118,7 @@ export const PayPalPayment = ({ guestData }) => {
                     })
                     .then(response => {
                         console.log("Response: ", response);
-                        if (!response.ok) throw new Error('Order completion failed.');
+                        if(!response.ok) throw new Error('Order completion failed.');
                         return response.json();
                     })
                     .then(orderDetails => {
@@ -152,7 +152,7 @@ export const PayPalPayment = ({ guestData }) => {
 
         // Clean up any PayPal buttons or event listeners when component unmounts
         return () => {
-            if (paymentOptionsRef.current) {
+            if(paymentOptionsRef.current) {
                 paymentOptionsRef.current.innerHTML = "";
             }
         };
