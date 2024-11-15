@@ -34,7 +34,7 @@ const jwt = require('jsonwebtoken');
 
 const authenticateUser = async (req,res,next) => {
     const token = req.header('auth-token'); //Extract JWT token value from the key 'auth-token' located in the 'headers' key's object value in the fetch functions object parameter -> fetch(('api_endpoint_url'), {}).
-    console.log("Token: ", token)
+    
     if(token.toString() === "null") {
         console.log("Token was not token...");
         return next();

@@ -13,18 +13,11 @@ const signup = async (req,res) => {
             return res.status(400).json({success: false, errors: "Exisiting user found with that email!"});
         }
 
-        //Create an empty cart with keys from 1 to 400 initialized to 0.
-        let cart = {}; 
-        for(let i = 0; i < 10; i++) {
-            cart[i] = 0;
-        }
-
         //Create a new user with the provided details.
         const user = new Users({
             name: req.body.name,
             email: req.body.email,
             password: req.body.password,
-            cartData: cart,
         });
 
         await user.save(); //Save the new user to the database.
@@ -87,6 +80,7 @@ const login = async (req,res) => {
                     },
                 };
                 const token = jwt.sign(data, process.env.JWT_SECRET);
+                user.populate('cartData');
                 res.json({success: true, token});
             }
 

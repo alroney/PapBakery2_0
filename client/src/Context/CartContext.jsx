@@ -15,7 +15,7 @@ export const CartProvider = ({ children }) => {
                 if(!lastFetched || now - lastFetched > 5 * 60 * 1000) { //5 minutes
                     if(localStorage.getItem('auth-token')) {
                         const cartData = await getCart();
-                        setCart(Array.isArray(cartData.items) ? cartData.items : []);
+                        setCart(cartData.items || []);
                     } 
                     else {
                         const guestCart = JSON.parse(localStorage.getItem('guestCart')) || [];
@@ -109,6 +109,11 @@ export const CartProvider = ({ children }) => {
         return Array.isArray(cart) ? cart.reduce((total, item) => total + item.quantity, 0) : 0;
     }, [cart]);
 
+    const calculateSubtotal = useCallback(() => {
+        const subtotal = cart.reduce((price, item) => price + item.price * item.quantity, 0) || 0;
+        console.log("(CartContext.jsx) Subtotal: ", subtotal)
+    })
+
     return (
         <CartContext.Provider
             value={{
@@ -117,6 +122,7 @@ export const CartProvider = ({ children }) => {
                 handleUpdateCartItem,
                 handleClearCart,
                 getTotalCartItems,
+                calculateSubtotal,
             }}
         >
             {children}

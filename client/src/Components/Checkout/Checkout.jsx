@@ -1,0 +1,122 @@
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import './Checkout.css';
+import { ShopContext } from '../../Context/ShopContext';
+import { PayPalPayment } from '../PayPalPayment/PayPalPayment';
+import { CartContext } from '../../Context/CartContext';
+
+export const Checkout = () => {
+    const {all_product, loading} = useContext(ShopContext);
+    const {cart, getTotalcheckout, calculateSubtotal} = useContext(CartContext);
+    const authToken = localStorage.getItem('auth-token');
+    const [guestData, setGuestData] = useState({
+        guestEmail: "",
+    });
+    const [emailError, setEmailError] = useState('');
+    const [isPaynowVisible, setIsPaynowVisible] = useState(false);
+    const [subtotal, setSubtotal] = useState(0);
+    const [promoCode, setPromoCode] = useState('');
+    const payRef = useRef();
+    
+
+    useEffect(() => {
+        if(!loading) {
+            setSubtotal(calculateSubtotal(all_product));
+        }
+    }, [cart, all_product, loading]);
+
+
+    const changeHandler = (e) => {
+        setGuestData({...guestData, [e.target.name]:e.target.value});
+        setEmailError(''); //Clear email error on input.
+    }
+
+    const isValidEmail = (email) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+
+    const total = {
+        subtotal: subtotal,
+        shipping: 0,
+        discounts: [],
+    }
+
+    const applyPromoCode = () => {
+        //Logic to verify and apply promo code, adjusting the total as necessary.
+    }
+
+    
+    
+    const paynow_toggle = (e) => {
+        //Update subtotal
+        const currentSubtotal = calculateSubtotal(all_product);
+        setSubtotal(currentSubtotal);
+
+        if(!authToken && !isValidEmail(guestData.guestEmail)) {
+            setEmailError('Please enter a valid email address.');
+            setIsPaynowVisible(false); //Hide paypal component if email is invalid.
+        }
+        else {
+            setEmailError('');
+            setIsPaynowVisible(!isPaynowVisible);
+            e.target.classList.toggle('open');
+        }
+    }
+
+  return (
+    <div className="checkout">
+        <div className="checkout-down">
+            <div className="checkout-total">
+                <h1>Cart Totals</h1>
+                <div>
+                    <div className="checkout-total-item">
+                        <p>Subtotal</p>
+                        <p>${total.subtotal}</p>
+                    </div>
+                    <hr />
+                    <div className="checkout-total-item">
+                        <p>Shipping Fee</p>
+                        {total.shipping <= 0 ? <p>Free</p> : <p>{total.shipping}</p>}
+                    </div>
+                    <hr />
+                    <div className="checkout-total-item">
+                        <h3>Total</h3>
+                        <h3>${Object.values(total).reduce((t, value) => t + value, 0)}</h3>
+                    </div>
+                </div>
+
+                {/* <div className="checkout-promocode">
+                    <p>If you have a promo code, Enter it here</p>
+                    <div className="checkout-promobox">
+                        <input type="text" placeholder="PROMO-CODE" value={promoCode} onChange={(e) => setPromoCode(e.target.value)}/>
+                        <button onClick={applyPromoCode}>SUBMIT</button>
+                    </div>
+                </div> */}
+
+                {authToken
+                    ? <></> //If true.
+                    :   <div className="guestCheckout">
+                            <h3>Guest Checkout</h3>
+                            <div className="guest-info-fields">
+                                <input type='email' name='guestEmail' value={guestData.guestEmail} onChange={changeHandler}  placeholder='Email' required />
+                                {emailError && <p className="error-message">{emailError}</p>}
+                            </div>
+                        </div>
+                        
+                }
+                <button className="paynow-button" onClick={(e) => getTotalcheckout() > 0 ? paynow_toggle(e) : alert("Cart is Empty")}>Pay Now</button>
+                <div ref={payRef} className={`paynow ${isPaynowVisible ? 'paynow-visible' : ''}`}>
+                    {isPaynowVisible && (
+                        <PayPalPayment 
+                            key={authToken ? "userPayment" : "guestPayment"} //Unique key for each condition.
+                            guestData={authToken ? {} : guestData} //Pass empty object for users, guestData for guests.
+                        />
+                    )}
+                </div>
+            </div>
+
+            
+        </div>
+    </div>
+  )
+}

@@ -7,6 +7,7 @@ import { AboutUs } from './Pages/AboutUs';
 import { Product } from './Pages/Product';
 import { Cart } from './Pages/Cart';
 import { LoginSignup } from './Pages/LoginSignup';
+import { OrderConfirmed } from './Pages/OrderConfirmed';
 import { Footer } from './Components/Footer/Footer';
 import Popular from './Components/Popular/Popular';
 import { useEffect, useState } from 'react';
@@ -71,6 +72,7 @@ function App() {
 
           <Route path='/cart' element={<Cart/>}/>
           <Route path='/login' element={<LoginSignup/>}/>
+          <Route path='/order-confirmed/:orderId' element={<OrderConfirmed/>}/>
         </Routes>
       </BrowserRouter>
       <Footer/>

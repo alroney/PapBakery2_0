@@ -53,8 +53,6 @@ mongoose.connect(uri)
     .catch((error) => console.error("Error connecting to MongoDB: ", error));
 
 
-
-
 //Start the server and listen on the specified port.
 app.listen(port, (error) => {
     if(!error) {
