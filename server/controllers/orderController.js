@@ -43,12 +43,8 @@ const create_order = async (req, res) => {
     try {
         const isGuest = !req.user; //Determine if it's a guest checkout.
         const orderDetails = await getOrderDetails(req, isGuest);
-
-
         const access_token = await get_access_token();
 
-        // console.log("Body content: ", req.body);
-        // console.log("Intent in body: ", req.body.intent);
         const order_data_json = {
             intent: "CAPTURE",
             purchase_units: [{
@@ -59,8 +55,7 @@ const create_order = async (req, res) => {
                 
             }],
         };
-
-        console.log("order_data_json: ", JSON.stringify(order_data_json));
+        
         const response = await fetch(paypal_endpoint_url + '/v2/checkout/orders', {
             method: 'POST',
             headers: {
@@ -122,7 +117,7 @@ const complete_order = async (req,res) => {
         if(json.status === 'COMPLETED') {
             try {
                 const orderDetails = await getOrderDetails(req, isGuest);
-                const cartSummary = await generateCartSummary(orderDetails.cart);
+                const cartSummary = await generateCartSummary(orderDetails);
     
                 await sendConfirmationEmail(orderDetails.guest ? orderDetails.guest.email : req.user.email, cartSummary);
     
@@ -144,25 +139,6 @@ const complete_order = async (req,res) => {
         console.log("Error in complete_order: ", error);
         res.status(500).json({ success: false, message: "An error occurred while completing the order."})
     }
-
-    // get_access_token()
-    //     .then(access_token => {
-    //         fetch(paypal_endpoint_url + '/v2/checkout/orders/' + req.body.order_id + '/' + req.body.intent, {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //                 'Authorization': `Bearer ${access_token}`
-    //             }
-    //         })
-    //         .then(res => res.json())
-    //         .then(json => {
-    //             console.log(json);
-    //             res.send(json);
-    //         }) //Send minimal data to client.
-    //     }).catch(error => {
-    //         console.log("Error in complete_order: ", error);
-    //         res.status(500).send(error);
-    //     })
 };
 
 

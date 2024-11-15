@@ -122,12 +122,6 @@ export const PayPalPayment = ({ guestData }) => {
                         return response.json();
                     })
                     .then(orderDetails => {
-                        console.log("OrderDetails: ", orderDetails)
-                        console.log("orderDetails.payer.name.given_name: ", orderDetails.payer.name.given_name);
-                        console.log("orderDetails.payer.name.surname: ", orderDetails.payer.name.surname);
-                        console.log("orderDetails.purchase_units[0].payments[intent][0].amount.value: ", orderDetails.purchase_units[0].payments[intent+'s'][0].amount.value);
-                        console.log("orderDetails.purchase_units[0].payments[intent][0].amount.currency_code: ", orderDetails.purchase_units[0].payments[intent+'s'][0].amount.currency_code);
-
                         const sanitizedMessage = DOMPurify.sanitize(
                             `Thank you ${orderDetails.payer.name.given_name} ${orderDetails.payer.name.surname} for your payment of ${orderDetails.purchase_units[0].payments[intent+'s'][0].amount.value} ${orderDetails.purchase_units[0].payments[intent+'s'][0].amount.currency_code}!`
                         );

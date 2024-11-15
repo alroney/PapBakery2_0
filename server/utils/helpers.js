@@ -44,20 +44,20 @@ const getCartData = async (req) =>  {
 
 
 //Helper function to generate cart summary.
-const generateCartSummary = async (cart) => {
+const generateCartSummary = async (orderDetails) => {
+        const order = JSON.parse(orderDetails)
         let cartSummary = "Your cart summary includes the following items: \n\n";
-        let totalAmount = 0;
+        const cart = order.cart;
+        let totalAmount = order.total;
 
         //Loop through the cart assigning each item as `product`
         cart.forEach((product) => {
-            const quantity = cart[product.id];
-            const itemTotal = product.price * quantity;
-            totalAmount += itemTotal;
-
+            const quantity = product[id];
+            let tItemCost = quantity * product.price;
             cartSummary += `Product: ${product.name}\n`;
             cartSummary += `Price: ${product.price}\n`;
             cartSummary += `Quantity: ${quantity}\n`;
-            cartSummary += `Total: $${itemTotal}\n`;
+            cartSummary += `Total: $${tItemCost}\n`;
             cartSummary += `==================================\n\n`
         });
 

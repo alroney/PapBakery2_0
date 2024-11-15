@@ -1,129 +1,117 @@
-import React, { createContext, useEffect, useState } from 'react';
-import apiUrl from '@config';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
+import { getCart, addToCart, updateCartItem, clearCart } from '../services/cartService';
 
-export const CartContext = createContext(null);
+export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-    const [cartItems, setCartItems] = useState({});
-    
+    const [cart, setCart] = useState([]);
 
+    // Fetch the cart from the backend when the component mounts
     useEffect(() => {
-        const guestCart = localStorage.getItem("guestCart");
-        //If user is logged in, load the user's cart from the backend.
-        if(localStorage.getItem('auth-token')) {
-            clearGuestCart();
-            fetch(`${apiUrl}/cart/get`, {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/form-data',
-                    'auth-token': `${localStorage.getItem('auth-token')}`,
-                    'Content-Type': 'application/json',
-                },
-                body: "",
-            })
-            .then((response) => response.json())
-            .then((data) => setCartItems(data));
-            
+        try {
+            const loadCart = async () => {
+                const lastFetched = localStorage.getItem('cartLastFetch');
+                const now = Date.now();
+                if(!lastFetched || now - lastFetched > 5 * 60 * 1000) { //5 minutes
+                    if (localStorage.getItem('auth-token')) {
+                        const cartData = await getCart();
+                        setCart(Array.isArray(cartData.items) ? cartData.items : []);
+                    } 
+                    else {
+                        const guestCart = JSON.parse(localStorage.getItem('guestCart')) || [];
+                        setCart(guestCart);
+                    }
+                    localStorage.setItem('cartLastFetched', now);
+                }
+                else {
+                    const guestCart = JSON.parse(localStorage.getItem('guestCart')) || [];
+                    setCart(guestCart);
+                }
+            };
+            loadCart();
+        } 
+        catch (error) {
+            console.log("Error in initial cart loading: ", error);
         }
-        else if(!localStorage.getItem("auth-token") && guestCart) {
-            setCartItems(JSON.parse(guestCart));
-        }
-    }, []) //Load only once per mount.
-
-
-    const addToCart = (itemId) => {
-        setCartItems((prev) => {
-            const updatedCart = { ...prev, [itemId]: (prev[itemId] || 0) + 1}; //Increment.
-
-            //Save to localStorage if user is a guest.
-            if(!localStorage.getItem("auth-token")) {
-                localStorage.setItem("guestCart", JSON.stringify(updatedCart));
-            }
-            return updatedCart;
-        });
-
-        //If user is logged in, update the backend cart.
-        if(localStorage.getItem('auth-token')){
-            fetch(`${apiUrl}/cart/add`, {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/form-data',
-                    'auth-token': `${localStorage.getItem('auth-token')}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({"itemId": itemId})
-            })
-            .then((response) => response.json())
-            .then((data) => setCartItems(data));
-        }
-    }
-
-    
-
-    const removeFromCart = (itemId) => {
-        setCartItems((prev) => {
-            const updatedCart = { ...prev, [itemId]: (prev[itemId] || 1) - 1}; //Decrement.
-
-            //Remove item if quantity reaches 0.
-            if(updatedCart[itemId] <= 0) delete updatedCart[itemId];
-            //Update localStorage for guests.
-            if(!localStorage.getItem("auth-token")) {
-                localStorage.setItem("guestCart", JSON.stringify(updatedCart));
-            }
-            return updatedCart;
-        });
         
-        //If user logged in, update the backend cart.
-        if(localStorage.getItem('auth-token')) {
-            fetch(`${apiUrl}/cart/remove`, {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/form-data',
-                    'auth-token': `${localStorage.getItem('auth-token')}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({"itemId": itemId})
-            })
-            .then((response) => response.json())
-            .then((data) => setCartItems(data));
-        }
-    }
+    }, []);
 
-
-    //Function: Calculate the total cart amount.
-    const calculateSubtotal = (allProducts) => {
-        return allProducts.reduce((sum, product) => {
-            const quantity = cartItems[product.id] || 0;
-            return sum + product.price * quantity;
-        }, 0);
-    };
-
-    //Function: Count the number of items inside of the cart.
-    const getTotalCartItems = () => {
-        let totalItems = 0;
-        for(const item in cartItems){
-            if(cartItems[item] > 0) {
-                totalItems += cartItems[item];
+    // Add item to the cart (auth or guest)
+    const handleAddToCart = useCallback(async (product) => {
+        try {
+            if (localStorage.getItem('auth-token')) {
+                const updatedCart = await addToCart(product.id, 1);
+                setCart(updatedCart.items);
+            } else {
+                const guestCart = [...cart];
+                const itemIndex = guestCart.findIndex((item) => item.productId === product.id);
+                if (itemIndex > -1) {
+                    guestCart[itemIndex].quantity += 1;
+                } else {
+                    guestCart.push({ productId: product.id, name: product.name, price: product.price, quantity: 1 });
+                }
+                setCart(guestCart);
+                localStorage.setItem('guestCart', JSON.stringify(guestCart));
             }
+        } 
+        catch (error) {
+            console.log("Error adding to cart: ", error);
         }
-        return totalItems;
-    }
+        
+    }, [cart]);
 
-    const clearGuestCart = () => {
-        setCartItems({});
-        localStorage.removeItem("guestCart")
-    }
+    // Update item quantity in the cart
+    const handleUpdateCartItem = useCallback(async (itemId, quantity) => {
+        try {
+            if (localStorage.getItem('auth-token')) {
+                const updatedCart = await updateCartItem(itemId, quantity);
+                setCart(updatedCart.items);
+            } else {
+                const guestCart = cart.map((item) =>
+                    item.productId === itemId ? { ...item, quantity } : item
+                );
+                setCart(guestCart);
+                localStorage.setItem('guestCart', JSON.stringify(guestCart));
+            }
+        } 
+        catch (error) {
+            console.log("Error in handleUpdateCartItem: ", error);
+        }
+        
+    }, [cart]);
 
-    const contextValue = {
-        cartItems,
-        addToCart,
-        removeFromCart,
-        calculateSubtotal,
-        getTotalCartItems
-    }
+    // Clear the cart (auth or guest)
+    const handleClearCart = useCallback(async () => {
+        try {
+            if (localStorage.getItem('auth-token')) {
+                await clearCart();
+                setCart([]);
+            } else {
+                setCart([]);
+                localStorage.removeItem('guestCart');
+            }
+        } 
+        catch (error) {
+            console.log("Error in handleClearCart: ", error);
+        }
+        
+    }, []);
+
+    //Calculate total quantity of items in the cart
+    const getTotalCartItems = useCallback(() => {
+        return Array.isArray(cart) ? cart.reduce((total, item) => total + item.quantity, 0) : 0;
+    }, [cart]);
 
     return (
-        <CartContext.Provider value={contextValue}>
+        <CartContext.Provider
+            value={{
+                cart,
+                handleAddToCart,
+                handleUpdateCartItem,
+                handleClearCart,
+                getTotalCartItems,
+            }}
+        >
             {children}
         </CartContext.Provider>
     );

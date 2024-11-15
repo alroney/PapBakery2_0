@@ -121,6 +121,13 @@
     font-size: 18px;
 }
 
+.error-message {
+    color: #ff5a5a;
+    font-size: 14px;
+    margin-top: 5px;
+    padding-left: 20px;
+}
+
 
 .paynow {
     display: none;

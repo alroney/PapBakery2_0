@@ -6,7 +6,7 @@ import { CartContext } from '../../Context/CartContext'
 
 export const ProductDisplay = (props) => {
     const {product} = props;
-    const {addToCart} = useContext(CartContext);
+    const {handleAddToCart} = useContext(CartContext);
 
     //Function to render stars based on rating
     const renderStars = (rating) => {
@@ -33,7 +33,7 @@ export const ProductDisplay = (props) => {
                 <img src={product.image} alt="" />
             </div>
             <div className="productdisplay-img">
-                <img src={product.image} alt="" className="productdisplay-main-img" />
+                <img src={product.image} alt="" className="productdisplay-main-img" loading="lazy" />
             </div>
         </div>
 
@@ -62,7 +62,7 @@ export const ProductDisplay = (props) => {
                 </div>
             </div>
 
-            <button onClick={() => {addToCart(product.id)}}>ADD TO CART</button>
+            <button onClick={() => {handleAddToCart(product)}}>ADD TO CART</button>
             <p className="productdisplay-right-category"><span>Category: </span></p>
             <p className="productdisplay-right-category"><span>Tags: </span></p>
         </div>
