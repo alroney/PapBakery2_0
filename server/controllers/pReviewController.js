@@ -3,13 +3,15 @@ const Users = require('../models/userSchema');
 
 
 const findProduct = async (req) => {
-    return await Products.findOne({id:req.body.productId}).populate('reviews.user', 'name');
+    return await Products.findOne({_id:req.body.productId}).populate('reviews.user', 'name');
 }
 
 
 const updateAverageRating = async (productId) => {
     try {
-        const product = await Products.findOne({id:productId});
+        console.log("In updateAverageRating")
+        const product = await Products.findById(productId);
+        console.log("product: ", product)
         let avgRating = 0;
 
         if(product.reviews.length > 0) {
@@ -86,7 +88,7 @@ const addReview = async (req,res) => {
         }
 
 
-        await updateAverageRating(product.id);
+        await updateAverageRating(product._id);
         //Link the saved review to user who created it.
         await Users.findByIdAndUpdate(userId, {$push: {reviews: product._id}}); //`findByIdAndUpdate(userId, updateObject)`. The `$push` is a MongoDB update operator. The `{reviews:` is the name of the array field within the user's document where reviews are stored. ` product._id}` is the unique ID of the product that was reviewed.
 
@@ -106,7 +108,7 @@ const addReview = async (req,res) => {
 const productReviews = async (req,res) => {
     try {
         const productId = req.params.productId;
-        let productWithReviews = await Products.findOne({id:productId}).populate('reviews.user', 'name');
+        let productWithReviews = await findProduct(req).populate('reviews.user', 'name');
         console.log(productWithReviews.reviews);
 
         res.status(200).json({

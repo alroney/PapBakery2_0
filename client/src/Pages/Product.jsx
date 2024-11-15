@@ -11,8 +11,7 @@ import apiUrl from '@config';
 
 export const Product = () => {
   const { state, dispatch } = useProduct();
-  const { productId, name } = useParams();
-  console.log("useParams output: ", useParams());
+  const { productId } = useParams();
   const [product, setProduct] = useState(null);
 
   const reviewAPIUrl = `${apiUrl}/pReviews`;
@@ -20,13 +19,9 @@ export const Product = () => {
   useEffect(() => {
     //Find product by ID
     const foundProduct = state.products.find(
-      (p) => {
-        console.log("productId: ", productId);
-        console.log("name: ", name)
-        return p._id === productId;
-      } 
+      (p) => p._id === productId
     );
-    console.log("ID: ", foundProduct);
+    
     setProduct(foundProduct);
   }, [state.products, productId]);
 

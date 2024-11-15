@@ -32,6 +32,7 @@ const productReducer = (state, action) => {
             return {
                 ...state,
                 products: state.products.map((product) => {
+                    console.log("(ProductContext.jsx) ADD_REVIEW -> action.payload: ", action.payload)
                     if(product._id === action.payload.productId) {
                         const updatedReviews = [...product.reviews, action.payload.review];
                         return {
@@ -59,7 +60,7 @@ const ProductContext = createContext();
 //Provider component
 export const ProductProvider = ({ children }) => {
     const [state, dispatch] = useReducer(productReducer, initialState);
-
+    console.log("(ProductContext.jsx) State: ", state)
     useEffect(() => {
         //Fetch all products from the backend API when the provider is mounted
         const fetchProducts = async () => {
@@ -76,7 +77,7 @@ export const ProductProvider = ({ children }) => {
             }
     }
     fetchProducts();
-}, []); //The empty dependency array ensures this runs only once when the provider mounts.
+    }, []); //The empty dependency array ensures this runs only once when the provider mounts.
 
     return (
         <ProductContext.Provider value={{ state, dispatch }}>
@@ -88,7 +89,6 @@ export const ProductProvider = ({ children }) => {
 //Custom hook to use product context
 export const useProduct = () => {
     const context = useContext(ProductContext);
-    console.log("(ProductContext.jsx) Context = ", context);
     if(context === undefined) {
         throw new Error('useProduct must be used within a ProductProvider');
     }
