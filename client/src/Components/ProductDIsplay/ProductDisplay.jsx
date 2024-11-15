@@ -5,12 +5,10 @@ import star_dull_icon from '../Assets/img/icon/star_dull_icon.png'
 import { CartContext } from '../../Context/CartContext'
 
 export const ProductDisplay = (props) => {
+    console.log("Props: ", props);
     const {product} = props;
+    const {name, image, description, rating, reviews, price} = product;
     const {handleAddToCart} = useContext(CartContext);
-
-    useEffect(() => {
-        console.log("In ProductDisplay");
-    }, [])
 
     //Function to render stars based on rating
     const renderStars = (rating) => {
@@ -31,29 +29,29 @@ export const ProductDisplay = (props) => {
     <div className="productdisplay">
         <div className="productdisplay-left">
             <div className="productdisplay-img-list">
-                <img src={product.image} alt="" />
-                <img src={product.image} alt="" />
-                <img src={product.image} alt="" />
-                <img src={product.image} alt="" />
+                <img src={image} alt="" />
+                <img src={image} alt="" />
+                <img src={image} alt="" />
+                <img src={image} alt="" />
             </div>
             <div className="productdisplay-img">
-                <img src={product.image} alt="" className="productdisplay-main-img" loading="lazy" />
+                <img src={image} alt="" className="productdisplay-main-img" loading="lazy" />
             </div>
         </div>
 
         <div className="productdisplay-right">
-            <h1>{product.name}</h1>
+            <h1>{name}</h1>
             <div className="productdisplay-right-stars">
-                {renderStars(product.rating)} {/* Render average rating */}
-                <p>({product.reviews.length})</p>
+                {renderStars(rating)} {/* Render average rating */}
+                <p>({reviews.length})</p>
             </div>
 
             <div className="productdisplay-right-prices">
-                <div className="productdisplay-right-price">${product.price}</div>
+                <div className="productdisplay-right-price">${price}</div>
             </div>
 
             <div className="productdisplay-right-description">
-                <p>{product.description} {product.name}</p>
+                <p>{description} {name}</p>
             </div>
 
             <div className="productdisplay-right-size">
