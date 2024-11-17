@@ -47,8 +47,6 @@ const addProduct = async (req,res) => {
         })
     }
     catch(error) {
-        console.log("Product Length was: ", products.length);
-        console.log("Error while adding product: ", error);
         res.status(500).json({
             success: false,
             message: "Failed to add product",

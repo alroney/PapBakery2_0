@@ -60,3 +60,24 @@ export const clearCart = async () => {
         console.log("Error in clearCart: ", error);
     }
 };
+
+export const fetchFees = async ({ subtotal, state, shippingCost, couponCode }) => {
+    try {
+        const response = await fetch(`${apiUrl}/cart/fees`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({subtotal, state, shippingCost, couponCode})
+        });
+        //Parse the response body as JSON.
+        const data = await response.json()
+        
+        return data; //Returns { taxRate, shipping, discount, total }
+    }
+    catch(error) {
+        console.error("Error fetching fees: ", error.response || error.message);
+        return null;
+    }
+}

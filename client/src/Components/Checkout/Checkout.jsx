@@ -3,6 +3,8 @@ import './Checkout.css';
 import { ShopContext } from '../../Context/ShopContext';
 import { PayPalPayment } from '../PayPalPayment/PayPalPayment';
 import { CartContext } from '../../Context/CartContext';
+import apiURL from '@config';
+import { fetchFees } from '../../services/cartService';
 
 export const Checkout = () => {
     const {all_product, loading} = useContext(ShopContext);
@@ -14,16 +16,37 @@ export const Checkout = () => {
     const [emailError, setEmailError] = useState('');
     const [isPaynowVisible, setIsPaynowVisible] = useState(false);
     const [subtotal, setSubtotal] = useState(0);
-    const [total, setTotal] = useState(0);
+    const [state, setState] = useState('MD');
+    const [shippingCost, setShippingCost] = useState(0.0);
+    const [taxRate, setTaxRate] = useState(0.0);
+    const [couponCode, setCouponCode] = useState('');
+    const [fees, setFees] = useState({ taxRate: 0, tax: 0, shipping: 0, discount: 0, total: 0})
     const [promoCode, setPromoCode] = useState('');
     const payRef = useRef();
+    
+
+    const calculateFees = async () => {
+        const feesData = await fetchFees({ subtotal, state, shippingCost, couponCode });
+        if(feesData) {
+            setFees(feesData);
+        }
+    }
+
     
 
     useEffect(() => {
         if(!loading) {
             setSubtotal(calculateSubtotal(all_product));
         }
+
+
     }, [cart, all_product, loading]);
+
+    useEffect(() => {
+        if(!loading) {
+            calculateFees();
+        }
+    }, [subtotal])
 
 
     const changeHandler = (e) => {
@@ -36,10 +59,6 @@ export const Checkout = () => {
         return emailRegex.test(email);
     }
 
-    const fees = {
-        tax: 0.06,
-        shipping: 0,
-    }
 
     const applyPromoCode = () => {
         //Logic to verify and apply promo code, adjusting the total as necessary.
@@ -71,20 +90,30 @@ export const Checkout = () => {
                 <div>
                     <div className="checkout-total-item">
                         <p>Subtotal</p>
-                        <p>${total.subtotal}</p>
+                        <p>${subtotal.toFixed(2)}</p>
                     </div>
                     <hr />
                     <div className="checkout-total-item">
                         <div className="checkout-total-fees">
-
-                            <p>Shipping Fee</p>
-                            {total.shipping <= 0 ? <p>Free</p> : <p>{total.shipping}</p>}
+                            <p>Tax <small>({(state)} @ {(fees.taxRate.toFixed(2)) * 100}%)</small></p>
+                            <p>{fees.tax.toFixed(2)}</p>
                         </div>
+                        <div className="checkout-total-fees">
+                            <p>Shipping Fee</p>
+                            {fees.shipping <= 0 ? <p>Free</p> : <p>{fees.shipping}</p>}
+                        </div>
+                        {fees.discount > 0 
+                            ? <div className="checkout-total-fees">
+                                <p>Discount</p>
+                                <p>- ${fees.discount.toFixed(2)}</p>
+                            </div> 
+                            : <></>
+                        }
                     </div>
                     <hr />
                     <div className="checkout-total-item">
                         <h3>Total</h3>
-                        <h3>$</h3>
+                        <h3>${fees.total.toFixed(2)}</h3>
                     </div>
                 </div>
 

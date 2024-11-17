@@ -1,6 +1,7 @@
 const Cart = require('../models/cartSchema');
 const Product = require('../models/productSchema');  // Assuming you need to fetch product details
 const mongoose = require('mongoose');
+const { getStateTaxRates } = require('../utils/helpers');
 
 // Get Cart - Retrieve the cart for the logged-in user
 const getCart = async (req, res) => {
@@ -15,6 +16,8 @@ const getCart = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+
 
 // Add to Cart - Add an item or update its quantity in the cart
 const addToCart = async (req, res) => {
@@ -71,6 +74,8 @@ const addToCart = async (req, res) => {
     }
 };
 
+
+
 // Update Cart Item - Modify the quantity of an item in the cart
 const updateCartItem = async (req, res) => {
     const { itemId, quantity } = req.body;
@@ -101,6 +106,8 @@ const updateCartItem = async (req, res) => {
     }
 };
 
+
+
 // Clear Cart - Remove all items from the cart.
 const clearCart = async (req, res) => {
     try {
@@ -116,9 +123,60 @@ const clearCart = async (req, res) => {
     }
 };
 
+
+
+const validateCoupon = async (code) => {
+    const validCoupons = {
+        SAVE10: 0.10,
+        FREEDELIVERY: {shipping: 0},
+    };
+    return validCoupons[code.toUpperCase()] || null;
+}
+
+const calculateFees = async (req, res) => {
+    try {
+
+        console.log("(cartController)(calculateFees): Made it here!");
+        const {subtotal, state, shippingCost, couponCode } = req.body;
+        console.log("Subtotal: ", subtotal)
+        const taxRate = await getStateTaxRates(state);
+        const tax = parseFloat((subtotal * taxRate).toFixed(2));
+
+        let shipping = shippingCost;
+
+        let discount = 0;
+        if(couponCode) {
+            const coupon = await validateCoupon(couponCode);
+            if(coupon) {
+                if(coupon.shipping === 0) {
+                    shipping = 0;
+                }
+                else {
+                    discount = parseFloat((subtotal * coupon).toFixed(2)); //Percentage discount
+                }
+            }
+        }
+
+        //Calculate total.
+        const total = parseFloat((subtotal + tax + shipping - discount).toFixed(2));
+        console.log("total: ", total);
+        res.json({
+            taxRate, 
+            tax, 
+            shipping, 
+            discount, 
+            total });
+    }       
+    catch (error) {
+        console.error("(cartController.js) -> (calculateFees) Error calculating fees: ", error);
+        res.status(500).json({ message: 'Error calculating fees', error: error.message });
+    }
+}
+
 module.exports = {
     getCart,
     addToCart,
     updateCartItem,
     clearCart,
+    calculateFees,
 };

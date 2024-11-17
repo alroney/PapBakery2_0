@@ -200,4 +200,4 @@ const get_access_token = async () => {
 
 
 
-module.exports = { create_order, complete_order, getFees };
+module.exports = { create_order, complete_order };
