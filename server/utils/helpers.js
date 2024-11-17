@@ -20,7 +20,7 @@ const rateLimiter = rateLimit({
 //Helper function to fetch cart data based on user or guest.
 const getCartData = async (req) =>  {
     console.log("Getting cart data......");
-    console.log("req: ", req.user);
+
     if(req.user) {
         console.log("User found! Using user cart.");
         const userData = await Users.findOne({_id: req.user.id});
@@ -31,9 +31,8 @@ const getCartData = async (req) =>  {
         console.log("No user found. Searching for guest email...");
         console.log("req.body: ", req.body);
         if(!req.body.guestEmail) throw new Error("Guest email is required for guest checkout");
-        parsedCartData = JSON.parse(req.body.guestCart.trim())//Remove an whitespace in the string, then parse into JSON, then set as parsedCartData.
         
-        return { cartData: parsedCartData, email: req.body.guestEmail };
+        return { cartData: req.body.cart, email: req.body.guestEmail };
     }
     else {
         console.log("Cart data not found.");
@@ -49,16 +48,15 @@ const generateCartSummary = async (orderDetails) => {
         console.log("(generateCartSummary) orderDetails: ", orderDetails);
         
         let cartSummary = "Your cart summary includes the following items: \n\n";
-        const cart = order.cart;
-        let totalAmount = order.total;
+        const cart = orderDetails.cart;
+        let totalAmount = orderDetails.total;
 
         //Loop through the cart assigning each item as `product`
         cart.forEach((product) => {
-            const quantity = product[id];
-            let tItemCost = quantity * product.price;
+            let tItemCost = product.quantity * product.price;
             cartSummary += `Product: ${product.name}\n`;
             cartSummary += `Price: ${product.price}\n`;
-            cartSummary += `Quantity: ${quantity}\n`;
+            cartSummary += `Quantity: ${product.quantity}\n`;
             cartSummary += `Total: $${tItemCost}\n`;
             cartSummary += `==================================\n\n`
         });

@@ -29,6 +29,7 @@ const getOrderDetails = async (req, isGuest) => {
     const cartItemIds = cartData
         .filter((item) => item.quantity > 0) //Include items with quantity > 0.
         .map((item) => item.productId) //Extract product IDs.
+
     const productsInCart = await Products.find({ _id: { $in: cartItemIds } });
 
     console.log("(getOrderDetails) productsInCart: ", productsInCart);
@@ -41,15 +42,16 @@ const getOrderDetails = async (req, isGuest) => {
         return sum;
     }, 0).toFixed(2);
     
-    const tax = await (getStateTaxRates("MD"));
-    console.log("Taxes: ", tax);
+
+    
+    const taxRate = await (getStateTaxRates("MD"));
     const total = parseFloat(subtotal) + (parseFloat(tax) * parseFloat(subtotal));
 
     return {
         orderId: await getNextOrderId(), // Assume helper function to get unique order ID
         user: isGuest ? null : req.user,
         guest: isGuest ? { isGuest, email } : null,
-        cart: productsInCart,
+        cart: cartData,
         subtotal,
         tax,
         total,
@@ -58,9 +60,32 @@ const getOrderDetails = async (req, isGuest) => {
 
 
 
+const confirm_cash_order = async (req, res) => {
+    try {
+        const isGuest = !req.user;
+        const orderDetails = await getOrderDetails(req, isGuest);
+        const cartSummary = await generateCartSummary(orderDetails);
+        console.log("(cash_order) orderDetails", orderDetails);
+        console.log("(cash_order) cartSummary: ", cartSummary);
+        //await sendConfirmationEmail(orderDetails.guest ? orderDetails.guest.email : req.user.email, cartSummary);
+
+        // if(!isGuest) {
+        //     Users.findOneAndUpdate({ _id: req.user.id }, { cartData: {} });
+        // }
+
+        res.status(200).json({ message: "Cart processed successfully!"});
+    } 
+    catch (error) {
+        console.error("Error confirming cash order: ", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+
+}
+
+
+
 const create_order = async (req, res) => {
     console.log("Inside create_order api...");
-    const orders = await Orders.find({});
     try {
         const isGuest = !req.user; //Determine if it's a guest checkout.
         const orderDetails = await getOrderDetails(req, isGuest);
@@ -200,4 +225,4 @@ const get_access_token = async () => {
 
 
 
-module.exports = { create_order, complete_order };
+module.exports = { create_order, complete_order, confirm_cash_order };

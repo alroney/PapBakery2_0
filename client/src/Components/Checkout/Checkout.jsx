@@ -5,6 +5,7 @@ import { PayPalPayment } from '../PayPalPayment/PayPalPayment';
 import { CartContext } from '../../Context/CartContext';
 import apiURL from '@config';
 import { fetchFees } from '../../services/cartService';
+import { CashPayment } from '../CashPayment/CashPayment';
 
 export const Checkout = () => {
     const {all_product, loading} = useContext(ShopContext);
@@ -22,6 +23,7 @@ export const Checkout = () => {
     const [couponCode, setCouponCode] = useState('');
     const [fees, setFees] = useState({ taxRate: 0, tax: 0, shipping: 0, discount: 0, total: 0})
     const [promoCode, setPromoCode] = useState('');
+    const [paymentType, setPaymentType] = useState('')
     const payRef = useRef();
     
 
@@ -54,6 +56,10 @@ export const Checkout = () => {
         setEmailError(''); //Clear email error on input.
     }
 
+    const handlePaymentChange = (e) => {
+        setPaymentType(e.target.value);
+    }
+
     const isValidEmail = (email) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
@@ -68,8 +74,8 @@ export const Checkout = () => {
     
     const paynow_toggle = (e) => {
         //Update subtotal
-        const currentSubtotal = calculateSubtotal(all_product);
-        setSubtotal(currentSubtotal);
+        // const currentSubtotal = calculateSubtotal(all_product);
+        // setSubtotal(currentSubtotal);
 
         if(!authToken && !isValidEmail(guestData.guestEmail)) {
             setEmailError('Please enter a valid email address.');
@@ -136,18 +142,40 @@ export const Checkout = () => {
                         </div>
                         
                 }
-                <button className="paynow-button" onClick={(e) => getTotalCartItems() > 0 ? paynow_toggle(e) : alert("Cart is Empty")}>Pay Now</button>
-                <div ref={payRef} className={`paynow ${isPaynowVisible ? 'paynow-visible' : ''}`}>
-                    {isPaynowVisible && (
-                        <PayPalPayment 
-                            key={authToken ? "userPayment" : "guestPayment"} //Unique key for each condition.
-                            guestData={authToken ? {} : guestData} //Pass empty object for users, guestData for guests.
-                        />
-                    )}
+                <div className="paymentSelection">
+                    <input type='radio' id='paycash' name='paytype' value='cash' checked={paymentType === 'cash'} onChange={handlePaymentChange}/>
+                    <label htmlFor='paycash'>Cash</label>
+                    <input type='radio' id='payonline' name='paytype' value='online' checked={paymentType === 'online'} onChange={handlePaymentChange}/>
+                    <label htmlFor='payonline'>Online</label>
                 </div>
-            </div>
 
-            
+                {paymentType === 'cash'
+                    ? (
+                        <div className="paymentType-container">
+                            <CashPayment 
+                                key={authToken ? "userPayment" : "guestPayment"}
+                                guestData={authToken ? {} : guestData}
+                            />
+
+                            {/* <p>Please confirm your order and prepare the exact amount to hand over upon delivery</p>
+                            <button className="confirm-order-button" onClick={() => alert("Cash payment test")}>Confirm Order</button> */}
+                        </div>
+                    )
+                    : (
+                        <div className="paymentType-container">
+                            <button className="paynow-button" onClick={(e) => getTotalCartItems() > 0 ? paynow_toggle(e) : alert("Cart is Empty")}>Pay Now</button>
+                            <div ref={payRef} className={`paynow ${isPaynowVisible ? 'paynow-visible' : ''}`}>
+                                {isPaynowVisible && (
+                                    <PayPalPayment 
+                                        key={authToken ? "userPayment" : "guestPayment"} //Unique key for each condition.
+                                        guestData={authToken ? {} : guestData} //Pass empty object for users, guestData for guests.
+                                    />
+                                )}
+                            </div>
+                        </div>
+                    )
+                }
+            </div>
         </div>
     </div>
   )
