@@ -34,25 +34,32 @@ const getOrderDetails = async (req, isGuest) => {
 
     console.log("(getOrderDetails) productsInCart: ", productsInCart);
 
-    const subtotal = cartData.reduce((sum, cartItem) => {
-        const product = productsInCart.find((p) => p._id.toString() === cartItem.productId);
-        if(product) {
-            return sum + product.price * cartItem.quantity;
-        }
-        return sum;
-    }, 0).toFixed(2);
-    
+    let taxRate = parseFloat(await (getStateTaxRates("MD"))).toFixed(2);
 
+    //Calculate the subtotal using the correct price of the item * the quantity. 
+    let subtotal = cartData.reduce((sum, cartItem) => {
+            const product = productsInCart.find((p) => p._id.toString() === cartItem.productId);
+            if(product) {
+                return sum + product.price * cartItem.quantity;
+            }
+            return sum;
+        }, 0);
     
-    const taxRate = await (getStateTaxRates("MD"));
-    const total = parseFloat(subtotal) + (parseFloat(tax) * parseFloat(subtotal));
+    let tax = subtotal * taxRate;
+    let total = tax + subtotal;
 
+    taxRate = parseFloat(taxRate).toFixed(2);
+    subtotal = parseFloat(subtotal).toFixed(2);
+    tax = parseFloat(tax).toFixed(2);
+    total = parseFloat(total).toFixed(2);
+    
     return {
         orderId: await getNextOrderId(), // Assume helper function to get unique order ID
         user: isGuest ? null : req.user,
         guest: isGuest ? { isGuest, email } : null,
         cart: cartData,
         subtotal,
+        taxRate,
         tax,
         total,
     };

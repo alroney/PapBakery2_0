@@ -14,7 +14,7 @@ export const PayPalPayment = ({ guestData }) => {
     const currency = "USD";
     const intent = "capture";
     const orderAPIUrl = `${apiUrl}/order`;
-    const {cartItems} = useContext(CartContext);
+    const {cart} = useContext(CartContext);
     const [loading, setLoading] = useState(true);
     const [alertMessage, setAlertMessage] = useState("");
     const contentRef = useRef(null);
@@ -30,7 +30,6 @@ export const PayPalPayment = ({ guestData }) => {
 
         if(guestMode) {
              guestEmail = guestData.guestEmail;
-             guestCart = localStorage.getItem("guestCart");
         }
 
         const loadPayPalScript = async () => {
@@ -82,7 +81,7 @@ export const PayPalPayment = ({ guestData }) => {
                             "intent": intent,
                             "isGuest": guestMode,
                             "guestEmail": guestEmail,
-                            "guestCart": guestCart
+                            "cart": cart
                         }
                         const response = await fetch(`${orderAPIUrl}/create`, {
                             method: "POST",
@@ -108,7 +107,7 @@ export const PayPalPayment = ({ guestData }) => {
                         "order_id": order_id,
                         "isGuest": guestMode,
                         "guestEmail": guestEmail,
-                        "guestCart": guestCart,
+                        "cart": cart,
                     }
 
                     return fetch(`${orderAPIUrl}/complete`, {
@@ -156,7 +155,7 @@ export const PayPalPayment = ({ guestData }) => {
                 paymentOptionsRef.current.innerHTML = "";
             }
         };
-    }, [cartItems]);
+    }, [cart]);
 
     return (
         <div className="paypalpayment">

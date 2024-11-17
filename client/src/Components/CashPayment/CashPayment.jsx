@@ -27,10 +27,10 @@ export const CashPayment = ({guestData}) => {
             });
     
             if (!response.ok) throw new Error("Failed to confirm cash order.");
-            
+
         } catch (error) {
             console.error("Error confirming cash order:", error);
-            alert("An error occurred while confirming your order. Please try again.");
+            alert("An error occurred while confirming your order.");
         }
     };
 

@@ -55,7 +55,7 @@ const generateCartSummary = async (orderDetails) => {
         cart.forEach((product) => {
             let tItemCost = product.quantity * product.price;
             cartSummary += `Product: ${product.name}\n`;
-            cartSummary += `Price: ${product.price}\n`;
+            cartSummary += `Price: $${product.price}\n`;
             cartSummary += `Quantity: ${product.quantity}\n`;
             cartSummary += `Total: $${tItemCost}\n`;
             cartSummary += `==================================\n\n`
@@ -64,7 +64,8 @@ const generateCartSummary = async (orderDetails) => {
         if(cartSummary === "Your cart summary includes the following items: \n\n") {
             cartSummary += `No items in your cart.`
         }
-
+        
+        cartSummary += `\nTax = $${orderDetails.tax}`
         cartSummary += `\nGrand Total = $${totalAmount}`
 
         return cartSummary;
