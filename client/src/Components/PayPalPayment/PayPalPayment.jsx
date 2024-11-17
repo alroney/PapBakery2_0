@@ -14,7 +14,7 @@ export const PayPalPayment = ({ guestData }) => {
     const currency = "USD";
     const intent = "capture";
     const orderAPIUrl = `${apiUrl}/order`;
-    const {cart} = useContext(CartContext);
+    const {cart, handleClearCart} = useContext(CartContext);
     const [loading, setLoading] = useState(true);
     const [alertMessage, setAlertMessage] = useState("");
     const contentRef = useRef(null);
@@ -25,7 +25,6 @@ export const PayPalPayment = ({ guestData }) => {
         const userAuthToken = localStorage.getItem("auth-token");
         const guestMode = localStorage.getItem("isGuest");
         let guestEmail = "";
-        let guestCart = {};
         console.log("Guest Mode: ", guestMode)
 
         if(guestMode) {
@@ -128,6 +127,7 @@ export const PayPalPayment = ({ guestData }) => {
                         if(guestMode) {
                             localStorage.removeItem("guestCart");
                         }
+                        handleClearCart();
                         paypalButtons.close();
                     })
                     .catch(error => {
