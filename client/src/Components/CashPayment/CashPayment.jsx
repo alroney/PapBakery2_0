@@ -10,23 +10,29 @@ export const CashPayment = ({guestData}) => {
             const guestMode = localStorage.getItem("isGuest");
             const guestEmail = guestMode ? guestData.guestEmail: null;
             console.log("(confirmCashOrder) cart: ", cart);
-            const requestBody = {
-                "paymentType": 'cash',
-                "isGuest": guestMode,
-                "guestEmail": guestEmail,
-                "cart": cart,
-            };
-    
-            const response = await fetch(`${apiUrl}/order/confirmCash`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    ...(userAuthToken && { "auth-token": userAuthToken }),
-                },
-                body: JSON.stringify(requestBody),
-            });
-    
-            if (!response.ok) throw new Error("Failed to confirm cash order.");
+
+            if(cart.length <= 0) {
+                alert("Cart is empty.");
+            }
+            else {
+                const requestBody = {
+                    "paymentType": 'cash',
+                    "isGuest": guestMode,
+                    "guestEmail": guestEmail,
+                    "cart": cart,
+                };
+        
+                const response = await fetch(`${apiUrl}/order/confirmCash`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...(userAuthToken && { "auth-token": userAuthToken }),
+                    },
+                    body: JSON.stringify(requestBody),
+                });
+        
+                if (!response.ok) throw new Error("Failed to confirm cash order.");
+            }
 
         } catch (error) {
             console.error("Error confirming cash order:", error);
