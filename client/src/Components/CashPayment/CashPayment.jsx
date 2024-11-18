@@ -1,9 +1,11 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import apiUrl from '@config';
 import { CartContext } from '../../Context/CartContext';
 
 export const CashPayment = ({guestData}) => {
     const {cart, handleClearCart} = useContext(CartContext);
+    const [orderCompleted, setOrderCompleted] = useState(false);
+
     const confirmCashOrder = async () => {
         try {
             const userAuthToken = localStorage.getItem("auth-token");
@@ -13,6 +15,7 @@ export const CashPayment = ({guestData}) => {
 
             if(cart.length <= 0) {
                 alert("Cart is empty.");
+                setOrderCompleted(false);
             }
             else {
                 const requestBody = {
@@ -34,6 +37,7 @@ export const CashPayment = ({guestData}) => {
                 if (!response.ok) throw new Error("Failed to confirm cash order.");
 
                 handleClearCart();
+                setOrderCompleted(true);
             }
 
         } catch (error) {

@@ -2,6 +2,33 @@
     margin: 100px 170px;
 }
 
+
+
+
+/*#region - EMPTY CART*/
+    .empty-cart {
+        text-align: center;
+        margin: 2rem 0;
+        padding: 1.5rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        color: #555;
+    }
+
+    .empty-cart h2 {
+        font-size: 1.8rem;
+        color: #333;
+    }
+
+    .empty-cart p {
+        font-size: 1.2rem;
+        margin-top: 0.5rem;
+    }
+/*#endregion*/
+
+
+
+
 .checkout hr {
     height: 3px;
     background: #e2e2e2;
