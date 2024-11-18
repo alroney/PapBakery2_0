@@ -5,9 +5,10 @@ const pp_client_id = process.env.PAYPAL_CLIENT_ID;
 const pp_client_secret = process.env.PAYPAL_CLIENT_SECRET;
 const paypal_endpoint_url = environment === 'sandbox' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
 const axios = require('axios');
+const from_address = process.env.AUTO_EMAIL_ADR
+const from_pass = process.env.AUTO_EMAIL_PAS
 
 const Users = require('../models/userSchema');
-const Products = require('../models/productSchema');
 
 
 const rateLimiter = rateLimit({
@@ -23,9 +24,10 @@ const getCartData = async (req) =>  {
 
     if(req.user) {
         console.log("User found! Using user cart.");
+        console.log("req.body: ", req.body);
         const userData = await Users.findOne({_id: req.user.id});
         //userData.cartData is already in proper JSON format. Therefore no parsing is required.
-        return { cartData: userData.cartData, email: userData.email };
+        return { cartData: req.body.cart, email: userData.email };
     }
     else if(req.user === undefined && req.body.isGuest) {
         console.log("No user found. Searching for guest email...");
@@ -45,6 +47,7 @@ const getCartData = async (req) =>  {
 
 //Helper function to generate cart summary.
 const generateCartSummary = async (orderDetails) => {
+    try {
         console.log("(generateCartSummary) orderDetails: ", orderDetails);
         
         let cartSummary = "Your cart summary includes the following items: \n\n";
@@ -69,30 +72,43 @@ const generateCartSummary = async (orderDetails) => {
         cartSummary += `\nGrand Total = $${totalAmount}`
 
         return cartSummary;
+    } 
+    catch (error) {
+        console.log("(generateCartSummary) Error: ", error);
+    }
+        
 }
 
 
 
 //Helper function to send confirmation email.
 const sendConfirmationEmail = async (email, cartSummary) => {
-    //SMTP configuration for Zoho Mail.
-    const transporter = nodemailer.createTransport({
-        host: "smtp.zoho.com",
-        port: 465,
-        secure: true,
-        auth: {
-            user: process.env.AUTO_EMAIL_ADR,
-            pass: process.env.AUTO_EMAIL_PAS,
-        },
-    });
+    try {
+        //SMTP configuration for Zoho Mail.
+        const transporter = nodemailer.createTransport({
+            host: "smtp.zoho.com",
+            port: 465,
+            secure: true,
+            auth: {
+                user: from_address,
+                pass: from_pass,
+            },
+        });
 
-    await transporter.sendMail({
-        from: process.env.AUTO_EMAIL_ADR,
-        to: email,
-        subject: "Order Confirmation",
-        text: `Your order has been confirmed.\n\n ${cartSummary}`,
-    });
+        await transporter.sendMail({
+            from: from_address,
+            to: email,
+            subject: "Order Confirmation",
+            text: `Your order has been confirmed.\n\n ${cartSummary}`,
+        });
+    }
+    catch(error) {
+        console.log("(sendConfirmationEmail) Error: ", error);
+    }
+    
 }
+
+
 const stateTaxRates = {
     MD: 0.06,
 }

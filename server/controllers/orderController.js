@@ -22,19 +22,23 @@ const getNextOrderId = () => {
 
 
 const getOrderDetails = async (req, isGuest) => {
+    console.log("\n\n\nGUEST: "+ isGuest +"\n\n\n");
     const { cartData, email } = await getCartData(req); // Fetch cart data
 
     const cartItemIds = cartData
         .filter((item) => item.quantity > 0) //Include items with quantity > 0.
         .map((item) => item.productId) //Extract product IDs.
 
+    console.log("(getOrderDetails) cartItemIds: ", cartItemIds);
     const productsInCart = await Products.find({ _id: { $in: cartItemIds } });
-
+    console.log("(getOrderDtails) productsInCart: ", productsInCart);
     let taxRate = parseFloat(await (getStateTaxRates("MD"))).toFixed(2);
 
     //Calculate the subtotal using the correct price of the item * the quantity. 
     let subtotal = cartData.reduce((sum, cartItem) => {
+            console.log("(getOrderDetails)(subtotal) cartItem: ", cartItem);
             const product = productsInCart.find((p) => p._id.toString() === cartItem.productId);
+            console.log("(getOrderDetails)(subtotal) product: ", product);
             if(product) {
                 return sum + product.price * cartItem.quantity;
             }
