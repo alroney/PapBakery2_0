@@ -80,7 +80,7 @@ const login = async (req,res) => {
                     },
                 };
                 const token = jwt.sign(data, process.env.JWT_SECRET);
-                user.populate('cartData');
+                user.populate('cartId');
                 res.json({success: true, token});
             }
 

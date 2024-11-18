@@ -24,15 +24,11 @@ const getNextOrderId = () => {
 const getOrderDetails = async (req, isGuest) => {
     const { cartData, email } = await getCartData(req); // Fetch cart data
 
-    console.log("(getOrderDetails) parsedCartData: ", cartData);
-
     const cartItemIds = cartData
         .filter((item) => item.quantity > 0) //Include items with quantity > 0.
         .map((item) => item.productId) //Extract product IDs.
 
     const productsInCart = await Products.find({ _id: { $in: cartItemIds } });
-
-    console.log("(getOrderDetails) productsInCart: ", productsInCart);
 
     let taxRate = parseFloat(await (getStateTaxRates("MD"))).toFixed(2);
 
@@ -72,8 +68,6 @@ const confirm_cash_order = async (req, res) => {
         const isGuest = !req.user;
         const orderDetails = await getOrderDetails(req, isGuest);
         const cartSummary = await generateCartSummary(orderDetails);
-        console.log("(cash_order) orderDetails", orderDetails);
-        console.log("(cash_order) cartSummary: ", cartSummary);
         //await sendConfirmationEmail(orderDetails.guest ? orderDetails.guest.email : req.user.email, cartSummary);
 
         // if(!isGuest) {
@@ -81,7 +75,7 @@ const confirm_cash_order = async (req, res) => {
         // }
 
         res.status(200).json({ message: "Cart processed successfully!"});
-    } 
+    }
     catch (error) {
         console.error("Error confirming cash order: ", error);
         res.status(500).json({ message: "Internal server error" });

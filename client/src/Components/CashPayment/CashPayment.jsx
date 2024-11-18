@@ -3,7 +3,7 @@ import apiUrl from '@config';
 import { CartContext } from '../../Context/CartContext';
 
 export const CashPayment = ({guestData}) => {
-    const {cart} = useContext(CartContext);
+    const {cart, handleClearCart} = useContext(CartContext);
     const confirmCashOrder = async () => {
         try {
             const userAuthToken = localStorage.getItem("auth-token");
@@ -32,6 +32,8 @@ export const CashPayment = ({guestData}) => {
                 });
         
                 if (!response.ok) throw new Error("Failed to confirm cash order.");
+
+                handleClearCart();
             }
 
         } catch (error) {
