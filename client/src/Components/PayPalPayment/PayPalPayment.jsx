@@ -124,9 +124,6 @@ export const PayPalPayment = ({ guestData }) => {
                             `Thank you ${orderDetails.payer.name.given_name} ${orderDetails.payer.name.surname} for your payment of ${orderDetails.purchase_units[0].payments[intent+'s'][0].amount.value} ${orderDetails.purchase_units[0].payments[intent+'s'][0].amount.currency_code}!`
                         );
                         setAlertMessage(sanitizedMessage);
-                        if(guestMode) {
-                            localStorage.removeItem("guestCart");
-                        }
                         handleClearCart();
                         paypalButtons.close();
                     })

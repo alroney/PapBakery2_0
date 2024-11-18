@@ -6,7 +6,10 @@ const paypal_endpoint_url = environment === 'sandbox' ? 'https://api-m.sandbox.p
 const Products = require('../models/productSchema');
 const Users = require('../models/userSchema');
 const Orders = require('../models/orderSchema');
+const Carts = require('../models/cartSchema');
+
 const {getCartData, generateCartSummary, sendConfirmationEmail, isValidJSON, getStateTaxRates} = require('../utils/helpers');
+
 
 
 
@@ -66,19 +69,34 @@ const getOrderDetails = async (req, isGuest) => {
 };
 
 
-
-const confirm_cash_order = async (req, res) => {
+const process_order = async (req, res) => {
     try {
         const isGuest = !req.user;
         const orderDetails = await getOrderDetails(req, isGuest);
         const cartSummary = await generateCartSummary(orderDetails);
-        //await sendConfirmationEmail(orderDetails.guest ? orderDetails.guest.email : req.user.email, cartSummary);
+        const sendEmail = await sendConfirmationEmail(orderDetails.guest ? orderDetails.guest.email : req.user.email, cartSummary);
+    
+        if(!isGuest) {
+            Carts.findOneAndUpdate({ userId: req.user._id}, {items: [{}] })
+        }
 
-        // if(!isGuest) {
-        //     Users.findOneAndUpdate({ _id: req.user.id }, { cartData: {} });
-        // }
+        sendEmail;
+        
+        
+    }
+    catch(error) {
+        console.log("(process_order) Error: ", error);
+    }
+    
+}
 
-        res.status(200).json({ message: "Cart processed successfully!"});
+
+const confirm_cash_order = async (req, res) => {
+    try {
+        
+        await process_order(req)
+        res.status(200).json({ success: true, message: "Order processed successfully."});
+
     }
     catch (error) {
         console.error("Error confirming cash order: ", error);
@@ -169,15 +187,8 @@ const complete_order = async (req,res) => {
         console.log("JSON in complete_order: ", json);
         if(json.status === 'COMPLETED') {
             try {
-                const orderDetails = await getOrderDetails(req, isGuest);
-                const cartSummary = await generateCartSummary(orderDetails);
-    
-                await sendConfirmationEmail(orderDetails.guest ? orderDetails.guest.email : req.user.email, cartSummary);
-    
                 res.json(json);
-                if(!isGuest) {
-                    Users.findOneAndUpdate({ _id: req.user.id }, { cartData: {} });
-                }
+                process_order(req);
             }
             catch(error) {
                 console.log("Error in completed transaction statement: ", error)
