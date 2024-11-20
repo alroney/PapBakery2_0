@@ -11,7 +11,7 @@ export const CartItems = () => {
     const { cart, handleAddToCart, handleUpdateCartItem, handleClearCart } = useContext(CartContext);
 
     return (
-        <div className='cartItems'>
+        <div className='cartitems'>
             <h2>Shopping Cart</h2>
             {cart.length > 0 ? <button className="cartitems-clearcart" onClick={handleClearCart}>Clear Cart</button> : <></>}
             <div className="cartitems-format-main">
