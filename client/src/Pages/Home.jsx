@@ -4,7 +4,7 @@ import { Popular } from '../Components/Popular/Popular'
 import { Newsletter } from '../Components/Newsletter/Newsletter'
 import { NewItems } from '../Components/NewItems/NewItems'
 
-export const Shop = () => {
+export const Home = () => {
   return (
     <div>
       <Hero/>

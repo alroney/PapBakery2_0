@@ -8,7 +8,7 @@ import { CartContext } from '../../Context/CartContext';
 
 export const Navbar = () => {
 
-    const [menu, setMenu] = useState("shop"); //Initialize the menu selection
+    const [menu, setMenu] = useState("home"); //Initialize the menu selection
     const {getTotalCartItems} = useContext(CartContext);
     const menuRef = useRef();
 
@@ -29,7 +29,7 @@ export const Navbar = () => {
         </div>
         <img className="nav-dropdown" onClick={dropdown_toggle} src={nav_dropdown} alt="" />
         <ul ref={menuRef} className="nav-menu">
-            <li onClick={()=>{setMenu("shop")}}><Link className="nav-item"  to='/'>Shop</Link>{menu==="shop"?<hr/>:<></>}</li> {/**The setMenu() will change the menu value to the value in its parameter. The <hr/> tag is added to the li if menu is equal to the current menu item. */}
+            <li onClick={()=>{setMenu("home")}}><Link className="nav-item"  to='/'>Home</Link>{menu==="home"?<hr/>:<></>}</li> {/**The setMenu() will change the menu value to the value in its parameter. The <hr/> tag is added to the li if menu is equal to the current menu item. */}
             <li onClick={()=>{setMenu("biscuits")}}><Link className="nav-item" to='/biscuits'>Biscuits</Link>{menu==="biscuits"?<hr/>:<></>}</li>
             <li onClick={()=>{setMenu("trainingTreats")}}><Link className="nav-item" to='/trainingTreats'>Training Treats</Link>{menu==="trainingTreats"?<hr/>:<></>}</li>
         </ul>
