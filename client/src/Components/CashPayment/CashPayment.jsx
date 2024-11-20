@@ -15,14 +15,12 @@ export const CashPayment = ({guestData}) => {
             const userAuthToken = localStorage.getItem("auth-token");
             const guestMode = localStorage.getItem("isGuest");
             const guestEmail = guestMode ? guestData.guestEmail: null;
-            console.log("(confirmCashOrder) cart: ", cart);
 
             if(cart.length <= 0) {
                 alert("Cart is empty.");
                 setOrderCompleted(false);
             }
             else {
-                console.log("(confirmCashOrder) user-auth: ", userAuthToken);
                 const requestBody = {
                     "paymentType": 'cash',
                     "isGuest": guestMode,
@@ -39,7 +37,6 @@ export const CashPayment = ({guestData}) => {
                     body: JSON.stringify(requestBody),
                 });
         
-                console.log("(confirmCashOrder) Response: ", response.success);
                 if (!response.status === 200) {
                     throw new Error("Failed to confirm cash order.");
                 }
