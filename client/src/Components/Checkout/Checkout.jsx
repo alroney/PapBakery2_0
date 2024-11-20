@@ -174,7 +174,8 @@ export const Checkout = () => {
                             )}
                             {paymentType === 'online' && (
                                 <>
-                                    <button className="paynow-button" onClick={(e) => getTotalCartItems() > 0 ? paynow_toggle(e) : alert("Cart is Empty")}>
+                                    <big>ONLINE PAYMENT IS INACTIVE DURING PUBLIC TESTING FOR YOUR SAFETY.</big>
+                                    {/* <button className="paynow-button" onClick={(e) => getTotalCartItems() > 0 ? paynow_toggle(e) : alert("Cart is Empty")}>
                                         Pay Now
                                     </button>
                                     <div ref={payRef} className={`paynow ${isPaynowVisible ? 'paynow-visible' : ''}`}>
@@ -184,7 +185,7 @@ export const Checkout = () => {
                                                 guestData={authToken ? {} : guestData}
                                             />
                                         )}
-                                    </div>
+                                    </div> */}
                                 </>
                             )}
                         </div>
