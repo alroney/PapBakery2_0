@@ -14,17 +14,8 @@ const {getCartData, generateCartSummary, sendConfirmationEmail, isValidJSON, get
 
 
 
-
-
-const getNextOrderId = () => {
-    const orders = Orders.find({});
-    const orderId = orders.length > 0 ? orders.slice(-1)[0].id + 1 : 1;
-    return orderId;
-}
-
-
-
 const getOrderDetails = async (req, isGuest) => {
+    /**TODO - Implement discounts/fees */
     console.log("\n\n\nGUEST: "+ isGuest +"\n\n\n");
     const { cartData, email } = await getCartData(req); // Fetch cart data
 
@@ -55,12 +46,14 @@ const getOrderDetails = async (req, isGuest) => {
     subtotal = parseFloat(subtotal).toFixed(2);
     tax = parseFloat(tax).toFixed(2);
     total = parseFloat(total).toFixed(2);
+
+    //Sanitize cartData to exclude the image property.
+    const sanitizedCart = cartData.map(({image, _id, productId, ...rest}) => rest);
     
     return {
-        orderId: await getNextOrderId(), // Assume helper function to get unique order ID
-        user: isGuest ? null : req.user,
-        guest: isGuest ? { isGuest, email } : null,
-        cart: cartData,
+        buyer: isGuest ? "guest" : req.user,
+        email: email,
+        cart: sanitizedCart,
         subtotal,
         taxRate,
         tax,
@@ -69,23 +62,40 @@ const getOrderDetails = async (req, isGuest) => {
 };
 
 
+
 const process_order = async (req, res) => {
+    let isProcessed = false;
+    let orderSaved = false;
     try {
         const isGuest = !req.user;
         const orderDetails = await getOrderDetails(req, isGuest);
         const cartSummary = await generateCartSummary(orderDetails);
-        const sendEmail = await sendConfirmationEmail(orderDetails.guest ? orderDetails.guest.email : req.user.email, cartSummary);
-    
-        if(!isGuest) {
-            Carts.findOneAndUpdate({ userId: req.user._id}, {items: [{}] })
+        const sendEmail = await sendConfirmationEmail(orderDetails.email, cartSummary);
+        //Create new order using spread operator to let orderDetails to fill in all the properties.
+        const newOrder = new Orders({
+            ...orderDetails,
+            date: new Date()
+        })
+        orderSaved = await newOrder.save();
+        console.log("(process_order) orderSaved: ", orderSaved);
+        if(orderSaved) {
+            if(sendEmail) {
+                console.log("Email sent successfully and Order saved.");
+            }
+            else {
+                console.log("Order was saved but email failed to send.");
+            }
+            isProcessed = true;
         }
-
-        sendEmail;
+        else{
+            throw new Error("Failed to save order");
+        }
         
-        
+        return isProcessed;
     }
     catch(error) {
         console.log("(process_order) Error: ", error);
+        return isProcessed;
     }
     
 }
@@ -94,13 +104,21 @@ const process_order = async (req, res) => {
 const confirm_cash_order = async (req, res) => {
     try {
         
-        await process_order(req)
-        res.status(200).json({ success: true, message: "Order processed successfully."});
+        if(await process_order(req)) {
+            console.log("(confirm_cash_order) order processed. Now sending status code...");
+            res.status(200).json({ success: true, message: "Order processed successfully."});
+        }
+        else {
+            console.log("(confirm_cash_order) Processed return false.");
+            res.status(500).json({ success: false, message: "Internal server error: Order failed to proccess."});
+        }
+
+        
 
     }
     catch (error) {
         console.error("Error confirming cash order: ", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ success: false, message: "Internal server error." });
     }
 
 }

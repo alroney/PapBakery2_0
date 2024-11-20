@@ -24,8 +24,9 @@ const getCartData = async (req) =>  {
 
     if(req.user) {
         console.log("User found! Using user cart.");
-        console.log("req.body: ", req.body);
+        console.log("req.user: ", req.user);
         const userData = await Users.findOne({_id: req.user.id});
+        console.log("(getCartData)(userfound) userData: ", userData);
         //userData.cartData is already in proper JSON format. Therefore no parsing is required.
         return { cartData: req.body.cart, email: userData.email };
     }
@@ -49,7 +50,9 @@ const getCartData = async (req) =>  {
 const generateCartSummary = async (orderDetails) => {
     try {
         console.log("(generateCartSummary) orderDetails: ", orderDetails);
-        
+        if(!orderDetails.buyer === "guest") {
+            
+        }
         let cartSummary = "Your cart summary includes the following items: \n\n";
         const cart = orderDetails.cart;
         let totalAmount = orderDetails.total;
@@ -101,9 +104,12 @@ const sendConfirmationEmail = async (email, cartSummary) => {
             subject: "Order Confirmation",
             text: `Your order has been confirmed.\n\n ${cartSummary}`,
         });
+
+        return true;
     }
     catch(error) {
         console.log("(sendConfirmationEmail) Error: ", error);
+        return false;
     }
     
 }

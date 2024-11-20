@@ -22,7 +22,6 @@ export const Checkout = () => {
     const [taxRate, setTaxRate] = useState(0.0);
     const [couponCode, setCouponCode] = useState('');
     const [fees, setFees] = useState({ taxRate: 0, tax: 0, shipping: 0, discount: 0, total: 0})
-    const [promoCode, setPromoCode] = useState('');
     const [paymentType, setPaymentType] = useState('')
     const payRef = useRef();
     
@@ -56,6 +55,7 @@ export const Checkout = () => {
         }
     }, [subtotal])
 
+    
 
     const changeHandler = (e) => {
         setGuestData({...guestData, [e.target.name]:e.target.value});
@@ -72,14 +72,13 @@ export const Checkout = () => {
     }
 
 
-    const applyPromoCode = () => {
+    const applyCouponCode = () => {
         //Logic to verify and apply promo code, adjusting the total as necessary.
     }
 
     
     
     const paynow_toggle = (e) => {
-
         if(!authToken && !isValidEmail(guestData.guestEmail)) {
             setEmailError('Please enter a valid email address.');
             setIsPaynowVisible(false); //Hide paypal component if email is invalid.

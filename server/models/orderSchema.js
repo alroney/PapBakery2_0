@@ -1,40 +1,34 @@
 const Mongoose = require('mongoose');
 
 const orderSchema = new Mongoose.Schema({
-    id: {
+    buyer: {
+        type: Mongoose.Schema.Types.Mixed, //Can store either an ObjectId or a string.
+        required: true,
+    },
+    email: {
         type: String,
         lowercase: true,
-        unique: true,
-    },
-    user: {
-        type: Mongoose.Schema.Types.ObjectId,
-        required: false,
-        ref: "users",
-    },
-    guest: {
-        isGuest: {
-            type: Boolean,
-        },
-        email: {
-            type: String,
-            lowercase: true,
-        },
     },
     cart: {
         type: Object,
+        required: true,
     },
     subtotal: {
         type: Number,
+        required: true,
     },
     tax: {
         type: Number,
+        required: true,
     },
     total: {
         type: Number,
+        required: true,
     },
     date: {
         type: Date,
         default: Date().now,
+        required: true,
     },
 });
 

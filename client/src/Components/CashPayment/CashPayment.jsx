@@ -1,12 +1,16 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import apiUrl from '@config';
 import { CartContext } from '../../Context/CartContext';
+import { Modal } from '../Modal/Modal';
 
 export const CashPayment = ({guestData}) => {
     const {cart, handleClearCart} = useContext(CartContext);
     const [orderCompleted, setOrderCompleted] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const confirmCashOrder = async () => {
+        setLoading(true);
         try {
             const userAuthToken = localStorage.getItem("auth-token");
             const guestMode = localStorage.getItem("isGuest");
@@ -18,6 +22,7 @@ export const CashPayment = ({guestData}) => {
                 setOrderCompleted(false);
             }
             else {
+                console.log("(confirmCashOrder) user-auth: ", userAuthToken);
                 const requestBody = {
                     "paymentType": 'cash',
                     "isGuest": guestMode,
@@ -34,18 +39,37 @@ export const CashPayment = ({guestData}) => {
                     body: JSON.stringify(requestBody),
                 });
         
-                if (!response.ok) throw new Error("Failed to confirm cash order.");
-
-                handleClearCart();
-                setOrderCompleted(true);
+                console.log("(confirmCashOrder) Response: ", response.success);
+                if (!response.status === 200) {
+                    throw new Error("Failed to confirm cash order.");
+                }
+                else {
+                    setShowModal(true);
+                    setOrderCompleted(true);
+                }
             }
 
-        } catch (error) {
+        } 
+        catch (error) {
             console.error("Error confirming cash order:", error);
             alert("An error occurred while confirming your order.");
         }
+        finally {
+            setLoading(false);
+        }
     };
 
+    //Clear the cart once order is completed and the user closes out of the modal.
+    useEffect(() => {
+        if(!showModal && orderCompleted) {
+            handleClearCart();
+        }
+    }, [showModal, orderCompleted])
+
+
+    const closeModal = () => {
+        setShowModal(false);
+    }
   return (
     <div>
         <h3>Cash Payment Details</h3>
@@ -56,9 +80,18 @@ export const CashPayment = ({guestData}) => {
             <li>Prepare the exact amount as change might not be available.</li>
             <li>Verify your delivery address and contact details are correct.</li>
         </ul>
-        <button className="confirm-cash-order" onClick={() => confirmCashOrder()}>
-            Confirm Order
+        <button className="confirm-cash-order" onClick={() => confirmCashOrder()} disabled={loading}>
+            {loading ? 'Processing...' : 'Confirm Cash Payment'}
         </button>
+
+        {/*Modal for order completion */}
+        <Modal 
+            isOpen={showModal}
+            onClose={closeModal}
+            title="Order Confirmed"
+            message={`Your order has been sent successfully! A confirmation email has been sent to
+                 ${guestData?.guestEmail || "your registered email"}.`}
+        />
     </div>
   )
 }
