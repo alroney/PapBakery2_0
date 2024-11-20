@@ -13,31 +13,38 @@ export const CartItems = () => {
     return (
         <div className='cartitems'>
             <h2>Shopping Cart</h2>
-            {cart.length > 0 ? <button className="cartitems-clearcart" onClick={handleClearCart}>Clear Cart</button> : <></>}
-            <div className="cartitems-format-main">
-                <p>Products</p>
-                <p>Title</p>
-                <p>Price</p>
-                <p>Quantity</p>
-                <p>Total</p>
-                <p>Remove</p>
-            </div>
-            <hr />
+            {cart.length > 0 
+            
+                ?  (
+                    <button className="cartitems-clearcart" onClick={handleClearCart}>
+                        Clear Cart
+                    </button> 
+                
+                ) : (
+                    <p className="cartitems-empty">Your cart is empty.</p>
+                )
+            }
+            
             {cart.map((item) => {
                 if(cart) {
                     return (
-                        <div key={item.productId}>
-                            <div className="cartitems-format cartitems-format-main">
-                                <img src={item.image} alt="" className="cartitems-product-icon" />
-                                <p>{item.name}</p>
-                                <p>${item.price}</p>
-                                <div className="cartitems-quantity">
-                                    <button className="cartitems-quantity-adjuster" onClick={() => handleUpdateCartItem(item.productId, item.quantity - 1)}>-</button>
-                                    <p className='cartitems-quantity-amt'>{item.quantity}</p>
-                                    <button className="cartitems-quantity-adjuster" onClick={() => handleUpdateCartItem(item.productId, item.quantity + 1)}>+</button>
+                        <div key={item.productId} className="cartitems-item">
+                            <div className="cartitems-main">
+                                <img src={item.image} alt="" className="cartitems-product-icon " />
+                                <div className="cartitems-details">
+                                    <p className="">{item.name}</p>
+                                    <p className="">Price: ${item.price}</p>
+                                    <div className="cartitems-quantity">
+                                        <div className="cartitems-quantity-container">
+                                            <button className="cartitems-adjuster" onClick={() => handleUpdateCartItem(item.productId, item.quantity - 1)}>{item.quantity === 1 ? 'x':'\<'}</button>
+                                            <p className='cartitems-quantity-display'>{item.quantity}</p>
+                                            <button className="cartitems-adjuster" onClick={() => handleUpdateCartItem(item.productId, item.quantity + 1)}>{'\>'}</button>
+                                        </div>
+                                        
+                                <img className="caritems-remove-icon " src={remove_icon} alt="X" onClick={()=>{handleUpdateCartItem(item.productId, 0)}}/>
+                                    </div>
+                                    <p className="">${item.price * item.quantity}</p>
                                 </div>
-                                <p>${item.price * item.quantity}</p>
-                                <img className="caritems-remove-icon" src={remove_icon} alt="X" onClick={()=>{handleUpdateCartItem(item.productId, 0)}}/>
                             </div>
                             <hr />
                         </div>
