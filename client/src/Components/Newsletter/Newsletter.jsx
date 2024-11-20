@@ -10,6 +10,7 @@ export const Newsletter = () => {
             <input type="email" placeholder='email@mail.com'/>
             <button>Subscribe</button>
         </div>
+        <small>Not working right now</small>
     </div>
   )
 }

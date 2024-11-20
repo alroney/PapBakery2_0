@@ -73,6 +73,7 @@ const generateCartSummary = async (orderDetails) => {
         
         cartSummary += `\nTax = $${orderDetails.tax}`
         cartSummary += `\nGrand Total = $${totalAmount}`
+        cartSummary += `\n\nTHIS IS EMAIL WAS SENT DURING TESTING PHASE\n\nYOU ARE NOT TO EXPECT ANY PRODUCTS`
 
         return cartSummary;
     } 

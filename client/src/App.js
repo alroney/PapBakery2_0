@@ -55,6 +55,9 @@ function App() {
   return (
     <div>
       <BrowserRouter>
+        <div>
+          <p>ALPHA Version (Testing)</p>
+        </div>
         <Navbar/>
         { setBrowseMode() === "guestMode"
           ? <p>Guest Mode</p>
