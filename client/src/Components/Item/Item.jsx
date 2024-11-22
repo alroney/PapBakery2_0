@@ -9,9 +9,9 @@ const Item = (props) => {
   return (
     <div className="item">
         <Link to={`/product/${id}/${name.split(' ').join('-')}`}><img onClick={window.scrollTo(0,0)} src={image} alt="" /></Link>
-        <p>{name}</p>
-        <div className="item-price">
-          ${price}
+        <div className='item-header'>
+          <p>{name}</p>
+          <p>${price}</p>
         </div>
     </div>
   )
