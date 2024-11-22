@@ -8,48 +8,40 @@
 
 .popular h1 {
     color: #171717;
-    font-size: 50px;
     font-weight: 600;
+    font-size: 20px; /* Smallest screen default */
 }
 
 .popular hr {
-    width: 200px;
-    height: 6px;
+    width: 100px; /* Smallest screen default */
+    height: 3px; /* Smallest screen default */
     border-radius: 10px;
     background: #252525;
 }
 
 .popular-item {
-    margin-top: 50px;
     display: flex;
-    gap: 30px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: end;
+    gap: 5px; /* Smallest screen default */
 }
 
-
-@media(max-width: 1280px) {
+/* Responsive styles */
+@media (min-width: 501px) {
     .popular {
-        height: 70vh;
-    }
-
-    .popular h1 {
-        font-size: 30px;
-    }
-
-    .popular hr {
-        width: 160px;
-        height: 4px;
+        height: 100vh;
     }
 
     .popular-item {
-        gap: 20px;
-        margin-top: 30px;
+        gap: 15px;
     }
 }
 
-
-@media(max-width: 1024px) {
+@media (min-width: 801px) {
     .popular {
-        height: 60vh;
+        height: 100vh;
+        gap: 10px;
     }
 
     .popular h1 {
@@ -67,35 +59,41 @@
     }
 }
 
-
-@media(max-width: 800px) {
+@media (min-width: 1025px) {
     .popular {
-        height: 50vh;
-        gap: 6px;
+        height: 100vh;
     }
 
     .popular h1 {
-        font-size: 20px;
+        font-size: 30px;
     }
 
     .popular hr {
-        width: 100px;
+        width: 160px;
+        height: 4px;
     }
 
     .popular-item {
-        gap: 5px;
+        gap: 20px;
+        margin-top: 30px;
     }
 }
 
-
-@media(max-width: 500px) {
+@media (min-width: 1281px) {
     .popular {
-        height: 90vh;
+        height: auto; /* Default for larger screens */
+    }
+
+    .popular h1 {
+        font-size: 50px;
+    }
+
+    .popular hr {
+        width: 200px;
+        height: 6px;
     }
 
     .popular-item {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
+        gap: 30px;
     }
 }

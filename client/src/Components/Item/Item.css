@@ -1,23 +1,22 @@
 .item {
     display: table;
-    width: 250px;
-    padding:5px;
+    max-width: 100%;
+    padding: 5px;
+    transition: transform 0.6s; /* Apply consistent transition */
 }
 
 .item img {
-    display: block;
-    width: auto;
-    height: 240px;
+    width: 100px; /* Smallest screen default */
+    height: auto;
     margin: auto;
     padding: 20px;
-    border: rgba(150, 150, 150, 0.4) 1px solid;
+    border: 1px solid rgba(150, 150, 150, 0.4);
     border-radius: 10px;
 }
 
 .item p {
-    margin: 6px 0px;
+    margin: 6px 0;
 }
-
 
 .item-price {
     color: #374151;
@@ -26,7 +25,6 @@
 
 .item:hover {
     transform: scale(1.05);
-    transition: 0.6s;
 }
 
 .item-header {
@@ -34,50 +32,19 @@
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    font-size: 20px;
+    font-size: 16px; /* Smallest screen default */
 }
 
-
-@media(max-width: 1280px) {
-    .item {
-        width: 240px;
-        font-size: 14px;
-    }
-
+/* Responsive styles */
+@media (min-width: 401px) {
     .item img {
-        height: 240px;
-    }
-
-    .item-header {
-        font-size: 18px;
+        width: 150px;
     }
 }
 
-
-@media(max-width: 1024px) {
-    .item {
-        width: 200px;
-        font-size: 13px;
-    }
-
+@media (min-width: 501px) {
     .item img {
-        height: 200px
-    }
-
-    .item-header {
-        font-size: 18px;
-    }
-}
-
-
-@media(max-width: 800px) {
-    .item {
         width: 180px;
-        font-size: 12px;
-    }
-
-    .item img {
-        height: 180px;
     }
 
     .item-header {
@@ -85,13 +52,46 @@
     }
 }
 
-
-@media(max-width: 500px) {
+@media (min-width: 801px) {
     .item {
         width: 180px;
+        font-size: 12px;
     }
 
     .item img {
-        height: 180px;
+        width: 200px;
+    }
+
+    .item-header {
+        font-size: 18px;
+    }
+}
+
+@media (min-width: 1025px) {
+    .item {
+        width: 150px;
+        font-size: 13px;
+    }
+
+    .item img {
+        width: 200px;
+    }
+
+    .item-header {
+        font-size: 18px;
+    }
+}
+
+@media (min-width: 1281px) {
+    .item {
+        width: 160px;
+    }
+
+    .item img {
+        width: 240px;
+    }
+
+    .item-header {
+        font-size: 20px;
     }
 }
