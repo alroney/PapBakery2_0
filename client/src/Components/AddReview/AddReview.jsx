@@ -7,6 +7,8 @@ import apiUrl from '@config';
 export const AddReview = (props) => {
     const { product, onAddReview } = props; //Store the current product object into product
     const [image, setImage] = useState(false);
+    const [showForm, setShowForm] = useState(false);
+    const [error, setError] = useState('');
     const [reviewDetails, setReviewDetails] = useState({
         name: "",
         rating: 0,
@@ -29,6 +31,29 @@ export const AddReview = (props) => {
         });
     }
 
+    const showAddReview = () => {
+        if(localStorage.getItem("isGuest") === "true") {
+            setShowForm(false);
+            setError("You need to logged in to create a new review.");
+            return;
+        }
+        else {
+            setError("")
+            setShowForm(true);
+            return;
+        }
+    }
+
+    const cancelForm = () => {
+        setReviewDetails({
+            name: "",
+            rating: 0,
+            comment: "",
+            image: "",
+        });
+        setShowForm(false);
+    }
+
     useEffect(() => {
         setReviewDetails((prevDetails) => ({
             ...prevDetails,
@@ -38,6 +63,11 @@ export const AddReview = (props) => {
 
     const Add_Review = async () => {
         try {
+            if(localStorage.getItem("isGuest") === "true") {
+                setError("You need to be logged in to submit a review.");
+                return;
+            }
+
             let responseData;
             let review = reviewDetails;
 
@@ -73,6 +103,7 @@ export const AddReview = (props) => {
                     image: "",
                 });
                 setImage(false);
+                setError(""); //Clear error if submission succeeds.
             }
         }
         catch(error) {
@@ -82,36 +113,52 @@ export const AddReview = (props) => {
 
   return (
     <div className="addreview">
-        <div className="addreview-itemfield">
-            <p>Title</p>
-            <input value={reviewDetails.name} onChange={changeHandler} type="text" name="name" placeholder="Review Title" />
-        </div>
+        {!showForm
+            ? (
+                <>
+                    {error && <p className="addreview-error">{error}</p>}
+                    <button onClick={() => showAddReview()} className="addreview-btn">Add New Review</button>
+                </>
+            ) 
 
-        <div className="addreview-itemfield">
-            <p>Rating</p>
-            <select value={reviewDetails.rating} onChange={changeHandler} name="rating" className="addreview-itemfield-selector">
-                <option value="0">0</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-            </select>
-        </div>
+            : (
+                <>
+                    {error && <p className="addreview-error">{error}</p>}
+                    <div className="addreview-itemfield">
+                        <p>Title</p>
+                        <input value={reviewDetails.name} onChange={changeHandler} type="text" name="name" placeholder="Review Title" />
+                    </div>
 
-        <div className="addreview-itemfield">
-            <p>Comment</p>
-            <input value={reviewDetails.comment} onChange={changeHandler} type="text" name="comment" placeholder="Enter a Comment" />
-        </div>
+                    <div className="addreview-itemfield">
+                        <p>Rating</p>
+                        <select value={reviewDetails.rating} onChange={changeHandler} name="rating" className="addreview-itemfield-selector">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </div>
 
-        <div className="addreview-itemfield">
-            <label htmlFor="file-input">
-                <img src={image?URL.createObjectURL(image):upload_area} className="addreview-itemfield-thumbnail-img" alt="" />
-            </label>
-            <input onChange={imageHandler} type="file" name="product" id="file-input" hidden/>
-        </div>
+                    <div className="addreview-itemfield">
+                        <p>Comment</p>
+                        <input value={reviewDetails.comment} onChange={changeHandler} type="text" name="comment" placeholder="Enter a Comment" />
+                    </div>
 
-        <button onClick={() => (Add_Review(product.id))} className="addreview-btn">Submit Review</button>
+                    <div className="addreview-itemfield">
+                        <label htmlFor="file-input">
+                            <img src={image?URL.createObjectURL(image):upload_area} className="addreview-itemfield-thumbnail-img" alt="" />
+                        </label>
+                        <input onChange={imageHandler} type="file" name="product" id="file-input" hidden/>
+                    </div>
+
+                    <button onClick={() => (Add_Review(product.id))} className="addreview-btn">Submit Review</button>
+                    <button onClick={() => cancelForm()} className="addreview-btn cancel-btn">Cancel</button>
+                </>
+            )
+        
+        }
     </div>
   )
 }

@@ -2,30 +2,6 @@ import React, { memo } from 'react';
 import './DisplayReview.css';
 
 export const DisplayReview = memo(({ reviews }) => {
-    // const {product} = props;
-    // const productId = product.id;
-    // console.log("Product ID: ", productId);
-    // const [allreviews, setAllReviews] = useState([]);//Set default of allReviews to an emtpy array. 
-
-    // const fetchReviews = async () => {
-    //     await fetch(`${apiUrl}/productreviews/${productId}`)
-    //     .then((res) => res.json())
-    //     .then((data) => {
-    //         if(data && data.reviews) {
-    //             setAllReviews(data.reviews)
-    //         }
-    //         else {
-    //             setAllReviews([]);
-    //         }
-    //     });//Saves data retrieved from productreviews api to allReviews.
-    // }
-
-    
-
-    // useEffect(() => {
-
-    //     fetchReviews();
-    // }, [product.reviews]) //Runs whenever product.reviews changes.
     
   return (
     <div className="displayreview">
@@ -35,11 +11,11 @@ export const DisplayReview = memo(({ reviews }) => {
             //Template to map each review according to its key (index).
             return (
                 <div key={review.id} className="displayreview-format-main displayreview-format">
-                    <h1>{review.name}</h1>
-                    <p>{review.date}</p>
-                    <p>{review.user && review.user.name ? review.user.name : "Anonymous"}</p>
-                    <p>{review.rating}</p>
-                    <p>{review.comment}</p>
+                    <h1 className='displayreview-title'>{review.name}</h1>
+                    <p className='displayreview-date'>{review.date}</p>
+                    <p className='displayreview-user'>{review.user && review.user.name ? review.user.name : "Anonymous"}</p>
+                    <p className='displayreview-rating'>{review.rating}</p>
+                    <p className='displayreview-comment'>{review.comment}</p>
                 </div>
             )
         })}

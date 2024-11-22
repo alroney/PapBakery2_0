@@ -10,14 +10,57 @@ const serverUrl = process.env.SERVER_URL;
 //Function: Find and return all products in the MongoDB
 const fetchAllProducts = async () => {
     try {
-        const products = await Products.find({}).populate('reviews.user', 'name');
-        return products;
-    }
-    catch(error) {
+        const productsWithReviews = await Products.aggregate([
+            {
+                $lookup: {
+                    from: 'reviews', // The name of the reviews collection
+                    localField: '_id', // The field in the product collection
+                    foreignField: 'productId', // The field in the reviews collection
+                    as: 'reviews', // The name of the field to add the reviews
+                },
+            },
+            {
+                $unwind: {
+                    path: '$reviews',
+                    preserveNullAndEmptyArrays: true,
+                },
+            },
+            {
+                $lookup: {
+                    from: 'users', // The name of the users collection
+                    localField: 'reviews.userId', // The userId in the reviews
+                    foreignField: '_id', // The _id in the users
+                    as: 'reviews.user',
+                },
+            },
+            {
+                $unwind: {
+                    path: '$reviews.user',
+                    preserveNullAndEmptyArrays: true,
+                },
+            },
+            {
+                $group: {
+                    _id: '$_id',
+                    name: { $first: '$name' },
+                    description: { $first: '$description' },
+                    price: { $first: '$price' },
+                    category: { $first: '$category' },
+                    image: { $first: '$image' },
+                    rating: { $first: '$rating' },
+                    reviewCount: { $first: '$reviewCount' },
+                    reviews: { $push: '$reviews' },
+                },
+            },
+        ]);
+
+        return productsWithReviews;
+    } catch (error) {
         console.error("Error while fetching products: ", error);
         throw error;
     }
-}
+};
+
 
 
 //API endpoint to add a new product.

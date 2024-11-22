@@ -6,6 +6,6 @@ const { productReviews, addReview } = require('../controllers/pReviewController'
 
 
 router.post('/add', authenticateUser, addReview);
-router.get('/reviews/:productId', productReviews);
+router.get('/:productId', productReviews);
 
 module.exports = router;

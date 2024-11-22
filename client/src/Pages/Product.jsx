@@ -13,8 +13,8 @@ export const Product = () => {
   const { state, dispatch } = useProduct();
   const { productId } = useParams();
   const [product, setProduct] = useState(null);
+  const [reviews, setReviews] = useState([]);
 
-  const reviewAPIUrl = `${apiUrl}/pReviews`;
 
   useEffect(() => {
     //Find product by ID
@@ -24,6 +24,20 @@ export const Product = () => {
     
     setProduct(foundProduct);
   }, [state.products, productId]);
+
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      const response = await fetch(`${apiUrl}/reviews/${productId}`);
+      const data = await response.json();
+      if(data.success) {
+        setReviews(data.reviews);
+      }
+    };
+
+    fetchReviews();
+  }, [productId]);
+
 
   /**
     * The handleAddReview function immediately dispatches an action to ad the new review to the
@@ -35,8 +49,7 @@ export const Product = () => {
     console.log("handleAddReview was triggered. newReview: ", newReview);
 
     try {
-      //Post the new review to the backend.
-      await fetch(`${reviewAPIUrl}/add`, {
+      const response = await fetch(`${apiUrl}/reviews/add`, {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -44,24 +57,21 @@ export const Product = () => {
           'auth-token': `${localStorage.getItem('auth-token')}`,
         },
         body: JSON.stringify({ ...newReview, productId }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("data: ", data);
-          if(data.success) {
-            //Dispatch action to update state optimistically.
-            dispatch({ 
-              type: 'ADD_REVIEW',
-              payload: {
-                productId: productId,
-                review: newReview,
-              }
-            });
-          }
-          else {
-            alert("Failed to add review.");
-          }
-        });
+      });
+
+      const data = await response.json();
+
+      if(data.success) {
+        //Refetch reviews after adding a new one.
+        const reviewResponse = await fetch(`${apiUrl}/reviews/${productId}`);
+        const reviewData = await reviewResponse.json();
+        if(reviewData.success) {
+          setReviews(reviewData.reviews);
+        }
+      } 
+      else {
+        alert('Failed to add review');
+      }
     }
     catch(error) {
       console.error("Catch -> Failed to add review: ", error);
