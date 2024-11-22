@@ -20,8 +20,12 @@
 }
 
 .newitems-item {
-    margin-top: 50px;
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    margin-top: 50px;
+    width: 100%;
     gap: 30px;
 }
 
