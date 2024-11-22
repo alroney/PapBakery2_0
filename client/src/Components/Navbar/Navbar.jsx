@@ -2,19 +2,31 @@ import React, {useContext, useRef, useState} from 'react';
 import './Navbar.css';
 import navLogo from '../Assets/img/logo/papbakery_logo_dark.png';
 import cart_icon from '../Assets/img/icon/cart_icon.png';
+import login_icon from '../Assets/img/icon/login-icon.svg'
+import logout_icon from '../Assets/img/icon/logout-icon.svg'
 import nav_dropdown from '../Assets/img/icon/nav_dropdown.png';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { CartContext } from '../../Context/CartContext';
 
 export const Navbar = () => {
 
     const [menu, setMenu] = useState("home"); //Initialize the menu selection
     const {getTotalCartItems} = useContext(CartContext);
-    const menuRef = useRef();
+    const navRef = useRef();
+
+    const toggleScroll = (disable) => {
+        if(disable) {
+            document.body.classList.add('no-scroll');
+        }
+        else {
+            document.body.classList.remove('no-scroll');
+        }
+    }
 
     const dropdown_toggle = (e) => {
-        menuRef.current.classList.toggle('nav-menu-visible');
+        navRef.current.classList.toggle('nav-combo-visible');
         e.target.classList.toggle('open');
+        toggleScroll(navRef.current.classList.contains('nav-combo-visible')); //Disable scolling when menu is open.
     }
 
   return (
@@ -27,22 +39,34 @@ export const Navbar = () => {
             </div>
             
         </div>
-        <img className="nav-dropdown" onClick={dropdown_toggle} src={nav_dropdown} alt="" />
-        <ul ref={menuRef} className="nav-menu">
-            <li onClick={()=>{setMenu("home")}}><Link className="nav-item"  to='/'>Home</Link>{menu==="home"?<hr/>:<></>}</li> {/**The setMenu() will change the menu value to the value in its parameter. The <hr/> tag is added to the li if menu is equal to the current menu item. */}
-            <li onClick={()=>{setMenu("biscuits")}}><Link className="nav-item" to='/biscuits'>Biscuits</Link>{menu==="biscuits"?<hr/>:<></>}</li>
-            <li onClick={()=>{setMenu("trainingTreats")}}><Link className="nav-item" to='/trainingTreats'>Training Treats</Link>{menu==="trainingTreats"?<hr/>:<></>}</li>
-        </ul>
-
-        <div className="nav-login-cart">
-            {localStorage.getItem('auth-token')
-                ? <button onClick={() => {localStorage.removeItem('auth-token'); window.location.replace('/')}}>Logout</button> //If true, remove the auth-token and send user to home page.
-                : <Link to='/login'><button>Login</button></Link> //If false, display the login button.
-            }
-            
-            <Link to='/cart'><img src={cart_icon} alt="Cart"/></Link>
-            <div className="nav-cart-count">{getTotalCartItems()}</div> {/*Cart item count display icon*/}
+        <div className="nav-dropdown"><img  onClick={dropdown_toggle} src={nav_dropdown} alt="" /></div>
+        <div ref={navRef} className="nav-combo">
+            <ul className="nav-menu">
+                {/**The setMenu() will change the menu value to the value in its parameter. The <hr/> tag is added to the li if menu is equal to the current menu item. */}
+                <li onClick={()=>{setMenu("home")}}>
+                    <NavLink className="nav-item"  to='/'>Home</NavLink>{menu==="home"?<hr/>:<></>}
+                </li> 
+                <li onClick={()=>{setMenu("biscuits")}}>
+                    <NavLink className="nav-item" to='/biscuits'>Biscuits</NavLink>{menu==="biscuits"?<hr/>:<></>}
+                </li>
+                <li onClick={()=>{setMenu("trainingTreats")}}>
+                    <NavLink className="nav-item" to='/trainingTreats'>Training Treats</NavLink>{menu==="trainingTreats"?<hr/>:<></>}
+                </li>
+            </ul>
         </div>
+        <div className="nav-right-side">
+            <div  id="nav_login">
+                    {localStorage.getItem('auth-token')
+                        ? <button onClick={() => {localStorage.removeItem('auth-token'); window.location.replace('/'); setMenu("")}}><span className='logText'>Logout</span><img className='logImg' src={logout_icon} alt=""></img></button> //If true, remove the auth-token and send user to home page.
+                        : <NavLink to='/login'><button onClick={() => {setMenu("")}}><span className='logText'>Login</span><img className='logImg' src={login_icon} alt=""></img></button></NavLink> //If false, display the login button.
+                    }
+                </div>
+            <div id="nav_cart">
+                <NavLink to='/cart'><img onClick={()=>{setMenu("")}} src={cart_icon} alt="Cart"/></NavLink>
+                <div className="nav-cart-count">{getTotalCartItems()}</div> {/*Cart item count display icon*/}
+            </div>
+        </div>
+        
     </div>
   )
 }
