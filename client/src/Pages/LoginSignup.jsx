@@ -19,33 +19,6 @@ export const LoginSignup = () => {
   const userAPIUrl = `${apiUrl}/users`
 
 
-/** Explanation of login function.
- * @function login
- * Defines an asynchronous function `login` that handles the login process, making an HTTP request and processing the response.
- * 
- * @variables
- * - `responseData`: Variable declared to store the response data from the server after the fetch request is completed.
- *
- * @async_operation
- * - `fetch()`: Makes an HTTP POST request to the specified URL (`${userAPIUrl}/login`) to authenticate the user.
- *   - `await` pauses execution until the fetch request completes.
- *   - Request Options:
- *     - `method: 'POST'`: Indicates that data is being sent to the server.
- *     - `headers`: 
- *       - `Accept: 'application/json'`: Indicates that the client expects a JSON response from the server.
- *       - `Content-Type: 'application/json'`: Specifies that the data being sent to the server is in JSON format.
- *     - `body: JSON.stringify(formData)`: Converts the `formData` object into a JSON string to send as the request body.
- * - `.then(response => response.json())`: Parses the response as JSON and returns a Promise with the data.
- * - `.then(data => responseData = data)`: Assigns the parsed response data to `responseData`.
- *
- * @response_handling
- * - If `responseData.success` is true:
- *   - `localStorage.setItem('auth-token', responseData.token)`: Saves the authentication token to the browser's `localStorage` for persistent client-side storage.
- *   - `window.location.replace("/")`: Redirects the user to the home page, preventing the previous page from being retained in session history.
- * - If `responseData.success` is false:
- *   - Displays an alert with the error message from `responseData.errors`.
- */
-
   const login = async () => {
     try {
         const response = await fetch(`${userAPIUrl}/login`, {
@@ -54,7 +27,7 @@ export const LoginSignup = () => {
             Accept: 'application/json',
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(formData), //Convert the JSON formated formData into a string.
         });
         const data = await response.json();
 
