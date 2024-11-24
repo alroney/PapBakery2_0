@@ -7,6 +7,7 @@ import { useUser } from '../Context/UserContext';
 export const LoginSignup = () => {
 
   const { currentUser, setCurrentUser } = useUser();
+  const [error, setError] = useState('');
   const [state, setState] = useState("Login");
   const [formData, setFormData] = useState({
     username: "",
@@ -45,49 +46,59 @@ export const LoginSignup = () => {
  */
 
   const login = async () => {
-    const response = await fetch(`${userAPIUrl}/login`, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    });
+    try {
+        const response = await fetch(`${userAPIUrl}/login`, {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+        const data = await response.json();
 
-    const data = await response.json();
-    console.log("(login) data.user: ", data.user);
-    if(data.success) {
-      localStorage.setItem('auth-token', data.token); //Store the token.
-      setCurrentUser(data.user)
-      window.location.replace("/"); //Send the user to home page.
+        if(data.success) {
+          localStorage.setItem('auth-token', data.token); //Store the token.
+          setCurrentUser(data.user)
+          setError("")
+          window.location.replace("/"); //Send the user to home page.
+        }
+        else {
+          setError(data.message);
+        }
     }
-    else {
-      alert("Login failed");
+    catch(error) {
+      console.error("Error was caught in login.");
     }
+    
   }
 
   const signup = async () => {
-    console.log("signup function executed: ", formData);
-    const response = await fetch(`${userAPIUrl}/signup`, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    });
+    try {
+        const response = await fetch(`${userAPIUrl}/signup`, {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
 
-    const data = await response.json();
-    console.log("(login) data: ", data);
-
-    if(data.success) {
-      localStorage.setItem('auth-token', data.token);
-      setCurrentUser(data.user);
-      window.location.replace("/"); //Send the user to home page.
+        const data = await response.json();
+    
+        if(data.success) {
+          localStorage.setItem('auth-token', data.token);
+          setCurrentUser(data.user);
+          window.location.replace("/"); //Send the user to home page.
+        }
+        else {
+          setError(data.message);
+        }
+    } 
+    catch (error) {
+      console.log("Error was caught in signup.");
     }
-    else {
-      alert("Signup failed");
-    }
+    
   }
 
 /** Explanation of changeHandler function.
@@ -108,7 +119,7 @@ export const LoginSignup = () => {
  *   `setFormData` will update the `formData` object to include `{ email: "user@example.com" }`.
  */
   const changeHandler = (e) => {
-    setFormData({...formData, [e.target.name]:e.target.value})
+    setFormData({...formData, [e.target.name]:e.target.value});
   }
 
 
@@ -116,6 +127,8 @@ export const LoginSignup = () => {
     <div className="loginsignup">
       <div className="loginsignup-container">
         <h1>{state}</h1> {/* Text changes depending on the value of the state variable */}
+        { error && <p className='loginsignup-error'>{error}</p> }
+
         <div className="loginsignup-fields">
           {state === "Sign Up"?<input name="name" value={formData.name} onChange={changeHandler} type="text" placeholder='Your Name'/> : <></>} {/*If state value is "Sign Up" then show the input field for your name : ELSE hide the input field and place empty tag <></> */}
           <input name="email" value={formData.email} onChange={changeHandler} type="email" placeholder='email@mail.com'/>
@@ -126,14 +139,14 @@ export const LoginSignup = () => {
 
         {/* Change the <p> option depending on the value of state*/}
         {state === "Sign Up"
-          ? <p className="loginsignup-login">Already have an account? <span onClick={() => setState("Login")}>Login Here</span></p> //If True
-          : <p className="loginsignup-login">Creat an Account? <span onClick={() => setState("Sign Up")}>Click Here</span></p> //If False
+          ? <p className="loginsignup-login">Already have an account? <span onClick={() => {setState("Login"); setError("")}}>Login Here</span></p> //If True
+          : <p className="loginsignup-login">Creat an Account? <span onClick={() => {setState("Sign Up"); setError("")}}>Click Here</span></p> //If False
         }
         
-        <div className="loginsignup-agree">
+        {/* <div className="loginsignup-agree">
           <input type="checkbox" name='' id='' />
           <p>By continue, I agree to the terms of use & privacy policy.</p>
-        </div>
+        </div> */}
       </div>
     </div>
   )

@@ -58,6 +58,15 @@ function App() {
       </header>
       <BrowserRouter>
         <Navbar/>
+        <div style={{margin: 50+'px'}}>
+          <h2>Disclaimer:</h2>
+          <p>
+            This website is in the early stages of development. 
+            All content, design, and functionality are subject to significant change and do not represent a finalized site. 
+            The products displayed may not reflect actual offerings, and any accounts or reviews created may be removed during testing phases. 
+            You may place orders for testing purposes; however, no products will be delivered. 
+            By placing an order during this phase, you acknowledge and accept that this is for testing only, and no responsibility is assumed for unmet expectations of product delivery.</p>
+        </div>
         <Routes>
           <Route path='/' element={<Home/>}/>
           <Route path='/biscuits' element={<ShopCategory category="biscuits"/>}/>

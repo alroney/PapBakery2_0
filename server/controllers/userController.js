@@ -7,19 +7,26 @@ const Users = require('../models/userSchema');
 //API endpoint for user registration.
 const signup = async (req,res) => {
     try {
+        const { name, email, password } = req.body;
+
+        if(!name || !email || !password) {
+            return res.json({success: false, message:"The form was not completed."});
+        }
+
         //Check if user already exists with the given email.
         let check = await Users.findOne({email:req.body.email});
         if(check) {
-            return res.status(400).json({success: false, errors: "Exisiting user found with that email!"});
+            return res.status(400).json({success: false, message: "Exisiting user found with that email!"});
         }
 
         //Create a new user with the provided details.
         const user = new Users({
-            name: req.body.name,
-            email: req.body.email,
-            password: req.body.password,
+            name: name,
+            email: email,
+            password: password,
         });
 
+        //Password gets hashed in userSchema before the save finalizes
         await user.save(); //Save the new user to the database.
 
         /** Explanation of `data` object
@@ -33,11 +40,7 @@ const signup = async (req,res) => {
          * - The `data` object serves as the payload for the JWT, which means it contains the information that will be encoded within the token.
          * - Including the user's ID allows the server to identify the user when handling subsequent authenticated requests.
          */
-        const data = {
-            user: {
-                id: user.id,
-            }
-        };
+        const data = { user: { id: user.id } };
 
         /** Explanation of JWT token generation
          * This section generates a JWT token using the jsonwebtoken library (`jwt`).
@@ -49,16 +52,25 @@ const signup = async (req,res) => {
          *  -The server uses this secret key when creating or verifying tokens to ensure they haven't been tampered with.
          *  - In a production environment, it's crucial to use a strong and unpredictable secret key for security reasons.
          */
-        const token = jwt.sign(data, process.env.JWT_SECRET); //jwt.sign(payload, secret);
+        const token = jwt.sign(data, process.env.JWT_SECRET, {expiresIn: '1h'}); //jwt.sign(payload, secret);
 
         //Respond with success and the generated JWT token.
-        res.json({success: true, token});
+        res.json({
+            success: true,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+            },
+            token,
+        });
 
         
     }
 
     catch(error) {
         console.log("User sign-up error occurred: ", error);
+        res.status(500).json({success: false, message: "Internal Server Error Occurred."});
     }
 };
 
@@ -68,6 +80,11 @@ const signup = async (req,res) => {
 const login = async (req,res) => {
     try {
         const { email, password } = req.body
+
+        if(!email || !password) {
+            return res.json({ success: false, message:"Form was not completed." });
+        }
+
         //Find user by email.
         let user = await Users.findOne({email: email});
 
@@ -91,10 +108,12 @@ const login = async (req,res) => {
     }
     catch(error) {
         console.log("User login error occurred: ", error);
+        res.status(500).json({ success: false, message: "Internal Server Error Occurred."})
     }
 };
 
 
+//API endpoint for getting active user.
 const me = async (req, res) => {
     try {
 
