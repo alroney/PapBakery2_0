@@ -6,17 +6,13 @@ import { ProductDisplay } from '../Components/ProductDIsplay/ProductDisplay';
 import { DescriptionBox } from '../Components/DescriptionBox/DescriptionBox';
 import { RelatedProducts } from '../Components/RelatedProducts/RelatedProducts';
 import { Reviews } from '../Components/Reviews/Reviews';
-import { useUser } from '../Context/UserContext'
 
 export const Product = () => {
   console.log("==(Product.jsx) Component Loaded.==");
 
-  const { state, dispatch } = useProduct();
-  const { currentUser } = useUser();
+  const { state } = useProduct();
   const { productId } = useParams();
-  const [error, setError] = useState('');
   const [product, setProduct] = useState(null);
-  const [reviews, setReviews] = useState([]);
 
 
   useEffect(() => {
