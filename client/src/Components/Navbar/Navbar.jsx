@@ -5,7 +5,7 @@ import cart_icon from '../Assets/img/icon/cart_icon.png';
 import login_icon from '../Assets/img/icon/login-icon.svg'
 import logout_icon from '../Assets/img/icon/logout-icon.svg'
 import nav_dropdown from '../Assets/img/icon/nav_dropdown.png';
-import { NavLink } from 'react-router-dom';
+import { NavLink } from 'react-router';
 import { CartContext } from '../../Context/CartContext';
 import { useUser } from '../../Context/UserContext';
 

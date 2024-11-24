@@ -1,6 +1,6 @@
 import React from 'react'
 import './Sidebar.css'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import add_product_icon from '../../assets/img/icon/Product_Cart.svg'
 import list_product_icon from '../../assets/img/icon/Product_list_icon.svg'
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useProduct } from '../Context/ProductContext';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { Breadcrum } from '../Components/Breadcrums/Breadcrum';
 import { ProductDisplay } from '../Components/ProductDIsplay/ProductDisplay';
 import { DescriptionBox } from '../Components/DescriptionBox/DescriptionBox';
