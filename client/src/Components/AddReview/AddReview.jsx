@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { useUser } from '../../Context/UserContext';
+
 import './AddReview.css';
 import upload_area from '../Assets/img/icon/upload_area.svg';
 import apiUrl from '@config';
@@ -6,11 +8,14 @@ import apiUrl from '@config';
 
 export const AddReview = (props) => {
     const { product, onAddReview } = props; //Store the current product object into product
+    const { currentUser } = useUser();
     const [image, setImage] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const [error, setError] = useState('');
     const [reviewDetails, setReviewDetails] = useState({
-        name: "",
+        userId: "",
+        productId: product.id,
+        title: "",
         rating: 0,
         comment: "",
         image: "",
@@ -32,7 +37,7 @@ export const AddReview = (props) => {
     }
 
     const showAddReview = () => {
-        if(localStorage.getItem("isGuest") === "true") {
+        if(!currentUser) {
             setShowForm(false);
             setError("You need to logged in to create a new review.");
             return;
@@ -44,9 +49,10 @@ export const AddReview = (props) => {
         }
     }
 
+
     const cancelForm = () => {
         setReviewDetails({
-            name: "",
+            title: "",
             rating: 0,
             comment: "",
             image: "",
@@ -61,50 +67,30 @@ export const AddReview = (props) => {
         }));
     }, []);
 
-    const Add_Review = async () => {
+    const handleSubmit = async () => {
         try {
-            if(localStorage.getItem("isGuest") === "true") {
-                setError("You need to be logged in to submit a review.");
-                return;
+            const newReview = {
+                userId: currentUser._id, //Include the current user's ID
+                productId: product._id,
+                title: reviewDetails.title,
+                rating: reviewDetails.rating,
+                comment: reviewDetails.comment,
+                image: '',
             }
 
-            let responseData;
-            let review = reviewDetails;
-
-            let formData = new FormData();
-
-            if(image) {
-                formData.append('product', image); //Append image separtely if it's provided.
-
-                await fetch(`${apiUrl}/upload`, {
-                    method:'POST',
-                    headers: {
-                        Accept: 'application/json',
-                    },
-                    body: formData,
-                }).then((resp) => resp.json()).then((data) => {responseData = data});
-
-                if(responseData.success) {
-                    review.image = responseData.image_url;
-                    console.log("Image success.");
-                }
-                else {
-                    console.log("responseData was not successful.");
-                }
-            }
+            
 
             //Use the onAddReview callback to post the review to the backend and update context state.
-            if(onAddReview) {
-                onAddReview(review);
-                setReviewDetails({
-                    name: "",
-                    rating: 0,
-                    comment: "",
-                    image: "",
-                });
-                setImage(false);
-                setError(""); //Clear error if submission succeeds.
-            }
+            onAddReview(newReview);
+
+            setReviewDetails({
+                title: "",
+                rating: 0,
+                comment: "",
+                image: "",
+            });
+            setImage(false);
+            setError(""); //Clear error if submission succeeds.
         }
         catch(error) {
             console.error('An error occurred while adding review: ', error);
@@ -126,7 +112,7 @@ export const AddReview = (props) => {
                     {error && <p className="addreview-error">{error}</p>}
                     <div className="addreview-itemfield">
                         <p>Title</p>
-                        <input value={reviewDetails.name} onChange={changeHandler} type="text" name="name" placeholder="Review Title" />
+                        <input value={reviewDetails.title} onChange={changeHandler} type="text" name="title" placeholder="Review Title" />
                     </div>
 
                     <div className="addreview-itemfield">
@@ -146,14 +132,7 @@ export const AddReview = (props) => {
                         <input value={reviewDetails.comment} onChange={changeHandler} type="text" name="comment" placeholder="Enter a Comment" />
                     </div>
 
-                    <div className="addreview-itemfield">
-                        <label htmlFor="file-input">
-                            <img src={image?URL.createObjectURL(image):upload_area} className="addreview-itemfield-thumbnail-img" alt="" />
-                        </label>
-                        <input onChange={imageHandler} type="file" name="product" id="file-input" hidden/>
-                    </div>
-
-                    <button onClick={() => (Add_Review(product.id))} className="addreview-btn">Submit Review</button>
+                    <button onClick={() => (handleSubmit(product.id))} className="addreview-btn">Submit Review</button>
                     <button onClick={() => cancelForm()} className="addreview-btn cancel-btn">Cancel</button>
                 </>
             )

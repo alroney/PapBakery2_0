@@ -35,13 +35,13 @@ const jwt = require('jsonwebtoken');
 const authenticateUser = async (req,res,next) => {
     const token = req.header('auth-token'); //Extract JWT token value from the key 'auth-token' located in the 'headers' key's object value in the fetch functions object parameter -> fetch(('api_endpoint_url'), {}).
     
-    if(token.toString() === "null") {
-        console.log("Token was not token...");
+    //If no token is provided, set req.user to null and proceed
+    if(!token || token === 'null') { //If token is not token'ing.
+        req.user = null;
         return next();
     }
-    try {
 
-        
+    try {    
         /** Explanation of JWT verification process.
          * Verify JWT token and extract user data.
          * 
@@ -64,12 +64,15 @@ const authenticateUser = async (req,res,next) => {
          * - If the middleware successfully authenticates the user, the request proceeds to the next handler (e.g. a route that handles a request to add a product to a cart).
          */
         const verified = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = verified.user;
+        console.log("(authenticateUser) Verified token: ", verified);
+
+        req.user = verified.user; //Set the user information from the token.
         next();
     }
     catch (error) {
-        console.log("....In catch of authenticateUser....")
-        res.status(401).send({errors: "Invalid token."});
+        console.log("(authMiddleware) Invalid token.");
+        req.user = null; //Ensure req.user is null if verification fails.
+        next();
     }
 };
 

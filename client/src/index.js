@@ -5,7 +5,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import ShopContextProvider from './Context/ShopContext';
 import { ProductProvider } from './Context/ProductContext';
-import apiUrl from '@config'
+import { UserProvider } from './Context/UserContext';
 import { CartProvider } from './Context/CartContext';
 
 
@@ -13,13 +13,15 @@ import { CartProvider } from './Context/CartContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-    <ProductProvider>
-      <ShopContextProvider>
-        <CartProvider>
-          <App/>
-        </CartProvider>
-      </ShopContextProvider>
-    </ProductProvider>
+    <UserProvider>
+      <ProductProvider>
+        <ShopContextProvider>
+          <CartProvider>
+            <App/>
+          </CartProvider>
+        </ShopContextProvider>
+      </ProductProvider>
+    </UserProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function

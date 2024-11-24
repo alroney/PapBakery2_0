@@ -7,11 +7,13 @@ import logout_icon from '../Assets/img/icon/logout-icon.svg'
 import nav_dropdown from '../Assets/img/icon/nav_dropdown.png';
 import { NavLink } from 'react-router-dom';
 import { CartContext } from '../../Context/CartContext';
+import { useUser } from '../../Context/UserContext';
 
 export const Navbar = () => {
 
     const [menu, setMenu] = useState("home"); //Initialize the menu selection
     const {getTotalCartItems} = useContext(CartContext);
+    const { currentUser, setCurrentUser } = useUser();
     const navRef = useRef();
 
     const toggleScroll = (disable) => {
@@ -21,6 +23,14 @@ export const Navbar = () => {
         else {
             document.body.classList.remove('no-scroll');
         }
+    }
+
+    //Function: Complete a process for logging out.
+    const handleLogout = () => {
+        localStorage.removeItem('auth-token'); //Clear the token.
+        setCurrentUser(null); //Clear the user context.
+        window.location.replace('/'); //Return to home page.
+        setMenu("home"); //Set menu to home to prepare the <hr>.
     }
 
     const dropdown_toggle = (e) => {
@@ -57,7 +67,7 @@ export const Navbar = () => {
         <div className="nav-right-side">
             <div  id="nav_login">
                     {localStorage.getItem('auth-token')
-                        ? <button onClick={() => {localStorage.removeItem('auth-token'); window.location.replace('/'); setMenu("")}}><span className='logText'>Logout</span><img className='logImg' src={logout_icon} alt=""></img></button> //If true, remove the auth-token and send user to home page.
+                        ? <button onClick={() => handleLogout()}><span className='logText'>Logout</span><img className='logImg' src={logout_icon} alt=""></img></button> //If true, remove the auth-token and send user to home page.
                         : <NavLink to='/login'><button onClick={() => {setMenu("")}}><span className='logText'>Login</span><img className='logImg' src={login_icon} alt=""></img></button></NavLink> //If false, display the login button.
                     }
                 </div>

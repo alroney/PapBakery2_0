@@ -4,12 +4,12 @@ const reviewSchema = new Mongoose.Schema(
     {
         productId: {
             type: Mongoose.Schema.Types.ObjectId,
-            ref: 'Product', //Link to the Product.
+            ref: 'Products', //Link to the Product.
             required: true
         }, 
         userId: {
             type: Mongoose.Schema.Types.ObjectId,
-            ref: 'User', //Link to the User
+            ref: 'Users', //Link to the User
             required: true,
         },
         title: {

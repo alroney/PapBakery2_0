@@ -10,58 +10,54 @@ import { LoginSignup } from './Pages/LoginSignup';
 import { Footer } from './Components/Footer/Footer';
 import Popular from './Components/Popular/Popular';
 import { useEffect, useState } from 'react';
-
-
-// function App() {
-//   console.log("App component rendered");
-//   return <ChildComponent />;
-// }
-
-// function ChildComponent() {
-//   console.log("Child rendered");
-//   const [someState, setSomeState] = useState(false);
-
-//   const handleClick = () => {
-//     setSomeState(!someState); //Only ChildComponent re-renders.
-//   };
-
-//   return (
-//     <div>
-//       <p>State: {someState.toString()}</p>
-//       <button onClick={handleClick}>Toggle State</button>
-//     </div>
-//   );
-// }
-
-
-
-
+import { useUser } from './Context/UserContext';
+import apiUrl from '@config';
 
 function App() {
-  const setBrowseMode = () => {
-    if(localStorage.getItem("auth-token")) {
-      localStorage.setItem("isGuest", false);
-      localStorage.setItem("guestEmail", "");
-      return "userMode";
-    }
-    else {
-      localStorage.setItem("isGuest", true);
-      return "guestMode";
-    }
-  }
+  const { currentUser, setCurrentUser } = useUser();
+
+  useEffect(() => {
+    console.log("(app) currentUser: ", currentUser);
+    const fetchCurrentUser = async () => {
+      const token = localStorage.getItem('auth-token');
+      if(token && !currentUser) {
+        console.log("(app) Found token but no currentUser.")
+        const response = await fetch(`${apiUrl}/users/me`, {
+          headers: {
+            'auth-token': token,
+          },
+        });
+
+        const data = await response.json();
+
+        if(data.success) {
+          setCurrentUser(data.user); //Restore user.
+          console.log("(app) CurrentUser: ", currentUser);
+        }
+        else {
+          console.log("Failed to fetch user.");
+        }
+      }
+    };
+
+    fetchCurrentUser();
+  }, [currentUser, setCurrentUser])
 
 
   return (
     <div>
+      <header>
+        {currentUser ? (
+          <p>Welcome, {currentUser.name}</p>
+        ) : (
+          <p>Browsing as Guest</p>
+        )
+      
+      }
+      <p>ALPHA Testing</p>
+      </header>
       <BrowserRouter>
-        <div>
-          <p>ALPHA Version (Testing)</p>
-        </div>
         <Navbar/>
-        { setBrowseMode() === "guestMode"
-          ? <p>Guest Mode</p>
-          : <></>
-        }
         <Routes>
           <Route path='/' element={<Home/>}/>
           <Route path='/biscuits' element={<ShopCategory category="biscuits"/>}/>

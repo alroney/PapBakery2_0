@@ -2,9 +2,11 @@ import React from 'react';
 import './CSS/LoginSignup.css';
 import { useState } from 'react';
 import apiUrl from '@config';
+import { useUser } from '../Context/UserContext';
 
 export const LoginSignup = () => {
 
+  const { currentUser, setCurrentUser } = useUser();
   const [state, setState] = useState("Login");
   const [formData, setFormData] = useState({
     username: "",
@@ -43,44 +45,48 @@ export const LoginSignup = () => {
  */
 
   const login = async () => {
-    console.log("login funtion executed: ", formData); //Debugging to indicate proper functionality.
-    let responseData;
-    await fetch(`${userAPIUrl}/login`, {
+    const response = await fetch(`${userAPIUrl}/login`, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(formData),
-    }).then((response) => response.json()).then((data) => responseData = data)
+    });
 
-    if(responseData.success) {
-      localStorage.setItem('auth-token', responseData.token); //Save auth token.
+    const data = await response.json();
+    console.log("(login) data.user: ", data.user);
+    if(data.success) {
+      localStorage.setItem('auth-token', data.token); //Store the token.
+      setCurrentUser(data.user)
       window.location.replace("/"); //Send the user to home page.
     }
     else {
-      alert(responseData.errors); //Display error message.
+      alert("Login failed");
     }
   }
 
   const signup = async () => {
     console.log("signup function executed: ", formData);
-    let responseData;
-    await fetch(`${userAPIUrl}/signup`, {
+    const response = await fetch(`${userAPIUrl}/signup`, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(formData),
-    }).then((response) => response.json()).then((data) => responseData = data)
+    });
 
-    if(responseData.success) {
-      localStorage.setItem('auth-token', responseData.token); //Save auth token.
+    const data = await response.json();
+    console.log("(login) data: ", data);
+
+    if(data.success) {
+      localStorage.setItem('auth-token', data.token);
+      setCurrentUser(data.user);
       window.location.replace("/"); //Send the user to home page.
     }
     else {
-      alert(responseData.errors)
+      alert("Signup failed");
     }
   }
 

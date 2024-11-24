@@ -67,35 +67,60 @@ const signup = async (req,res) => {
 //API Endpoint for user login.
 const login = async (req,res) => {
     try {
+        const { email, password } = req.body
         //Find user by email.
-        let user = await Users.findOne({email: req.body.email});
-        if(user) {
-            //Compare provided password with stored password.
-            const passCompare = await bcrypt.compare(req.body.password, user.password);//Use bcrypt.compare to compare the hashing. Instead of direct comparison.
-            if(passCompare) {
-                //Generate JWT token if password matches.
-                const data = {
-                    user: {
-                        id: user.id,
-                    },
-                };
-                const token = jwt.sign(data, process.env.JWT_SECRET);
-                user.populate('cartId');
-                res.json({success: true, token});
-            }
+        let user = await Users.findOne({email: email});
 
-            else {
-                res.json({success: false, errors: "Password Incorrect!"});
-            }
+        if(!user || !(await bcrypt.compare(password, user.password))) { //Use bcrypt.compare to compare the hashing. Instead of direct comparison.
+            return res.status(401).json({ success: false, message: 'Invalid email or password'})
         }
+            
+        //Create a JWT token
+        const token = jwt.sign({user: { id: user._id } }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-        else {
-            res.json({success: false, errors: "Email does not exist!"});
-        }
+        user.populate('cartId');
+        res.status(200).json({
+            success: true,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+            },
+            token,
+        })
     }
     catch(error) {
         console.log("User login error occurred: ", error);
     }
 };
 
-module.exports = {signup, login};
+
+const me = async (req, res) => {
+    try {
+
+        console.log("(me) req.user: ", req.user);
+        if(!req.user) {
+            //User is a guest.
+            return res.status(200).json({
+                success: true,
+                user: null,
+                message: 'Guest browsing mode',
+            });
+        }
+
+        //Fetch user details for logged-in users.
+        const user = await Users.findById(req.user.id).select('-password'); //Exclude sensitive information like password.
+
+        if(!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        res.status(200).json({ success: true, user });
+    }
+    catch(error) {
+        console.log("(me) Error fetching current user: ", error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+}
+
+module.exports = {signup, login, me};

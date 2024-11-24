@@ -12,6 +12,7 @@ import apiUrl from '@config';
 const initialState = {
     products: [],
     loading: true, //Add loading state to track the fetch status.
+    currentUser: null,
 };
 
 //Action types.
