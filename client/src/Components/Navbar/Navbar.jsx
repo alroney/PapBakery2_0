@@ -10,6 +10,7 @@ import { CartContext } from '../../Context/CartContext';
 import { useUser } from '../../Context/UserContext';
 
 export const Navbar = () => {
+    console.log("(Navbar.jsx) Component Loaded.");
 
     const [menu, setMenu] = useState("home"); //Initialize the menu selection
     const {getTotalCartItems} = useContext(CartContext);

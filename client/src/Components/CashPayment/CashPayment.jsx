@@ -4,6 +4,8 @@ import { CartContext } from '../../Context/CartContext';
 import { Modal } from '../Modal/Modal';
 
 export const CashPayment = ({guestData}) => {
+    console.log("(CashPayment.jsx) Component Loaded.");
+
     const {cart, handleClearCart} = useContext(CartContext);
     const [orderCompleted, setOrderCompleted] = useState(false);
     const [showModal, setShowModal] = useState(false);

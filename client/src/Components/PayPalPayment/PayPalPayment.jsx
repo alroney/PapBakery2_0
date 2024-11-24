@@ -8,8 +8,7 @@ function Message({content}) {
 }
 
 export const PayPalPayment = ({ guestData }) => {
-    
-    console.log("(PayPalPayment) Component Loaded.");
+    console.log("(PayPalPayment.jsx) Component Loaded.");
 
     const paypal_sdk_url = "https://www.paypal.com/sdk/js";
     const client_id = process.env.REACT_APP_PAYPAL_CLIENT_ID;

@@ -6,6 +6,8 @@ const productAPIUrl = `${apiBase}/products`;
 const imageAPIUrl = `${apiBase}/images`;
 
 const AddProduct = () => {
+    console.log("(AddProduct.jsx) Component Loaded.");
+
     //const [variableName, setterFunction] = useState(initialState);
     const [image, setImage] = useState(false);
     const [productDetails, setProductDetails] = useState({

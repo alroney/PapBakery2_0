@@ -4,6 +4,7 @@ import Item from '../Item/Item';
 import apiUrl from '@config';
 
 export const NewItems = memo(() => {
+    console.log("(NewItems.jsx) Component Loaded.");
 
     const [newProducts, setNewProducts] = useState([]);
 

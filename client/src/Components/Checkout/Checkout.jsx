@@ -8,6 +8,8 @@ import { fetchFees } from '../../services/cartService';
 import { CashPayment } from '../CashPayment/CashPayment';
 
 export const Checkout = () => {
+    console.log("(Checkout.jsx) Component Loaded.");
+
     const {all_product, loading} = useContext(ShopContext);
     const {cart, getTotalCartItems, calculateSubtotal} = useContext(CartContext);
     const authToken = localStorage.getItem('auth-token');

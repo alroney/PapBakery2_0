@@ -1,14 +1,13 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext } from 'react';
 import './CartItems.css';
-import { ShopContext } from '../../Context/ShopContext';
-import { PayPalPayment } from '../PayPalPayment/PayPalPayment';
 import remove_icon from '../Assets/img/icon/cart_cross_icon.png';
-import apiUrl from '@config';
 import { CartContext } from '../../Context/CartContext';
 
 
 export const CartItems = () => {
-    const { cart, handleAddToCart, handleUpdateCartItem, handleClearCart } = useContext(CartContext);
+    console.log("(CartItems.jsx) Component Loaded.");
+
+    const { cart, handleUpdateCartItem, handleClearCart } = useContext(CartContext);
 
     return (
         <div className='cartitems'>

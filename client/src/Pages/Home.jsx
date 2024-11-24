@@ -5,6 +5,8 @@ import { Newsletter } from '../Components/Newsletter/Newsletter'
 import { NewItems } from '../Components/NewItems/NewItems'
 
 export const Home = () => {
+  console.log("==(Home.jsx) Page Loaded.==");
+
   return (
     <div>
       <Hero/>

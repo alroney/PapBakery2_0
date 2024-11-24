@@ -9,6 +9,8 @@ import { Reviews } from '../Components/Reviews/Reviews';
 import { useUser } from '../Context/UserContext'
 
 export const Product = () => {
+  console.log("==(Product.jsx) Component Loaded.==");
+
   const { state, dispatch } = useProduct();
   const { currentUser } = useUser();
   const { productId } = useParams();

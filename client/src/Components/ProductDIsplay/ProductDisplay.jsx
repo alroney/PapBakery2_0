@@ -5,7 +5,8 @@ import star_dull_icon from '../Assets/img/icon/star_dull_icon.png'
 import { CartContext } from '../../Context/CartContext'
 
 export const ProductDisplay = (props) => {
-    console.log("ProductDisplay Component Loaded.");
+    console.log("(ProductDisplay.jsx) Component Loaded.");
+
     const {product} = props;
     const {name, image, description, rating, reviews, price} = product;
     const {handleAddToCart} = useContext(CartContext);

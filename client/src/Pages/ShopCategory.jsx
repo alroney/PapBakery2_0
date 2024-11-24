@@ -5,6 +5,8 @@ import dropdown_icon from '../Components/Assets/img/icon/dropdown_icon.png'
 import Item from '../Components/Item/Item'
 
 export const ShopCategory = (props) => {
+  console.log("==(ShopCategory) Page Loaded.==");
+
   const{all_product} = useContext(ShopContext);
   
   return (

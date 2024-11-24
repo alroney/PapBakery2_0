@@ -60,8 +60,11 @@ const ProductContext = createContext();
 
 //Provider component
 export const ProductProvider = ({ children }) => {
+    console.log("(ProductContex.jsx) -> (ProductProvider) Component Loaded.");
+
     const [state, dispatch] = useReducer(productReducer, initialState);
-    console.log("(ProductContext.jsx) State: ", state)
+
+
     useEffect(() => {
         //Fetch all products from the backend API when the provider is mounted
         const fetchProducts = async () => {
@@ -89,7 +92,11 @@ export const ProductProvider = ({ children }) => {
 
 //Custom hook to use product context
 export const useProduct = () => {
+    console.log("(ProductContext.jsx) -> (useProduct) Hook Activated.");
+
     const context = useContext(ProductContext);
+
+
     if(context === undefined) {
         throw new Error('useProduct must be used within a ProductProvider');
     }

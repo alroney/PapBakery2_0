@@ -4,6 +4,8 @@ import { getCart, addToCart, updateCartItem, clearCart } from '../services/cartS
 export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
+    console.log("(CartContext.jsx) -> (CartProvider) Component Loaded.");
+
     const [cart, setCart] = useState([]);
 
     // Fetch the cart from the backend when the component mounts

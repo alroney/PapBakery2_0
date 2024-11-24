@@ -14,14 +14,14 @@ import { useUser } from './Context/UserContext';
 import apiUrl from '@config';
 
 function App() {
+  console.log("========(App.js) Loaded.========");
+
   const { currentUser, setCurrentUser } = useUser();
 
   useEffect(() => {
-    console.log("(app) currentUser: ", currentUser);
     const fetchCurrentUser = async () => {
       const token = localStorage.getItem('auth-token');
       if(token && !currentUser) {
-        console.log("(app) Found token but no currentUser.")
         const response = await fetch(`${apiUrl}/users/me`, {
           headers: {
             'auth-token': token,
@@ -32,7 +32,6 @@ function App() {
 
         if(data.success) {
           setCurrentUser(data.user); //Restore user.
-          console.log("(app) CurrentUser: ", currentUser);
         }
         else {
           console.log("Failed to fetch user.");

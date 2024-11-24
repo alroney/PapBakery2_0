@@ -11,6 +11,8 @@ export const ShopContext = createContext(null);
  * This component provides the shop context, managing products and cart items.
  */
 const ShopContextProvider = (props) => {
+    console.log("(ShopContext.jsx) -> (ShopContextProvider) Component Loaded.");
+
     //State to store all products fetched from the server. Default set to empty array.
     const [all_product, setAll_Product] = useState([]);
     const [loading, setLoading] = useState(true);

@@ -2,6 +2,8 @@ import React from 'react'
 import './Newsletter.css'
 
 export const Newsletter = () => {
+  console.log("(Newsletter) Component Loaded.");
+
   return (
     <div className="newsletter">
         <h1>Get Exclusive Offers On Your Email</h1>

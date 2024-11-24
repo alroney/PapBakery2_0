@@ -4,6 +4,8 @@ import Item from '../Item/Item';
 import apiUrl from '@config';
 
 export const Popular = memo(() => {
+  console.log("(Popular.jsx) Component Loaded.");
+
 
   const [topProducts, setTopProducts] = useState([]);
 

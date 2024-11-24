@@ -4,6 +4,8 @@ import apiUrl from '@config'
 import { useUser } from '../../Context/UserContext';
 
 export const Reviews = ({ productId }) => {
+    console.log("(Reviews.jsx) Component Loaded.");
+
     const {currentUser} = useUser();
     const [reviews, setReviews] = useState([]);
     const [showForm, setShowForm] = useState(false);

@@ -5,6 +5,7 @@ import apiUrl from '@config';
 import { useUser } from '../Context/UserContext';
 
 export const LoginSignup = () => {
+  console.log("==(LoginSignup.jsx) Page Loaded.==");
 
   const { currentUser, setCurrentUser } = useUser();
   const [error, setError] = useState('');
