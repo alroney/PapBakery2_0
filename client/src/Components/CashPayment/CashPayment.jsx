@@ -38,9 +38,12 @@ export const CashPayment = ({guestData}) => {
                     },
                     body: JSON.stringify(requestBody),
                 });
-        
-                if (!response.status === 200) {
-                    throw new Error("Failed to confirm cash order.");
+                const data = await response.json();
+
+                if (!data.success) {
+                    setShowModal(false);
+                    setOrderCompleted(false);
+                    alert('Order failed to process.');
                 }
                 else {
                     setShowModal(true);

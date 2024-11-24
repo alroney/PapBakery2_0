@@ -110,7 +110,7 @@ const confirm_cash_order = async (req, res) => {
         }
         else {
             console.log("(confirm_cash_order) Processed return false.");
-            res.status(500).json({ success: false, message: "Internal server error: Order failed to proccess."});
+            res.json({ success: false, message: "Internal server error: Order failed to proccess."});
         }
 
         

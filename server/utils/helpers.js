@@ -21,7 +21,7 @@ const rateLimiter = rateLimit({
 //Helper function to fetch cart data based on user or guest.
 const getCartData = async (req) =>  {
     console.log("Getting cart data......");
-
+    console.log("(getCartData) req.user: ", req.user);
     if(req.user) {
         console.log("User found! Using user cart.");
         console.log("req.user: ", req.user);
@@ -30,7 +30,7 @@ const getCartData = async (req) =>  {
         //userData.cartData is already in proper JSON format. Therefore no parsing is required.
         return { cartData: req.body.cart, email: userData.email };
     }
-    else if(req.user === undefined && req.body.isGuest) {
+    else if(!req.user && req.body.isGuest) {
         console.log("No user found. Searching for guest email...");
         console.log("req.body: ", req.body);
         if(!req.body.guestEmail) throw new Error("Guest email is required for guest checkout");
