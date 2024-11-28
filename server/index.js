@@ -31,7 +31,10 @@ app.use(express.json()); //Automatically parse incoming requests as JSON.
 app.use(express.urlencoded({
     extended: true
 })); 
-app.use(cors()); //Allow React app to connect to the Express app.
+
+app.use(cors({
+    
+})); //Allow React app to connect to the Express app.
 
 //Set Cross-Origin-Resource-Policy to cross-origin during development and same-site during production.
 app.use((req,res,next) => {
@@ -52,7 +55,7 @@ mongoose.connect(uri)
 
 
 //Start the server and listen on the specified port.
-app.listen(port, (error) => {
+app.listen(port, '0.0.0.0', (error) => {
     if(!error) {
         console.log("Server Running on Port: "+ port);
     }
