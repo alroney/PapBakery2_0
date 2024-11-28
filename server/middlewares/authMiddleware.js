@@ -1,5 +1,6 @@
 
 const jwt = require('jsonwebtoken');
+require('dotenv').config({ path: __dirname + '/.env' }); //Allows access to environment variables.
 
 /** Explanation of Middleware Usage.
  * HOW THE MIDDLEWARE IS USED (authenticateUser)

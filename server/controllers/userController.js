@@ -2,6 +2,7 @@
 const jwt = require('jsonwebtoken'); //Used to generate and verify tokens.
 const bcrypt = require('bcryptjs');
 const Users = require('../models/userSchema');
+require('dotenv').config({ path: __dirname + '/.env' }); //Allows access to environment variables.
 
 
 //API endpoint for user registration.

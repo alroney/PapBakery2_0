@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Products = require('../models/productSchema'); // Adjust the path as necessary
 const Reviews = require('../models/reviewSchema'); // Adjust the path as necessary
-require('dotenv').config();
+require('dotenv').config({ path: __dirname + '/.env' }); //Allows access to environment variables.
 const url = process.env.MONGO_URI;
 
 const migrateReviews = async () => {

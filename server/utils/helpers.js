@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const rateLimit = require('express-rate-limit');
+require('dotenv').config({ path: __dirname + '/.env' }); //Allows access to environment variables.
 const environment = process.env.ENVIRONMENT;
 const pp_client_id = process.env.PAYPAL_CLIENT_ID;
 const pp_client_secret = process.env.PAYPAL_CLIENT_SECRET;

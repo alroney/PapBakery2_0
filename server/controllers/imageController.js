@@ -1,5 +1,6 @@
 const multer = require('multer');
 const path = require('path');
+require('dotenv').config({ path: __dirname + '/.env' }); //Allows access to environment variables.
 const serverUrl = process.env.SERVER_URL;
 
 //Maximum file size (in bytes)

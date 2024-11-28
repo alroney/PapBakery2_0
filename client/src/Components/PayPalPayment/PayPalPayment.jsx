@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { CartContext } from '../../Context/CartContext';
 import DOMPurify from 'dompurify';
+import './PayPalPayment.css';
 import apiUrl from '@config';
 
 function Message({content}) {

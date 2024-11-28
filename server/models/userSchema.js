@@ -1,6 +1,7 @@
 const Mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const Cart = require('../models/cartSchema');
+require('dotenv').config({ path: __dirname + '/.env' }); //Allows access to environment variables.
 const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS, 10); //Convert incoming .env value into an integer.
 
 //Define User schema and create Mongoose model.

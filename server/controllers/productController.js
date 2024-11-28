@@ -2,6 +2,7 @@ const Products = require('../models/productSchema'); //Get & import the Products
 const Users = require('../models/userSchema');
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config({ path: __dirname + '/.env' }); //Allows access to environment variables.
 const serverUrl = process.env.SERVER_URL;
 
 
