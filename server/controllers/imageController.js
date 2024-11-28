@@ -47,7 +47,7 @@ const uploadImage = (req,res) => {
         //Respond with success and img url.
         res.json({
             success:1,
-            image_url:`${serverUrl}/images/${req.file.filename}`
+            image_url: req.file.filename,
         })
     }
     catch(error) {
