@@ -4,7 +4,7 @@ import cross_icon from '../../assets/img/icon/cross_icon.png';
 import edit_icon from '../../assets/img/icon/edit_icon.svg';
 import save_icon from '../../assets/img/icon/confirm_icon.svg';
 import cancel_icon from '../../assets/img/icon/cancel_icon.svg';
-const productAPIUrl = "http://localhost:4000/api/products";
+const apiBase = process.env.REACT_APP_API_BASE;
 
 const ListProduct = () => {
 
@@ -26,7 +26,7 @@ const ListProduct = () => {
 
     //Remove product from database and allproducts list.
     const remove_product = async (id) => {
-        await fetch(`${productAPIUrl}/remove`, {
+        await fetch(`${apiBase}/product/remove`, {
             method: 'POST',
             headers: {
                 Accept: 'application/json',

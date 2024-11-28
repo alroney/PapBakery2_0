@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import './AddProduct.css';
 import upload_area from '../../assets/img/icon/upload_area.svg';
-const apiBase = "http://localhost:4000/api"
-const productAPIUrl = `${apiBase}/products`;
-const imageAPIUrl = `${apiBase}/images`;
+const apiBase = process.env.REACT_APP_API_BASE;
 
 const AddProduct = () => {
     console.log("(AddProduct.jsx) Component Loaded.");
@@ -47,7 +45,7 @@ const AddProduct = () => {
         formData.append('product', image); //Add the image to the new empty FormData object.
 
         //Send the formData to the API. fetch('backendURL/uploadEndpoint')
-        await fetch(`${imageAPIUrl}/upload`, {
+        await fetch(`${apiBase}/image/upload`, {
             method:'POST',
             headers: {
                 Accept: 'application/json',
@@ -58,7 +56,7 @@ const AddProduct = () => {
             product.image = responseData.image_url; //Set product image to image url given by the backend.
 
             //Send product to addproduct API Endpoint.
-            await fetch(`${productAPIUrl}/add`, {
+            await fetch(`${apiBase}/product/add`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
