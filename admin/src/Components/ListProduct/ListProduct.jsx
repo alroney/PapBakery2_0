@@ -90,7 +90,7 @@ const ListProduct = () => {
                 return (
                     <div>
                         {isEditing ? (
-                            <div key={index} className="listproduct-format-main listproduct-format">
+                            <div key={product._id} className="listproduct-format-main listproduct-format">
                                 <img src={product.image} alt="" className="listproduct-product-icon" />
                                 <input value={editedProduct.name} onChange={handleEditChange} type="text" name="name" />
                                 <input value={editedProduct.description} onChange={handleEditChange} type="text" name="description" />
@@ -100,7 +100,7 @@ const ListProduct = () => {
                                 <img onClick={cancelEdit} src={cancel_icon} alt="Cancel" className="listproduct-cancel-icon"/>
                             </div>
                         ) : (
-                            <div key={index} className="listproduct-format-main listproduct-format">
+                            <div key={product.id} className="listproduct-format-main listproduct-format">
                                 <img src={product.image} alt="" className="listproduct-product-icon" />
                                 <p>{product.name}</p>
                                 <p>{product.description}</p>
