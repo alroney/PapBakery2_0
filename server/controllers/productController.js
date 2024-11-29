@@ -143,7 +143,7 @@ const removeProduct = async (req,res) => {
         }
 
         //Construct the image URL for use in the response or front-end rendering.
-        const imageName = path.basename(product.image); //Extract image name only.
+        const imageName = product.image; //Extract image name only.
         const imageURL = `${serverUrl}/images/${imageName}`; //URL that clients can access.
 
         
