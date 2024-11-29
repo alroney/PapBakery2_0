@@ -9,7 +9,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; //5MB
 
 //Image Storage Engine configuration
 const storage = multer.diskStorage({
-    destination: path.join(__dirname, '../upload/images'), //Directory to save uploaded images.
+    destination: path.join(__dirname, '../../upload/images'), //Directory to save uploaded images.
     filename: (req, file, cb) => {
         //Generate unique filename with original extension.
         cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`); //`cb` is a callback function that is provided by the Multer library (used for handling file uploads in Node.js).
@@ -47,7 +47,7 @@ const uploadImage = (req,res) => {
         //Respond with success and img url.
         res.json({
             success:1,
-            image_url: req.file.filename,
+            image_url: `${req.file.filename}`,
         })
     }
     catch(error) {

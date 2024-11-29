@@ -82,7 +82,7 @@ app.use(bodyParser.json());
     });
 
     //Middleware to serve static images from the 'upload/images' folder.
-    app.use('/images', express.static(path.join(__dirname, 'upload/images')));
+    app.use('/images', express.static(path.join(__dirname, '../upload/images')));
 
     
 

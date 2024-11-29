@@ -5,12 +5,14 @@ const path = require('path');
 require('dotenv').config({ path: __dirname + '/.env' }); //Allows access to environment variables.
 const serverUrl = process.env.SERVER_URL;
 
-
+const baseImagePath = `${serverUrl}/images`; //Base path for images.
 
 
 //Function: Find and return all products in the MongoDB
 const fetchAllProducts = async () => {
     try {
+
+        //Aggregate the products with reviews and users.
         const productsWithReviews = await Products.aggregate([
             {
                 $lookup: {
@@ -55,7 +57,13 @@ const fetchAllProducts = async () => {
             },
         ]);
 
-        return productsWithReviews;
+        //Construct the image URL for use in the response or front-end rendering.
+        const productsWithImages = productsWithReviews.map((product) => ({
+            ...product, //Spread the product details.
+            image: `${baseImagePath}/${product.image}`, //Add the base path to the image name.
+        }));
+
+        return productsWithImages;
     } catch (error) {
         console.error("Error while fetching products: ", error);
         throw error;
@@ -66,11 +74,7 @@ const fetchAllProducts = async () => {
 
 //API endpoint to add a new product.
 const addProduct = async (req,res) => {
-    let products = await fetchAllProducts();
     try {
-        //Generate a new product ID. If there are exisiting products, it takes the last product's ID and increments it by 1. If no products exist, it starts with an ID of 1.
-        // let id = products.length > 0 ? products.slice(-1)[0].id + 1 : 1; //slice() method is used to return a shallow copy of a portion of an array. So, slice(-1) is used with a negative index, which means "get the last element of the array". This returns an array containing only the last product in the products array.
-
         //Create a new product with the provided values.
         const product = new Products({
             name: req.body.name,
@@ -144,25 +148,35 @@ const removeProduct = async (req,res) => {
 
         //Construct the image URL for use in the response or front-end rendering.
         const imageName = product.image; //Extract image name only.
-        const imageURL = `${serverUrl}/images/${imageName}`; //URL that clients can access.
+        const imageURL = path.join(__dirname, `../../upload/images/${imageName}`); //Construct the full image path.
 
         
 
         //Delete the image file
-        fs.unlink(imageURL, async (error) => {
-            if(error) {
-                console.error("Error while deleting the image file: ", error);
-            }
-            else {
-                console.log("Image file deleted successfull.");
-                //Delete the product from the database.
-                await Products.findOneAndDelete({ id: req.body._id });
-                res.json({
-                    success: true,
-                    name: req.body.name,
-                });
-            }
-        });
+        try {
+            fs.unlink(imageURL, async (error) => {
+                if(error) {
+                    console.error("Error while deleting the image file: ", error);
+                }
+                else {
+                    console.log("Image file deleted successfull.");
+                    //Delete the product from the database.
+                    await Products.findOneAndDelete({ id: req.body._id });
+                    res.json({
+                        success: true,
+                        name: req.body.name,
+                    });
+                }
+            });
+        }
+        catch(error) {
+            console.error("Error while deleting the image file: ", error);
+            res.status(500).json({
+                success: false,
+                message: "Error while deleting the image file.",
+            });
+        }
+        
     }
     catch(error) {
         console.log("Error while removing product: ", error);
