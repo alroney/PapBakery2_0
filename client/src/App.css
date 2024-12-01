@@ -37,6 +37,10 @@
   }
 }
 
+.disclaimer h2{
+  color: #d00
+}
+
 .disclaimer p{
   font-size: 0.8rem;
   color: #444;

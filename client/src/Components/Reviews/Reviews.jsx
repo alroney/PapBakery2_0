@@ -51,7 +51,7 @@ export const Reviews = ({ productId }) => {
 
 
 
-    const handleSubmit = async (e) => {
+    const handleAddReview = async (e) => {
         e.preventDefault();
         try {
             const token = localStorage.getItem('auth-token');
@@ -65,7 +65,7 @@ export const Reviews = ({ productId }) => {
             });
 
             const data = response.json();
-            setReviews(data.reviews);
+            setReviews((prevReviews) => [...prevReviews, data.reviews]);
             setNewReview({ title: '', comment: '', rating: 0 });
             setShowForm(false);
             fetchReviews();
@@ -87,6 +87,26 @@ export const Reviews = ({ productId }) => {
     }
 
 
+    //Pagination variables.
+    const [currentPage, setCurrentPage] = useState(1);
+    const [reviewsPerPage, setReviewsPerPage] = useState(5);
+    const indexOfLastReview = currentPage * reviewsPerPage;
+    const indexOfFirstReview = indexOfLastReview - reviewsPerPage;
+    const currentReviews = reviews.slice(indexOfFirstReview, indexOfLastReview);
+    const totalPages = Math.ceil(reviews.length / reviewsPerPage);
+
+    const handleNextPage = () => {
+        if(currentPage < totalPages) {
+            setCurrentPage(currentPage + 1);
+        }
+    }
+
+    const handlePrevPage = () => {
+        if(currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+        }
+    }
+
   return (
     <div className='review-section'>
         <div className='addreview'>
@@ -99,10 +119,10 @@ export const Reviews = ({ productId }) => {
                 ) : (
                     <>
                         {error && <p className='addReview-error'>{error}</p>}
-                        <form onSubmit={handleSubmit}>
+                        <form onSubmit={handleAddReview}>
                             <div className="addreview-itemfield">
                                 <p>Title</p>
-                                <input type='text' placeholder='Title' value={newReview.title} onChange={(e) => setNewReview({ ...newReview, title: e.target.value })} />
+                                <input type='text' id='title' placeholder='Title' value={newReview.title} onChange={(e) => setNewReview({ ...newReview, title: e.target.value })} />
                             </div>
                             <div className="addreview-itemfield">
                                 <p>Comment</p>
@@ -129,8 +149,8 @@ export const Reviews = ({ productId }) => {
         
 
         <div className='reviews'>
-            {reviews.length === 0 && <p className='no-reviews'>No reviews yet.</p>}
-            {reviews.map((review) => {
+            {currentReviews.length === 0 && <p className='no-reviews'>No reviews yet.</p>}
+            {currentReviews.map((review) => {
                 //Template to map each review according to its key (index).
                 return (
                     <div key={review._id} className='reviewItem'>
@@ -141,6 +161,11 @@ export const Reviews = ({ productId }) => {
                     </div>
                 )
             })}
+            <div className="pagination">
+                <button onClick={handlePrevPage} className='pagination-btn'>Prev</button>
+                <p>{currentPage} / {totalPages}</p>
+                <button onClick={handleNextPage} className='pagination-btn'>Next</button>
+            </div>
         </div>
     </div>
   )
