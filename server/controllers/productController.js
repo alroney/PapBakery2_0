@@ -55,7 +55,7 @@ const fetchAllProducts = async () => {
                     reviews: { $push: '$reviews' },
                 },
             },
-        ]);
+        ]).option({ maxTimeMS: 30000 });
 
         //Construct the image URL for use in the response or front-end rendering.
         const productsWithImages = productsWithReviews.map((product) => ({

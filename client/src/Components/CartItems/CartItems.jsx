@@ -8,7 +8,7 @@ export const CartItems = () => {
     console.log("(CartItems.jsx) Component Loaded.");
 
     const { cart, handleUpdateCartItem, handleClearCart } = useContext(CartContext);
-
+    const baseImageUrl = 'http://localhost:4000/images';
     return (
         <div className='cartitems'>
             <h2>Shopping Cart</h2>
@@ -29,7 +29,7 @@ export const CartItems = () => {
                     return (
                         <div key={item.productId} className="cartitems-item">
                             <div className="cartitems-main">
-                                <img src={item.image} alt="" className="cartitems-product-icon " />
+                                <img src={`${baseImageUrl}/${item.image}`} alt="" className="cartitems-product-icon " />
                                 <div className="cartitems-details">
                                     <p className="">{item.name}</p>
                                     <p className="">Price: ${item.price}</p>
