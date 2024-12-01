@@ -1,16 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import './Reviews.css';
 import apiUrl from '@config'
 import { useUser } from '../../Context/UserContext';
 import StarRating from './StarRating';
 
-export const Reviews = ({ productId }) => {
+export const Reviews = React.memo(({ productId }) => {
     console.log("(Reviews.jsx) Component Loaded.");
 
     const {currentUser} = useUser();
     const [reviews, setReviews] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [error, setError] = useState('');
+    const [titleCharCount, setTitleCharCount] = useState(0);
+    const [commentCharCount, setCommentCharCount] = useState(0);
     const [newReview, setNewReview] = useState({
         title: '',
         comment: '',
@@ -42,6 +44,21 @@ export const Reviews = ({ productId }) => {
         return '★'.repeat(rating) + '☆'.repeat(5 - rating);
     };
 
+    const handleTitleChange = useCallback((e) => {
+        const value = e.target.value.slice(0, 30);
+        if(value.length > 0) {
+            setError('');
+        }
+        setNewReview((prevReview) => ({ ...prevReview, title: value }));
+        setTitleCharCount(value.length);
+    }, []);
+
+    const handleCommentChange = useCallback((e) => {
+        const value = e.target.value.slice(0, 100);
+        setNewReview((prevReview) => ({ ...prevReview, comment: value }));
+        setCommentCharCount(value.length);
+    }, []);
+
     const showAddReview = () => {
         if(!currentUser) {
             setShowForm(false);
@@ -56,8 +73,17 @@ export const Reviews = ({ productId }) => {
     }
 
 
+
     const handleAddReview = async (e) => {
         e.preventDefault();
+        if(!newReview.title) {
+            setError("Title is required.");
+            return;
+        }
+        if(newReview.rating < 1) {
+            setError("Rating is required.");
+            return;
+        }
         try {
             const token = localStorage.getItem('auth-token');
             const response = await fetch(`${apiUrl}/reviews/add`, {
@@ -136,20 +162,38 @@ export const Reviews = ({ productId }) => {
             {!showForm
                 ? (
                     <>
-                        {error && <p className='addReview-error'>{error}</p>}
+                        {error && <p className='addreview-error'>{error}</p>}
                         <button onClick={() => showAddReview()} className="addreview-btn">Add New Review</button>
                     </>
                 ) : (
                     <>
-                        {error && <p className='addReview-error'>{error}</p>}
+                        {error && <p className='addreview-error'>{error}</p>}
                         <form onSubmit={handleAddReview}>
                             <div className="addreview-itemfield">
                                 <p>Title</p>
-                                <input type='text' id='title' placeholder='Title' value={newReview.title} onChange={(e) => setNewReview({ ...newReview, title: e.target.value })} />
+                                <div className="input-wrapper">
+                                    <input 
+                                        type='text' 
+                                        id='title' 
+                                        placeholder='Title' 
+                                        value={newReview.title} 
+                                        onChange={handleTitleChange}
+                                    />
+                                    <span className="char-counter">{titleCharCount}/30</span>
+                                </div>
                             </div>
                             <div className="addreview-itemfield">
                                 <p>Comment</p>
-                                <input type='text' placeholder='Comment' value={newReview.comment} onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })} />
+                                    <div className="input-wrapper">
+                                    <textarea 
+                                        type='text' 
+                                        placeholder='Comment' 
+                                        value={newReview.comment} 
+                                        onChange={handleCommentChange}
+                                        rows="4"
+                                    />
+                                    <span className="char-counter">{commentCharCount}/100</span>
+                                </div>
                             </div>
                             <div className="addreview-itemfield">
                                 <StarRating rating={newReview.rating} onRatingChange={(rating) => setNewReview({ ...newReview, rating })} />
@@ -199,4 +243,4 @@ export const Reviews = ({ productId }) => {
         </div>
     </div>
   )
-}
+})

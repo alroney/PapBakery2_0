@@ -1,6 +1,7 @@
 
 const path = require("path");
 
+
 module.exports = {
 
     resolve: {
@@ -24,5 +25,5 @@ module.exports = {
             },
         ],
     },
-    devtool: "source-map",
+    devtool: "source-map", 
 }

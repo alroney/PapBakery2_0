@@ -14,14 +14,24 @@
 // ***********************************************************
 
 // Import commands.js using ES2015 syntax:
-import './commands'
+// import './commands'
 
 // Alternatively you can use CommonJS syntax:
-// require('./commands')
+require('./commands')
 
 import { mount } from 'cypress/react18'
+import Reviews from '../../src/Components/Reviews/Reviews'
+import Footer from '../../src/Components/Footer/Footer'
+import Popular from '../../src/Components/Popular/Popular'
+import Navbar from '../../src/Components/Navbar/Navbar'
+
 
 Cypress.Commands.add('mount', mount)
 
 // Example use:
 // cy.mount(<MyComponent />)
+
+cy.mount(<Reviews />)
+cy.mount(<Footer />)
+cy.mount(<Popular />)
+cy.mount(<Navbar />)
