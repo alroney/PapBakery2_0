@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './Reviews.css';
 import apiUrl from '@config'
 import { useUser } from '../../Context/UserContext';
+import StarRating from './StarRating';
 
 export const Reviews = ({ productId }) => {
     console.log("(Reviews.jsx) Component Loaded.");
@@ -36,6 +37,11 @@ export const Reviews = ({ productId }) => {
         }
     }
 
+    // Helper function to convert numerical rating to stars
+    const convertRatingToStars = (rating) => {
+        return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+    };
+
     const showAddReview = () => {
         if(!currentUser) {
             setShowForm(false);
@@ -48,7 +54,6 @@ export const Reviews = ({ productId }) => {
             return;
         }
     }
-
 
 
     const handleAddReview = async (e) => {
@@ -85,6 +90,24 @@ export const Reviews = ({ productId }) => {
         });
         setShowForm(false);
     }
+
+    const formatLongDate = (date) => {
+        const options = { 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            hour12: true, 
+            day: '2-digit', 
+            month: 'short', 
+            year: 'numeric' 
+        };
+        return new Date(date).toLocaleString('en-US', options);
+    }
+
+    const formatShortDate = (date) => {
+        const d = new Date(date);
+        return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear().toString().slice(-2)}`;
+    };
+
 
 
     //Pagination variables.
@@ -129,15 +152,7 @@ export const Reviews = ({ productId }) => {
                                 <input type='text' placeholder='Comment' value={newReview.comment} onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })} />
                             </div>
                             <div className="addreview-itemfield">
-                                <p>Rating</p>
-                                <select value={newReview.rating} onChange={(e) => setNewReview({ ...newReview, rating: e.target.value })}>
-                                    <option value='0'>0</option>
-                                    <option value='1'>1</option>
-                                    <option value='2'>2</option>
-                                    <option value='3'>3</option>
-                                    <option value='4'>4</option>
-                                    <option value='5'>5</option>
-                                </select>
+                                <StarRating rating={newReview.rating} onRatingChange={(rating) => setNewReview({ ...newReview, rating })} />
                             </div>
                             <button className='addreview-btn' type='submit'>Submit Review</button>
                             <button className='addreview-btn cancel-btn' onClick={() => cancelForm()}>Cancel</button>
@@ -154,10 +169,25 @@ export const Reviews = ({ productId }) => {
                 //Template to map each review according to its key (index).
                 return (
                     <div key={review._id} className='reviewItem'>
-                        <h3 className='reviewItem-title'>{review.title}</h3>
-                        <p className='reviewItem-user'>{review.userId?.name || 'Anonymous'}</p>
-                        <p className='reviewItem-comment'>{review.comment}</p>
-                        <p className='reviewItem-rating'>Rating: {review.rating}</p>
+                        <div className="reviewItem-left-content">
+                            <h3 className='reviewItem-title'>{review.title}</h3>
+                            <div className="reviewItem-lc-lower">
+                                <div className="reviewItem-image"></div>
+                                <div className="reviewItem-lc-txt">
+                                    <div className="reviewItem-lc-t-top">
+                                        <p className='reviewItem-user'>{review.userId?.name ? review.userId.name.charAt(0).toUpperCase() + review.userId.name.slice(1) : 'Anonymous'}</p>
+                                        <p className='reviewItem-date'>
+                                            <span className='reviewItem-date-extended'>{formatLongDate(review.createdAt)}</span>
+                                            <span className='reviewItem-date-short'>{formatShortDate(review.createdAt)}</span>
+                                        </p>
+                                    </div>
+                                    <p className='reviewItem-comment'>{review.comment}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="reviewItem-right-content">
+                            <p className='reviewItem-rating'>{convertRatingToStars(review.rating)}</p>
+                        </div>
                     </div>
                 )
             })}

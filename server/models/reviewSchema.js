@@ -18,7 +18,7 @@ const reviewSchema = new Mongoose.Schema(
         },
         comment: {
             type: String,
-            required: true,
+            required: false,
         },
         rating: {
             type: Number,
@@ -28,6 +28,7 @@ const reviewSchema = new Mongoose.Schema(
         },
         image: {
             type: String,
+            required: false,
         },
         date: {
             type: Date,

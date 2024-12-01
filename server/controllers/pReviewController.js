@@ -70,7 +70,7 @@ const addReview = async (req,res) => {
 
         if(!product) {
             console.log("The product: "+ product +" is not found.");
-            return res.status(404).json({error: "Product not found"});
+            return res.status(404).json({error: "Product not found"}); //Respond with 404 if product is not found.
         }
 
         const newReview = await Review.create({
