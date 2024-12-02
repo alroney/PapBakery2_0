@@ -23,6 +23,7 @@
 .on .star {
     color: gold;
     text-shadow: 0 0 3px #000;
+    filter: drop-shadow(0 0 2px gold);
 }
 
 .off .star {

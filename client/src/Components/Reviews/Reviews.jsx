@@ -54,7 +54,7 @@ export const Reviews = React.memo(({ productId }) => {
     }, []);
 
     const handleCommentChange = useCallback((e) => {
-        const value = e.target.value.slice(0, 100);
+        const value = e.target.value.slice(0, 300);
         setNewReview((prevReview) => ({ ...prevReview, comment: value }));
         setCommentCharCount(value.length);
     }, []);
@@ -193,7 +193,7 @@ export const Reviews = React.memo(({ productId }) => {
                                         onChange={handleCommentChange}
                                         rows="4"
                                     />
-                                    <span className="char-counter">{commentCharCount}/100</span>
+                                    <span className="char-counter">{commentCharCount}/300</span>
                                 </div>
                             </div>
                             <div className="addreview-itemfield">
