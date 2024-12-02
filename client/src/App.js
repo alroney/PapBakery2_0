@@ -15,7 +15,6 @@ import apiUrl from '@config';
 
 function App() {
   console.log("========(App.js) Loaded.========");
-
   const { currentUser, setCurrentUser } = useUser();
   const [showDisclaimer, setShowDisclaimer] = useState(false);
 
@@ -43,6 +42,36 @@ function App() {
     fetchCurrentUser();
   }, [currentUser, setCurrentUser])
 
+
+  useEffect(() => {
+    const checkTokenExpiration = () => {
+      const token = localStorage.getItem('auth-token');
+      if(!token) {
+        updateToGuestMode();
+        return;
+      }
+
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const expirationTime = payload.exp * 1000; //Convert to milliseconds.
+      const currentTime = Date.now();
+
+      if(currentTime >= expirationTime) {
+        localStorage.removeItem('auth-token');
+        updateToGuestMode();
+      }
+    };
+
+    const updateToGuestMode = () => {
+      setCurrentUser(null);
+      window.location.replace('/login');
+      console.log("Switching to guest mode.");
+    };
+
+    //Check token expiration every 5 minute.
+    const interval = setInterval(checkTokenExpiration, 10 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [setCurrentUser]);
 
   return (
     <div>

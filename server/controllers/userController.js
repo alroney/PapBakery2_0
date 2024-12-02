@@ -50,10 +50,11 @@ const signup = async (req,res) => {
          * The function takes two main arguments:
          * - @argument {Payload `data`}: The object that contains the information to be included in the token (in this case, the `data` object containing the user's ID).
          * - @argument {Secret `process.env.JWT_SECRET`}: A secret key used to digitally sign the token. This key is securely stored in the `.env` file.
+         * - @argument {Options}: An optional object that can specify additional settings for the token, such as the expiration time.
          *  -The server uses this secret key when creating or verifying tokens to ensure they haven't been tampered with.
          *  - In a production environment, it's crucial to use a strong and unpredictable secret key for security reasons.
          */
-        const token = jwt.sign(data, process.env.JWT_SECRET, {expiresIn: '1h'}); //jwt.sign(payload, secret);
+        const token = jwt.sign(data, process.env.JWT_SECRET, { expiresIn: '2h' }); //jwt.sign(payload, secret, options);
 
         //Respond with success and the generated JWT token.
         res.json({
@@ -93,8 +94,8 @@ const login = async (req,res) => {
             return res.status(401).json({ success: false, message: 'Invalid email or password'})
         }
             
-        //Create a JWT token
-        const token = jwt.sign({user: { id: user._id } }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        //Create a JWT token with an expiration time of 2 hours.
+        const token = jwt.sign({user: { id: user._id } }, process.env.JWT_SECRET, { expiresIn: '2h' });
 
         user.populate('cartId');
         res.status(200).json({
@@ -143,4 +144,5 @@ const me = async (req, res) => {
     }
 }
 
-module.exports = {signup, login, me};
+
+module.exports = {signup, login, me}; //Export the functions for use in the routes.

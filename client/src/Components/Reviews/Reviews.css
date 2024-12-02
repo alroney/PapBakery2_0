@@ -212,7 +212,6 @@
 
     /*#region - Left Content */
         .reviewItem-left-content {
-            border: 1px solid blue;
             display: flex;
             flex-direction: column;
             min-width: 100%;
@@ -238,7 +237,6 @@
 
         /* Left Content Text */
         .reviewItem-lc-txt {
-            border: 1px solid red;
             display: flex;
             flex-direction: column;
             max-width: calc(100% - 60px); /* 50px for the image and 10px gap */
@@ -288,7 +286,6 @@
             .comment-text::after {
                 content: '';
                 position: absolute;
-                border: 1px solid pink;
                 right: 0;
                 bottom: 0;
                 width: 100px; /* Adjust the width of the fading effect */
