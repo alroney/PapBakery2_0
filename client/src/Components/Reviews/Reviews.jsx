@@ -157,6 +157,23 @@ export const Reviews = React.memo(({ productId }) => {
 
     }
 
+    const handleToggle = (e) => {
+        const commentText = e.target.previousElementSibling;
+        commentText.classList.toggle('expanded');
+        e.target.textContent = commentText.classList.contains('expanded') ? 'Show Less' : 'Continue Reading';
+    }
+
+    const checkOverflow = (element) => {
+        return element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
+    }
+
+    const handleCommentRef = (comment) => {
+        if(comment && checkOverflow(comment)) {
+            comment.nextElementSibling.style.display = 'inline';
+        }
+    }
+    
+
   return (
     <div className='review-section'>
         <div className='addreview'>
@@ -164,7 +181,7 @@ export const Reviews = React.memo(({ productId }) => {
                 ? (
                     <>
                         {error && <p className='addreview-error'>{error}</p>}
-                        <button onClick={() => showAddReview()} className="addreview-btn">Add New Review</button>
+                        <button onClick={() => showAddReview()} className="addreview-btn">Write a Review</button>
                     </>
                 ) : (
                     <>
@@ -226,7 +243,10 @@ export const Reviews = React.memo(({ productId }) => {
                                             <span className='reviewItem-date-short'>{formatShortDate(review.createdAt)}</span>
                                         </p>
                                     </div>
-                                    <p className='reviewItem-comment'>{review.comment}</p>
+                                    <p className='reviewItem-comment'>
+                                        <span className='comment-text' ref={handleCommentRef}>{review.comment}</span>
+                                        <span className='continue-reading' onClick={handleToggle}>Continue reading</span>
+                                    </p>
                                 </div>
                             </div>
                         </div>
