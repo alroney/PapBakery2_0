@@ -154,6 +154,7 @@ export const Reviews = React.memo(({ productId }) => {
         if(currentPage > 1) {
             setCurrentPage(currentPage - 1);
         }
+
     }
 
   return (
@@ -236,9 +237,9 @@ export const Reviews = React.memo(({ productId }) => {
                 )
             })}
             <div className="pagination">
-                <button onClick={handlePrevPage} className='pagination-btn'>Prev</button>
+                <button onClick={handlePrevPage} className={`pagination-btn ${currentPage === 1 ? 'button-disabled' : ''}`}>Prev</button>
                 <p>{currentPage} / {totalPages}</p>
-                <button onClick={handleNextPage} className='pagination-btn'>Next</button>
+                <button onClick={handleNextPage} className={`pagination-btn ${currentPage === totalPages ? 'button-disabled' : ''}`}>Next</button>
             </div>
         </div>
     </div>

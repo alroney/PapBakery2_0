@@ -17,8 +17,8 @@ export const Navbar = () => {
     const { currentUser, setCurrentUser } = useUser();
     const navRef = useRef();
 
-    const toggleScroll = (disable) => {
-        if(disable) {
+    const toggleScroll = (disabled) => {
+        if(disabled) {
             document.body.classList.add('no-scroll');
         }
         else {

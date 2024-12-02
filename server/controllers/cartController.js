@@ -6,8 +6,11 @@ const { getStateTaxRates } = require('../utils/helpers');
 // Get Cart - Retrieve the cart for the logged-in user
 const getCart = async (req, res) => {
     try {
-        const cart = await Cart.findOne({ userId: req.user.id });
-
+        let cart = [];
+        if(req.user) {
+            cart = await Cart.findOne({ userId: req.user.id });
+        }
+        
         if(!cart) return res.status(404).json({ message: "Cart not found" });
 
         res.json(cart);
