@@ -25,7 +25,7 @@ export const ShopCategory = (props) => {
       </div>
       <div className="shopcategory-products">
         {filteredProducts.map((item, i) => {
-            return <Item key={i} id={item.id} name={item.name} price={item.price} image={item.image} />
+            return <Item key={i} id={item._id} name={item.name} price={item.price} image={item.image} />
 
         })}
       </div>

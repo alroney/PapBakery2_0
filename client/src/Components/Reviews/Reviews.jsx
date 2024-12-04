@@ -41,9 +41,17 @@ export const Reviews = React.memo(({ productId }) => {
 
     // Helper function to convert numerical rating to stars
     const convertRatingToStars = (rating) => {
-        return '★'.repeat(rating) + '☆'.repeat(5 - rating);
-    };
+        const filledStars = '★'.repeat(rating).split('').map((star, index) => (
+            <span key={`filled-${index}`} style={{ color: 'gold' }}>{star}</span>
+        ));
+        const emptyStars = '☆'.repeat(5 - rating).split('').map((star, index) => (
+            <span key={`empty-${index}`} style={{ color: 'gray' }}>{star}</span>
+        ));
+        return [...filledStars, ...emptyStars];
+    }
 
+
+    
     const handleTitleChange = useCallback((e) => {
         const value = e.target.value.slice(0, 30);
         if(value.length > 0) {
@@ -53,11 +61,15 @@ export const Reviews = React.memo(({ productId }) => {
         setTitleCharCount(value.length);
     }, []);
 
+
+
     const handleCommentChange = useCallback((e) => {
         const value = e.target.value.slice(0, 300);
         setNewReview((prevReview) => ({ ...prevReview, comment: value }));
         setCommentCharCount(value.length);
     }, []);
+
+
 
     const showAddReview = () => {
         if(!currentUser) {
