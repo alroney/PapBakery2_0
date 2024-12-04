@@ -102,8 +102,8 @@ function App() {
         </div>
         <Routes>
           <Route path='/' element={<Home/>}/>
-          <Route path='/biscuits' element={<ShopCategory category="biscuits"/>}/>
-          <Route path='/trainingTreats' element={<ShopCategory category="trainingTreats"/>}/>
+          <Route path='/biscuits' element={<ShopCategory category="biscuit"/>}/>
+          <Route path='/trainingTreats' element={<ShopCategory category="trainingTreat"/>}/>
           <Route path='/aboutUs' element={<AboutUs/>}/>
 
           <Route path='/product'>
