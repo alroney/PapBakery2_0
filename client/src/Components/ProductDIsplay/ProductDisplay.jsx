@@ -42,7 +42,7 @@ export const ProductDisplay = (props) => {
 
         <div className="productdisplay-right">
             <h1>{name}</h1>
-            <div className="productdisplay-right-stars">
+            <div className="productdisplay-right-stars" title={rating.toFixed(1)}>
                 {renderStars(rating)} {/* Render average rating */}
                 <p>({reviews.length})</p>
             </div>
