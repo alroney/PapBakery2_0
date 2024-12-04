@@ -5,17 +5,18 @@ import cart_icon from '../Assets/img/icon/cart_icon.png';
 import login_icon from '../Assets/img/icon/login-icon.svg'
 import logout_icon from '../Assets/img/icon/logout-icon.svg'
 import nav_dropdown from '../Assets/img/icon/nav_dropdown.png';
-import { NavLink } from 'react-router';
+import { NavLink, useLocation } from 'react-router';
 import { CartContext } from '../../Context/CartContext';
 import { useUser } from '../../Context/UserContext';
 
 export const Navbar = () => {
     console.log("(Navbar.jsx) Component Loaded.");
 
-    const [menu, setMenu] = useState("home"); //Initialize the menu selection
+    const [menu, setMenu] = useState("home"); //Initialize the menu selection.
     const {getTotalCartItems} = useContext(CartContext);
     const { currentUser, setCurrentUser } = useUser();
     const navRef = useRef();
+    const location = useLocation();
 
     const toggleScroll = (disabled) => {
         if(disabled) {
@@ -42,20 +43,11 @@ export const Navbar = () => {
         toggleScroll(navRef.current.classList.contains('nav-combo-visible')); //Disable scolling when menu is open.
     }
 
-    //Function: Check if the token is expired.
-    const isTokenExpired = (token) => {
-        if(!token) return true; //If token is not present, return true.
-        const decodedToken = JSON.parse(atob(token.split('.')[1])); //Decode the token.
-        return decodedToken.exp * 1000 < Date.now(); //Return true if token is expired.
-    }
-
     useEffect(() => {
-        const token = localStorage.getItem('auth-token'); //Get the token from local storage.
-        if(isTokenExpired(token)) { //If the token is expired, remove it.
-            localStorage.removeItem('auth-token');
-            setCurrentUser(null);
-        }
-    }, []);
+        const pathSegments = location.pathname.split('/').filter(Boolean); //Split the path and remove empty strings.
+        const currentMenu = pathSegments[0] || 'home'; //Get the first segment of the path.
+        setMenu(currentMenu); //Set the menu to the current menu.
+    }, [location]);
 
   return (
     <div className='navbar'>

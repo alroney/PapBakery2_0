@@ -54,7 +54,7 @@ const signup = async (req,res) => {
          *  -The server uses this secret key when creating or verifying tokens to ensure they haven't been tampered with.
          *  - In a production environment, it's crucial to use a strong and unpredictable secret key for security reasons.
          */
-        const token = jwt.sign(data, process.env.JWT_SECRET, { expiresIn: '2h' }); //jwt.sign(payload, secret, options);
+        const token = jwt.sign(data, process.env.JWT_SECRET); //jwt.sign(payload, secret, options);
 
         //Respond with success and the generated JWT token.
         res.json({
@@ -95,7 +95,7 @@ const login = async (req,res) => {
         }
             
         //Create a JWT token with an expiration time of 2 hours.
-        const token = jwt.sign({user: { id: user._id } }, process.env.JWT_SECRET, { expiresIn: '2h' });
+        const token = jwt.sign({user: { id: user._id } }, process.env.JWT_SECRET);
 
         user.populate('cartId');
         res.status(200).json({
