@@ -1,13 +1,15 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import './Reviews.css';
-import apiUrl from '@config'
 import { useUser } from '../../Context/UserContext';
-import StarRating from './StarRating';
+import ReviewForm from './SubComponents/ReviewForm';
+import ReviewList from './SubComponents/ReviewList';
+import Pagination from './SubComponents/Pagination';
+import './Reviews.css';
+import apiUrl from '@config';
 
 export const Reviews = React.memo(({ productId }) => {
     console.log("(Reviews.jsx) Component Loaded.");
 
-    const {currentUser} = useUser();
+    const { currentUser } = useUser();
     const [reviews, setReviews] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [error, setError] = useState('');
@@ -18,15 +20,14 @@ export const Reviews = React.memo(({ productId }) => {
         comment: '',
         rating: 0,
         image: '',
-
     });
 
 
     useEffect(() => {
-        fetchReviews();
-    }, [productId]);
-
-
+                fetchReviews();
+            }, [productId]);
+        
+        
     const fetchReviews = async () => {
         try {
             const response = await fetch(`${apiUrl}/reviews/${productId}`);
@@ -39,37 +40,40 @@ export const Reviews = React.memo(({ productId }) => {
         }
     }
 
-    // Helper function to convert numerical rating to stars
-    const convertRatingToStars = (rating) => {
-        const filledStars = '★'.repeat(rating).split('').map((star, index) => (
-            <span key={`filled-${index}`} style={{ color: 'gold' }}>{star}</span>
-        ));
-        const emptyStars = '☆'.repeat(5 - rating).split('').map((star, index) => (
-            <span key={`empty-${index}`} style={{ color: 'gray' }}>{star}</span>
-        ));
-        return [...filledStars, ...emptyStars];
-    }
-
-
-    
-    const handleTitleChange = useCallback((e) => {
-        const value = e.target.value.slice(0, 30);
-        if(value.length > 0) {
-            setError('');
+    console.log("Current User: ", currentUser);
+    const handleSubmit = async () => {
+        if(!newReview.title) {
+            setError('Title is required.');
+            return;
         }
-        setNewReview((prevReview) => ({ ...prevReview, title: value }));
-        setTitleCharCount(value.length);
-    }, []);
+        if(newReview.rating < 1) {
+            setError('Rating is required.');
+            return;
+        }
+        if(!currentUser) {
+            setError('You need to be logged in to create a new review.');
+            return;
+        }
 
+        try {
+            const token = localStorage.getItem('auth-token');
+            const response = await fetch(`${apiUrl}/reviews/add`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ ...newReview, productId, userId: currentUser._id }),
+            });
 
-
-    const handleCommentChange = useCallback((e) => {
-        const value = e.target.value.slice(0, 300);
-        setNewReview((prevReview) => ({ ...prevReview, comment: value }));
-        setCommentCharCount(value.length);
-    }, []);
-
-
+            const data = await response.json();
+            setReviews([...reviews, data.review]);
+            setNewReview({ title: '', comment: '', rating: 0 });
+            setShowForm(false);
+        } catch (error) {
+            console.error('Error submitting review: ', error);
+        }
+    }
 
     const showAddReview = () => {
         if(!currentUser) {
@@ -85,69 +89,6 @@ export const Reviews = React.memo(({ productId }) => {
     }
 
 
-
-    const handleAddReview = async (e) => {
-        e.preventDefault();
-        if(!newReview.title) {
-            setError("Title is required.");
-            return;
-        }
-        if(newReview.rating < 1) {
-            setError("Rating is required.");
-            return;
-        }
-        try {
-            const token = localStorage.getItem('auth-token');
-            const response = await fetch(`${apiUrl}/reviews/add`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify({ ...newReview, productId, userId: currentUser._id }),
-            });
-
-            const data = response.json();
-            setReviews((prevReviews) => [...prevReviews, data.reviews]);
-            setNewReview({ title: '', comment: '', rating: 0 });
-            setShowForm(false);
-            fetchReviews();
-        }
-        catch(error) {
-            console.error("Error submitting review: ", error);
-        }
-    }
-
-
-    const cancelForm = () => {
-        setNewReview({
-            title: "",
-            rating: 0,
-            comment: "",
-            image: "",
-        });
-        setShowForm(false);
-    }
-
-    const formatLongDate = (date) => {
-        const options = { 
-            hour: '2-digit', 
-            minute: '2-digit', 
-            hour12: true, 
-            day: '2-digit', 
-            month: 'short', 
-            year: 'numeric' 
-        };
-        return new Date(date).toLocaleString('en-US', options);
-    }
-
-    const formatShortDate = (date) => {
-        const d = new Date(date);
-        return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear().toString().slice(-2)}`;
-    };
-
-
-
     //Pagination variables.
     const [currentPage, setCurrentPage] = useState(1);
     const [reviewsPerPage, setReviewsPerPage] = useState(5);
@@ -156,124 +97,41 @@ export const Reviews = React.memo(({ productId }) => {
     const currentReviews = reviews.slice(indexOfFirstReview, indexOfLastReview);
     const totalPages = Math.ceil(reviews.length / reviewsPerPage);
 
-    const handleNextPage = () => {
-        if(currentPage < totalPages) {
-            setCurrentPage(currentPage + 1);
-        }
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
     }
 
-    const handlePrevPage = () => {
-        if(currentPage > 1) {
-            setCurrentPage(currentPage - 1);
-        }
-
-    }
-
-    const handleToggle = (e) => {
-        const commentText = e.target.previousElementSibling;
-        commentText.classList.toggle('expanded');
-        e.target.textContent = commentText.classList.contains('expanded') ? 'Show Less' : 'Continue Reading';
-    }
-
-    const checkOverflow = (element) => {
-        return element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
-    }
-
-    const handleCommentRef = (comment) => {
-        if(comment && checkOverflow(comment)) {
-            comment.nextElementSibling.style.display = 'inline';
-        }
-    }
-    
-
-  return (
-    <div className='review-section'>
-        <div className='addreview'>
-            {!showForm
+    return (
+        <div className="review-section">
+            {!showForm 
                 ? (
                     <>
-                        {error && <p className='addreview-error'>{error}</p>}
+                        {error && <p className="addreview-error">{error}</p>}
                         <button onClick={() => showAddReview()} className="addreview-btn">Write a Review</button>
                     </>
                 ) : (
                     <>
-                        {error && <p className='addreview-error'>{error}</p>}
-                        <form onSubmit={handleAddReview}>
-                            <div className="addreview-itemfield">
-                                <p>Title</p>
-                                <div className="input-wrapper">
-                                    <input 
-                                        type='text' 
-                                        id='title' 
-                                        placeholder='Title' 
-                                        value={newReview.title} 
-                                        onChange={handleTitleChange}
-                                    />
-                                    <span className="char-counter">{titleCharCount}/30</span>
-                                </div>
-                            </div>
-                            <div className="addreview-itemfield">
-                                <p>Comment</p>
-                                    <div className="input-wrapper">
-                                    <textarea 
-                                        type='text' 
-                                        placeholder='Comment' 
-                                        value={newReview.comment} 
-                                        onChange={handleCommentChange}
-                                        rows="4"
-                                    />
-                                    <span className="char-counter">{commentCharCount}/300</span>
-                                </div>
-                            </div>
-                            <div className="addreview-itemfield">
-                                <StarRating rating={newReview.rating} onRatingChange={(rating) => setNewReview({ ...newReview, rating })} />
-                            </div>
-                            <button className='addreview-btn' type='submit'>Submit Review</button>
-                            <button className='addreview-btn cancel-btn' onClick={() => cancelForm()}>Cancel</button>
-                        </form>
+                        <ReviewForm 
+                            newReview={newReview}
+                            setNewReview={setNewReview}
+                            titleCharCount={titleCharCount}
+                            commentCharCount={commentCharCount}
+                            setTitleCharCount={setTitleCharCount}
+                            setCommentCharCount={setCommentCharCount}
+                            error={error}
+                            onSubmit={handleSubmit}
+                            onCancel={() => {setShowForm(false); setError('');}}
+                        />
                     </>
                 )
+            
             }
+            <ReviewList reviews={currentReviews} />
+            <Pagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+            />
         </div>
-        
-
-        <div className='reviews'>
-            {currentReviews.length === 0 && <p className='no-reviews'>No reviews yet.</p>}
-            {currentReviews.map((review) => {
-                //Template to map each review according to its key (index).
-                return (
-                    <div key={review._id} className='reviewItem'>
-                        <div className="reviewItem-left-content">
-                            <h3 className='reviewItem-title'>{review.title}</h3>
-                            <div className="reviewItem-lc-lower">
-                                <div className="reviewItem-image"></div>
-                                <div className="reviewItem-lc-txt">
-                                    <div className="reviewItem-lc-t-top">
-                                        <p className='reviewItem-user'>{review.userId?.name ? review.userId.name.charAt(0).toUpperCase() + review.userId.name.slice(1) : 'Anonymous'}</p>
-                                        <p className='reviewItem-date'>
-                                            <span className='reviewItem-date-extended'>{formatLongDate(review.createdAt)}</span>
-                                            <span className='reviewItem-date-short'>{formatShortDate(review.createdAt)}</span>
-                                        </p>
-                                    </div>
-                                    <p className='reviewItem-comment'>
-                                        <span className='comment-text' ref={handleCommentRef}>{review.comment}</span>
-                                        <span className='continue-reading' onClick={handleToggle}>Continue reading</span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="reviewItem-right-content">
-                            <p className='reviewItem-rating'>{convertRatingToStars(review.rating)}</p>
-                        </div>
-                    </div>
-                )
-            })}
-            <div className="pagination">
-                <button onClick={handlePrevPage} className={`pagination-btn ${currentPage === 1 ? 'button-disabled' : ''}`}>Prev</button>
-                <p>{currentPage} / {totalPages}</p>
-                <button onClick={handleNextPage} className={`pagination-btn ${currentPage === totalPages ? 'button-disabled' : ''}`}>Next</button>
-            </div>
-        </div>
-    </div>
-  )
-})
+    );
+});

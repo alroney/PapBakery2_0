@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './StarRating.css';
 
 // StarRating component
-const StarRating = ({ rating, onRatingChange }) => {
+const StarRating = ({ rating, setRating }) => {
     const [hover, setHover] = useState(0);
 
     return (
@@ -14,7 +14,7 @@ const StarRating = ({ rating, onRatingChange }) => {
                         type="button"
                         key={index}
                         className={index <= (hover || rating) ? "on" : "off"} //If index is less than or equal to hover or rating, set class to 'on', else 'off'.
-                        onClick={() => onRatingChange(index)}
+                        onClick={() => setRating(index)}
                         onMouseEnter={() => setHover(index)}
                         onMouseLeave={() => setHover(rating)}
                     >
