@@ -43,6 +43,21 @@ export const Navbar = () => {
         toggleScroll(navRef.current.classList.contains('nav-combo-visible')); //Disable scolling when menu is open.
     }
 
+    //Function: Check if the token is expired.
+    const isTokenExpired = (token) => {
+        if(!token) return true; //If token is not present, return true.
+        const decodedToken = JSON.parse(atob(token.split('.')[1])); //Decode the token.
+        return decodedToken.exp * 1000 < Date.now(); //Return true if token is expired.
+    }
+
+    useEffect(() => {
+        const token = localStorage.getItem('auth-token'); //Get the token from local storage.
+        if(isTokenExpired(token)) { //If the token is expired, remove it.
+            localStorage.removeItem('auth-token');
+            setCurrentUser(null);
+        }
+    }, []);
+
     useEffect(() => {
         const pathSegments = location.pathname.split('/').filter(Boolean); //Split the path and remove empty strings.
         const currentMenu = pathSegments[0] || 'home'; //Get the first segment of the path.
