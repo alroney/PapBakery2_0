@@ -4,6 +4,7 @@ import Sidebar from '../../Components/Sidebar/Sidebar'
 import { Routes, Route } from 'react-router'
 import AddProduct from '../../Components/AddProduct/AddProduct'
 import ListProduct from '../../Components/ListProduct/ListProduct'
+import ManageShape from '../../Components/ShapeManager/ManageShape'
 
 
 /**
@@ -17,6 +18,7 @@ const Admin = () => {
       <Routes>
         <Route path='/addproduct' element={<AddProduct/>}/>
         <Route path='/listproduct' element={<ListProduct/>}/>
+        <Route path='/manageshape' element={<ManageShape/>}/>
       </Routes>
     </div>
   )

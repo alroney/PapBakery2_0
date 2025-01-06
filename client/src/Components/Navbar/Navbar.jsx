@@ -13,11 +13,12 @@ export const Navbar = () => {
     console.log("(Navbar.jsx) Component Loaded.");
 
     const [menu, setMenu] = useState("home"); //Initialize the menu selection.
-    const {getTotalCartItems} = useContext(CartContext);
-    const { currentUser, setCurrentUser } = useUser();
-    const navRef = useRef();
-    const location = useLocation();
+    const {getTotalCartItems} = useContext(CartContext); //Get the total cart items from the CartContext.
+    const { currentUser, setCurrentUser } = useUser(); //Get the current user and set the current user from the UserContext.
+    const navRef = useRef(); //Create a reference to the navRef.
+    const location = useLocation(); //Get the current location.
 
+    //Function: Disable page scrolling.
     const toggleScroll = (disabled) => {
         if(disabled) {
             document.body.classList.add('no-scroll');
@@ -50,6 +51,7 @@ export const Navbar = () => {
         return decodedToken.exp * 1000 < Date.now(); //Return true if token is expired.
     }
 
+    //UseEffect: Check if the token is expired.
     useEffect(() => {
         const token = localStorage.getItem('auth-token'); //Get the token from local storage.
         if(isTokenExpired(token)) { //If the token is expired, remove it.
@@ -58,6 +60,7 @@ export const Navbar = () => {
         }
     }, []);
 
+    //UseEffect: Update the menu based on the current path.
     useEffect(() => {
         const pathSegments = location.pathname.split('/').filter(Boolean); //Split the path and remove empty strings.
         const currentMenu = pathSegments[0] || 'home'; //Get the first segment of the path.

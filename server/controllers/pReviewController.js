@@ -52,7 +52,7 @@ const updateAverageRating = async (productId) => {
                 { new: true }
             );
 
-            console.log(`Reset product ${productId} rating and review count as no reviews were found.`);
+            console.log(`Resetted product ${productId}'s rating and review count as no reviews were found.`);
         }
     } catch (error) {
         console.error("Error while updating rating: ", error);

@@ -20,6 +20,13 @@ const Sidebar = () => {
               <p>Product List</p>
             </div>
         </Link>
+
+        <Link to={'/manageshape'} style={{textDecoration: "none"}}>
+            <div className="sidebar-item">
+              <img src={list_product_icon} alt="" />
+              <p>Manage Shape</p>
+            </div>
+        </Link>
     </div>
   )
 }
