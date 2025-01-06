@@ -37,40 +37,37 @@ const fetchAndStoreNewBaseToken = async (req, res) => {
 }
 
 
-const getBaseToken = async (req, res) => {
+const getBaseToken = async () => {
     try {
         const token = await Token.findOne({ key: "base_token" });
 
         if(token && new Date() < token.expiresAt) {
             console.log("Using stored base token for SeaTable.");
-            res.status(200).json({ success: true,  message: "Base Token (base_token) Fetched Successfully." });
             return token.value;
         }
 
         else {
-            if(!token) {
-                console.log("No base token found. Fetching a new one.");
-            }
-    
-            else if(new Date() > token.expiresAt) {
-                console.log("Base token expired. Fetching a new one.");
-            }
-            
+            console.log("Token not found or expired. Fetching new token...");
             await fetchAndStoreNewBaseToken();
             const newToken = await Token.findOne({ key: "base_token" });
             console.log("New token fetched.");
-            res.status(200).json({ success: true, message: "Base Token (base_token) Created and Fetched Successfully." });
             return newToken.value;
         }
 
         
     }
     catch(error) {
-        console.error("Error fetching token: ", error);
-        res.status(500).json({ error: error.message });
+        console.error("(seatableController)(getBaseToken) Error fetching token: ", error);
     }
+}
 
-    
+const getBaseInfo = async () => {
+    try {
+        
+    }
+    catch(error) {
+        console.error("(seatableController)(getBaseInfo) Error fetching token: ", error);
+    }
 }
 
 
