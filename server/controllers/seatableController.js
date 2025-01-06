@@ -1,12 +1,45 @@
-const Token = require('../models/stTokenSchema'); //Import the SeaTable token model.
+const Token = require('../models/tokenSchema'); //Import the SeaTable token model.
 const axios = require('axios'); //Axios is a promise-based HTTP client for the browser and Node.js.
+
+const source = "SeaTable"; //Reference for the token.
+const urlBase = "https://cloud.seatable.io"; //SeaTable server.
+
+//Function: Fetch Stored Token from Mongo.
+const fetchStoredToken = async (keyName) => {
+    try {
+        const token = await Token.findOne({ source: source, keyName: keyName });
+        if(token) {
+            if(token.expiresAt === null || token.expiresAt === undefined) {
+                console.log(`${source} ${keyName} found.`);
+                return token.keyValue;
+            }
+            else {
+                if(new Date() < token.expiresAt) {
+                    console.log(`${source} ${keyName} with expiration found and not expired.`);
+                    return token.keyValue;
+                }
+                else {
+                    console.log(`${source} ${keyName} found but expired.`);
+                    fetchAndStoreNewBaseToken();
+                }
+            }
+        }
+
+        else {
+            console.log(`(seatableController)(fetchStoredToken) ${source} ${keyName} not found.`);
+            fetchAndStoreNewBaseToken();
+        }
+    }
+    catch(error) {
+        console.error("(seatableController)(fetchToken) Error fetching token: ", error);
+    }
+}
 
 
 //Function: Fetch and store the base token for the SeaTable API.
 const fetchAndStoreNewBaseToken = async (req, res) => {
-    const url = 'https://cloud.seatable.io/api/v2.1/dtable/app-access-token/';
+    const url = `${urlBase}/api/v2.1/dtable/app-access-token/`;
     const apiKey = process.env.SEATABLE_API_TOKEN;
-    console.log("API Key: ", apiKey);
     const options = {
         method: 'GET',
         url: url,
@@ -21,14 +54,43 @@ const fetchAndStoreNewBaseToken = async (req, res) => {
         const { access_token, dtable_uuid } = response.data;
         const expiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); //3 days.
 
-        //Upsert token (update if exists, insert if not).
-        await Token.findOneAndUpdate(
-            { key: "base_token" },
-            { value: access_token, uuid: dtable_uuid, expiresAt: expiresAt },
-            { upsert: true, new: true }
-        );
+        //Prepare bulk operations for MongoDB to update the token.
+        const operations = [
+            //Upsert the base token.
+            {
+                updateOne: {
+                    filter: { source: source, keyName: "base_token" },
+                    update: {
+                        $set: {
+                            keyValue: access_token,
+                            expiresAt: expiresAt,
+                        },
+                    },
+                    upsert: true, //Create if it doesn't exist.
+                },
+            },
+            //Upsert the dtable_uuid.
+            {
+                updateOne: {
+                    filter: { source: source, keyName: "dtable_uuid" },
+                    update: {
+                        $set: {
+                            keyValue: dtable_uuid,
+                        },
+                    },
+                    upsert: true,
+                },
+            }
+        ]
 
-        console.log("Base token stored successfully.");
+        //Execute the bulk write.
+        try {
+            await Token.bulkWrite(operations);
+            console.log("SeaTable Tokens update successfully.");
+        }
+        catch(error) {
+            console.error("(seatableController)(fetchAndStoreNewBaseToken) Error storing token using bulkWrite: ", error);
+        }
     }
     catch(error) {
         console.error("Error fetching data: ", error);
@@ -36,39 +98,53 @@ const fetchAndStoreNewBaseToken = async (req, res) => {
     }
 }
 
-
+//Function: Get the base_token value.
 const getBaseToken = async () => {
     try {
-        const token = await Token.findOne({ key: "base_token" });
-
-        if(token && new Date() < token.expiresAt) {
-            console.log("Using stored base token for SeaTable.");
-            return token.value;
-        }
-
-        else {
-            console.log("Token not found or expired. Fetching new token...");
-            await fetchAndStoreNewBaseToken();
-            const newToken = await Token.findOne({ key: "base_token" });
-            console.log("New token fetched.");
-            return newToken.value;
-        }
-
-        
+        const bt = await fetchStoredToken("base_token");
+        return bt;
     }
     catch(error) {
-        console.error("(seatableController)(getBaseToken) Error fetching token: ", error);
+        console.error("(seatableController)(getBaseToken) Error fetching base_token: ", error);
     }
 }
 
-const getBaseInfo = async () => {
+//Function: Get the base_uuid (also known as dtable_uuid) value.
+const getBaseUUID = async () => {
     try {
-        
+        const uuid = await fetchStoredToken("dtable_uuid");
+        return uuid;
     }
     catch(error) {
-        console.error("(seatableController)(getBaseInfo) Error fetching token: ", error);
+        console.error("(seatableController)(getBaseInfo) Error fetching dtable_uuid: ", error);
     }
 }
 
 
-module.exports = { getBaseToken };
+const getBaseInfo = async (req, res) => {
+    const baseToken = await getBaseToken();
+    const baseUUID = await getBaseUUID();
+
+    console.log("Base UUID: ", baseUUID);
+
+    try {
+        const options = {
+            method: 'GET',
+            url: `${urlBase}/api-gateway/api/v2/dtables/${baseUUID}/`,
+            headers: {
+                accept: 'application/json',
+                authorization: `Bearer ${baseToken}`,
+            },
+        };
+
+        const response = await axios(options);
+        res.status(200).json(response.data);
+        return console.log("Successfully fetched base info.");
+    }
+    catch(error) {
+        console.error("(seatableController)(getBaseInfo) Error fetching base info: ", error);
+        res.status(500).json({ error: error.message });
+    }
+}
+
+module.exports = { getBaseInfo };
