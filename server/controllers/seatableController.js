@@ -3,8 +3,10 @@ const axios = require('axios'); //Axios is a promise-based HTTP client for the b
 
 const source = "SeaTable"; //Reference for the token.
 const urlBase = "https://cloud.seatable.io"; //SeaTable server.
-let cachedTables = [];
+
 let cachedBaseInfo = {};
+let cachedTables = [];
+let activeTable = {};
 
 
 
@@ -38,6 +40,7 @@ const fetchStoredToken = async (keyName) => {
         console.error("(seatableController)(fetchToken) Error fetching token: ", error);
     }
 }
+
 
 
 //Function: Fetch and store the base token for the SeaTable API.
@@ -102,6 +105,8 @@ const fetchAndStoreNewBaseToken = async (req, res) => {
     }
 }
 
+
+
 //Function: Get the base_token value.
 const getBaseToken = async () => {
     try {
@@ -112,6 +117,8 @@ const getBaseToken = async () => {
         console.error("(seatableController)(getBaseToken) Error fetching base_token: ", error);
     }
 }
+
+
 
 //Function: Get the base_uuid (also known as dtable_uuid) value.
 const getBaseUUID = async () => {
@@ -125,48 +132,16 @@ const getBaseUUID = async () => {
 }
 
 
+
+//Function: Get the base info from SeaTable. Consists of tables with row/column data.
 const getBaseInfo = async (req, res) => {
-    if(Object.keys(cachedBaseInfo).length !== 0) {
-        console.log("Using cached base info.");
-        res.status(200).json(cachedBaseInfo);
-    }
-    else{
-        const baseToken = await getBaseToken();
-        const baseUUID = await getBaseUUID();
-
-        console.log("Base UUID: ", baseUUID);
-
-        try {
-            const options = {
-                method: 'GET',
-                url: `${urlBase}/api-gateway/api/v2/dtables/${baseUUID}/`,
-                headers: {
-                    accept: 'application/json',
-                    authorization: `Bearer ${baseToken}`,
-                },
-            };
-
-            const response = await axios(options);
-            cachedBaseInfo = response.data;
-            res.status(200).json(response.data);
-            return console.log("Successfully fetched base info.");
-        }
-        catch(error) {
-            console.error("(seatableController)(getBaseInfo) Error fetching base info: ", error);
-            res.status(500).json({ error: error.message });
-        }
-    }
-}
-
-//Function: Get the metadata of the base. This includes the tables with their columns and views, not the data inside.
-const getMetadata = async (req, res) => {
     const baseToken = await getBaseToken();
     const baseUUID = await getBaseUUID();
 
     try {
         const options = {
             method: 'GET',
-            url: `${urlBase}/api-gateway/api/v2/dtables/${baseUUID}/metadata/`,
+            url: `${urlBase}/api-gateway/api/v2/dtables/${baseUUID}/`,
             headers: {
                 accept: 'application/json',
                 authorization: `Bearer ${baseToken}`,
@@ -174,35 +149,33 @@ const getMetadata = async (req, res) => {
         };
 
         const response = await axios(options);
-        console.log("Successfully fetched metadata.");
-        cachedTables = response.data.metadata.tables;
-        return response.data;
+        cachedBaseInfo = response.data;
+        let temp = [];
+        cachedBaseInfo.tables.forEach(table => {
+            temp.push(table.name);
+        })
+        cachedTables = temp;
     }
     catch(error) {
-        console.error("(seatableController)(getMetadata) Error fetching metadata: ", error);
+        console.error("(seatableController)(getBaseInfo) Error fetching base info: ", error);
         res.status(500).json({ error: error.message });
     }
 }
 
+
+//Function: Get the names of the available tables in the SeaTable base.
 const getAvailableTables = async (req, res) => {
-    let tables = [];
     try {
         if(cachedTables.length === 0) {
-            const data = await getMetadata();
-            tables = data.metadata.tables
-            console.log("Fetched tables from database.");
+            console.log("Fetching tables.");
+            await getBaseInfo();
         }
-        else {
-            tables = cachedTables;
-            console.log("Using cached tables.");
-        }
-        
-        console.log("Successfully fetched available tables.");
-        res.status(200).json({success: true, tables });
+        console.log("Using cached tables.");
+        res.status(200).json({ success: true, tables: cachedTables });
     }
     catch(error) {
-        console.error("(seatableController)(getAvailableTables) Error fetching available tables: ", error);
-        res.status(500).json({ error: error.message });
+        console.error("(seatableController)(getAvailableTables) Error fetching tables: ", error);
+        res.status(500).json({ success: false, error: error.message });
     }
 }
 

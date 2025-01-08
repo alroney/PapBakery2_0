@@ -13,7 +13,7 @@ const seatableManager = () => {
           console.log("Tables: ", data);
 
           if(data.success) {
-              setTables(sortTables(data.tables));
+              setTables(data.tables.sort());
           }
       }
       catch(error) {
@@ -21,15 +21,9 @@ const seatableManager = () => {
       }
   };
 
-  const sortTables = (tables) => {
-      return tables.sort((a, b) => {
-          return a.name.localeCompare(b.name);
-      });
-  }
-
   const handleTableSelect = (e) => {
     const tableName = e.target.value;
-    const table = tables.find(table => table.name === tableName);
+    const table = tables.find(table => table === tableName);
     setSelectedTable(table);
   }
 
@@ -41,13 +35,12 @@ const seatableManager = () => {
             <select className='table-select' onChange={handleTableSelect}>
                 <option value='none'>Select a table</option>
                 {tables.map((table, index) => {
-                    return <option key={index} value={table.name}>{table.name}</option>
+                    return <option key={index} value={table}>{table}</option>
                 })}
             </select>
             {selectedTable && (
                 <div className='table-info'>
-                    <h2>Table: {selectedTable.name}</h2>
-                    <p>ID: {selectedTable._id}</p>
+                    <h2>Table: {selectedTable}</h2>
                 </div>
             )}
         </div>
