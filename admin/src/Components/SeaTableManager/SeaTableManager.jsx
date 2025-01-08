@@ -4,6 +4,7 @@ const apiBase = "http://localhost:4000/api";
 
 const seatableManager = () => {
     const [tables, setTables] = useState([]);
+    const [selectedTable, setSelectedTable] = useState(null);
 
     const fetchTables = async () => {
       try {
@@ -26,16 +27,29 @@ const seatableManager = () => {
       });
   }
 
+  const handleTableSelect = (e) => {
+    const tableName = e.target.value;
+    const table = tables.find(table => table.name === tableName);
+    setSelectedTable(table);
+  }
+
   return (
     <div className='seatable-manager'>
         <h1>SeaTable</h1>
-        <button onClick={fetchTables}>Show Tables</button>
+        <button onClick={fetchTables}>List Available Tables</button>
         <div className='tables'>
-            <select>
+            <select className='table-select' onChange={handleTableSelect}>
+                <option value='none'>Select a table</option>
                 {tables.map((table, index) => {
-                    return <option key={index}>{table.name}</option>
+                    return <option key={index} value={table.name}>{table.name}</option>
                 })}
             </select>
+            {selectedTable && (
+                <div className='table-info'>
+                    <h2>Table: {selectedTable.name}</h2>
+                    <p>ID: {selectedTable._id}</p>
+                </div>
+            )}
         </div>
     </div>
   )

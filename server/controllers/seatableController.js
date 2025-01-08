@@ -3,6 +3,7 @@ const axios = require('axios'); //Axios is a promise-based HTTP client for the b
 
 const source = "SeaTable"; //Reference for the token.
 const urlBase = "https://cloud.seatable.io"; //SeaTable server.
+let tablesList = [];
 
 //Function: Fetch Stored Token from Mongo.
 const fetchStoredToken = async (keyName) => {
@@ -164,6 +165,7 @@ const getMetadata = async (req, res) => {
 
         const response = await axios(options);
         console.log("Successfully fetched metadata.");
+        tablesList = response.data.metadata.tables;
         return response.data;
     }
     catch(error) {
@@ -173,16 +175,18 @@ const getMetadata = async (req, res) => {
 }
 
 const getAvailableTables = async (req, res) => {
-    const data = await getMetadata();
+    let tables = [];
     try {
-        const tables = data.metadata.tables;
-        // const availableTables = tables.map(table => {
-        //     return {
-        //         name: table.name,
-        //         views: table.views,
-        //         columns: table.columns,
-        //     }
-        // });
+        if(tablesList.length === 0) {
+            const data = await getMetadata();
+            tables = data.metadata.tables
+            console.log("Fetched tables from database.");
+        }
+        else {
+            tables = tablesList;
+            console.log("Using cached tables.");
+        }
+        
         console.log("Successfully fetched available tables.");
         res.status(200).json({success: true, tables });
     }
