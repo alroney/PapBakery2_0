@@ -163,7 +163,6 @@ const getMetadata = async (req, res) => {
         };
 
         const response = await axios(options);
-        res.status(200).json(response.data);
         console.log("Successfully fetched metadata.");
         return response.data;
     }
@@ -173,4 +172,24 @@ const getMetadata = async (req, res) => {
     }
 }
 
-module.exports = { getMetadata };
+const getAvailableTables = async (req, res) => {
+    const data = await getMetadata();
+    try {
+        const tables = data.metadata.tables;
+        // const availableTables = tables.map(table => {
+        //     return {
+        //         name: table.name,
+        //         views: table.views,
+        //         columns: table.columns,
+        //     }
+        // });
+        console.log("Successfully fetched available tables.");
+        res.status(200).json({success: true, tables });
+    }
+    catch(error) {
+        console.error("(seatableController)(getAvailableTables) Error fetching available tables: ", error);
+        res.status(500).json({ error: error.message });
+    }
+}
+
+module.exports = { getAvailableTables };

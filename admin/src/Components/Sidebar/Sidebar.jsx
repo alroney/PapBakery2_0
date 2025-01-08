@@ -21,10 +21,10 @@ const Sidebar = () => {
             </div>
         </Link>
 
-        <Link to={'/manageshape'} style={{textDecoration: "none"}}>
+        <Link to={'/seatableManager'} style={{textDecoration: "none"}}>
             <div className="sidebar-item">
               <img src={list_product_icon} alt="" />
-              <p>Manage Shape</p>
+              <p>SeaTable Manager</p>
             </div>
         </Link>
     </div>
