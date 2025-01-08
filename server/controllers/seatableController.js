@@ -6,7 +6,7 @@ const urlBase = "https://cloud.seatable.io"; //SeaTable server.
 
 let cachedBaseInfo = {};
 let cachedTables = [];
-let activeTable = {};
+let cachedActiveTable = {};
 
 
 
@@ -179,4 +179,52 @@ const getAvailableTables = async (req, res) => {
     }
 }
 
-module.exports = { getAvailableTables, getBaseInfo };
+
+//Function: Retrieve the current table selected and return the data in the table (rows/columns).
+const getDataInTable = async (req, res) => {
+    try {
+        if(Object.keys(cachedBaseInfo).length === 0) {
+            console.log("No data is cached, fetching BaseInfo.");
+            await getBaseInfo();
+        }
+
+        const tableSelected = req.params.tableName;
+        const tableData = cachedBaseInfo.tables.find(table => table.name === tableSelected);
+
+        if(!tableData) {
+            console.log("Table not found.");
+            res.status(404).json({ error: `Table "${tableSelected}" not found.` });
+        }
+
+        const { columns, rows } = tableData;
+    }
+    catch(error) {
+        console.error("(seatableController)(getDataInTable) Error fetching data in table: ", error);
+        res.status(500).json({ error: error.message });
+    }
+}
+
+const getTableData = async (req, res) => {
+    try {
+        const baseToken = await getBaseToken();
+        const baseUUID = await getBaseUUID();
+        const { tableName } = req.params;
+        const options = {
+            method: 'GET',
+            url: `${urlBase}/api-gateway/api/v2/dtables/${baseUUID}/rows/?table_name=${tableName}&convert_keys=true`,
+            headers: {
+                accept: 'application/json',
+                authorization: `Bearer ${baseToken}`,
+            },
+        };
+
+        const response = await axios(options);
+        res.status(200).json(response.data);
+    }
+    catch(error) {
+        console.error("(seatableController)(getTableData) Error fetching table data: ", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+module.exports = { getAvailableTables, getBaseInfo, getTableData };

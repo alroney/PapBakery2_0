@@ -1,10 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import './SeaTableManager.css';
+import DataTable from './DataTable/DataTable';
 const apiBase = "http://localhost:4000/api";
 
+
 const seatableManager = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
     const [tables, setTables] = useState([]);
-    const [selectedTable, setSelectedTable] = useState(null);
+    const [selectedTable, setSelectedTable] = useState('none');
+
+
+    useEffect(() => {
+      if(selectedTable !== 'none'){
+        console.log(`Selected table: ${selectedTable}`);
+      }
+    }, [selectedTable]);
+
 
     const fetchTables = async () => {
       try {
@@ -22,28 +34,24 @@ const seatableManager = () => {
   };
 
   const handleTableSelect = (e) => {
-    const tableName = e.target.value;
-    const table = tables.find(table => table === tableName);
-    setSelectedTable(table);
+    setSelectedTable(e.target.value);
   }
+
+  
 
   return (
     <div className='seatable-manager'>
         <h1>SeaTable</h1>
         <button onClick={fetchTables}>List Available Tables</button>
-        <div className='tables'>
-            <select className='table-select' onChange={handleTableSelect}>
+        <div className='table-selection'>
+            <select className='table-select' onChange={handleTableSelect} value={selectedTable}>
                 <option value='none'>Select a table</option>
                 {tables.map((table, index) => {
                     return <option key={index} value={table}>{table}</option>
                 })}
             </select>
-            {selectedTable && (
-                <div className='table-info'>
-                    <h2>Table: {selectedTable}</h2>
-                </div>
-            )}
         </div>
+        <DataTable tableName={selectedTable} />
     </div>
   )
 }
