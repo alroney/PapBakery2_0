@@ -147,4 +147,30 @@ const getBaseInfo = async (req, res) => {
     }
 }
 
-module.exports = { getBaseInfo };
+//Function: Get the metadata of the base. This includes the tables with their columns and views, not the data inside.
+const getMetadata = async (req, res) => {
+    const baseToken = await getBaseToken();
+    const baseUUID = await getBaseUUID();
+
+    try {
+        const options = {
+            method: 'GET',
+            url: `${urlBase}/api-gateway/api/v2/dtables/${baseUUID}/metadata/`,
+            headers: {
+                accept: 'application/json',
+                authorization: `Bearer ${baseToken}`,
+            },
+        };
+
+        const response = await axios(options);
+        res.status(200).json(response.data);
+        console.log("Successfully fetched metadata.");
+        return response.data;
+    }
+    catch(error) {
+        console.error("(seatableController)(getMetadata) Error fetching metadata: ", error);
+        res.status(500).json({ error: error.message });
+    }
+}
+
+module.exports = { getMetadata };
