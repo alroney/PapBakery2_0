@@ -30,7 +30,9 @@ const DataTable = ({tableName}) => {
         
     }, [tableName]);
 
-    const headers = Array.isArray(data) && data.length > 0 ? Object.keys(data[0]).filter(key => !key.startsWith('_')) : [];
+    const headers = Array.isArray(data) && data.length > 0 
+        ? Object.keys(data[0]).filter(key => !key.startsWith('_')) //Filter out keys that start with '_'.
+        : [];
 
     return (
     <table border="1" style={{ width: '100%', borderCollapse: 'collapse' }}>

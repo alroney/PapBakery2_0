@@ -26,14 +26,14 @@ const fetchStoredToken = async (keyName) => {
                 }
                 else {
                     console.log(`${source} ${keyName} found but expired.`);
-                    fetchAndStoreNewBaseToken();
+                    await fetchAndStoreNewBaseToken();
                 }
             }
         }
 
         else {
             console.log(`(seatableController)(fetchStoredToken) ${source} ${keyName} not found.`);
-            fetchAndStoreNewBaseToken();
+            await fetchAndStoreNewBaseToken();
         }
     }
     catch(error) {
@@ -59,7 +59,7 @@ const fetchAndStoreNewBaseToken = async (req, res) => {
     try {
         const response = await axios(options);
         const { access_token, dtable_uuid } = response.data;
-        const expiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); //3 days.
+        const expiresAt = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000); //2 days.
 
         //Prepare bulk operations for MongoDB to update the token.
         const operations = [
@@ -204,6 +204,9 @@ const getDataInTable = async (req, res) => {
     }
 }
 
+
+
+//Function: Get the data from a table specified by the table name in the SeaTable base, given by a select component in the frontend.
 const getTableData = async (req, res) => {
     try {
         const baseToken = await getBaseToken();
@@ -227,4 +230,8 @@ const getTableData = async (req, res) => {
     }
 }
 
-module.exports = { getAvailableTables, getBaseInfo, getTableData };
+
+
+
+
+module.exports = { getAvailableTables, getBaseInfo, getTableData, fetchAndStoreNewBaseToken };
