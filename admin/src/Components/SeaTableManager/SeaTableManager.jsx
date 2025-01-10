@@ -42,7 +42,7 @@ const seatableManager = () => {
   return (
     <div className='seatable-manager'>
         <h1>SeaTable</h1>
-        <button onClick={fetchTables}>List Available Tables</button>
+        <button onClick={fetchTables}>Update Available Tables</button>
         <div className='table-selection'>
             <select className='table-select' onChange={handleTableSelect} value={selectedTable}>
                 <option value='none'>Select a table</option>

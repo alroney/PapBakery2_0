@@ -6,7 +6,12 @@ const urlBase = "https://cloud.seatable.io"; //SeaTable server.
 
 let cachedBaseInfo = {};
 let cachedTables = [];
+let cachedTablesData = [{}]; //Array to store the data of the tables
 let cachedActiveTable = {};
+let tempDate = 0; //Temporary variable to compare another date with the current date.
+let tempCount = 0; //Temporary variable to count the number of times a function is called.
+let tempBT = ""; //Temporary variable to store the base token.
+let tempUUID = ""; //Temporary variable to store the base UUID. 
 
 
 
@@ -20,13 +25,16 @@ const fetchStoredToken = async (keyName) => {
                 return token.keyValue;
             }
             else {
-                if(new Date() < token.expiresAt) {
+                const currentTime = new Date();
+                const timeDiff = Math.abs(currentTime - token.expiresAt) / 1000 / 60 / 60 / 24; //Convert to days.
+
+                if(timeDiff < 2) { //If the token is not expired (less than 2 days).
                     console.log(`${source} ${keyName} with expiration found and not expired.`);
                     return token.keyValue;
                 }
                 else {
                     console.log(`${source} ${keyName} found but expired.`);
-                    await fetchAndStoreNewBaseToken();
+                    await fetchAndStoreNewBaseToken(); //Fetch and store a new token.
                 }
             }
         }
@@ -54,7 +62,7 @@ const fetchAndStoreNewBaseToken = async (req, res) => {
             accept: 'application/json',
             authorization: `Bearer ${apiKey}`,
         }
-    }
+    };
 
     try {
         const response = await axios(options);
@@ -171,6 +179,8 @@ const getAvailableTables = async (req, res) => {
             await getBaseInfo();
         }
         console.log("Using cached tables.");
+        cacheAllTablesData();
+        
         res.status(200).json({ success: true, tables: cachedTables });
     }
     catch(error) {
@@ -179,30 +189,78 @@ const getAvailableTables = async (req, res) => {
     }
 }
 
+//Function: Fetch the data of a table (specified by the table name) from the SeaTable base.
+const fetchTableData = async (tableName, next) => {
+    const currentTime = new Date();
+    const timeDiff = Math.abs(currentTime - tempDate) / 1000 / 60; // Convert to minutes
+    
+    //If time difference is greater than 10 minutes, check the base token again. This is to prevent unnecessary token checks. Each time this is called.
+    if (timeDiff > 10) {
+        tempBT = await getBaseToken();
+        tempUUID = await getBaseUUID();
+
+        tempDate = currentTime;
+    }
+
+    //Prepare the options for the axios request.
+    const options = {
+        method: 'GET',
+        url: `${urlBase}/api-gateway/api/v2/dtables/${tempUUID}/rows/?table_name=${tableName}&convert_keys=true`,
+        headers: {
+            accept: 'application/json',
+            authorization: `Bearer ${tempBT}`,
+        },
+    };
+
+    try {
+        const response = await axios(options);
+        return response.data;
+    }
+    catch(error) {
+        console.error("(seatableController)(fetchTableData) Error fetching table data: ", error);
+        next(error);
+    }
+}
+
+//Function: Retrieve list of available tables and cache the data of each table, calling fetchTableData for each table.
+const cacheAllTablesData = async () => {
+    try {
+        cachedTablesData.length = 0; //Clear cachedTablesData to avoid duplicates.
+
+        //Iterate over cachedTables and fetch data for each table.
+        for(const tableName of cachedTables) {
+            try {
+                const tableData = await fetchTableData(tableName);
+                cachedTablesData.push({
+                    tableName: tableName, //Store the table name.
+                    data: tableData, //Store the fetched data.
+                });
+            }
+            catch(error) {
+                console.error(`(seatableController)(loadTableData) Error fetching ${tableName} table data `);
+            }
+            
+        }
+
+        console.log("All tables cached successfully.");
+        //Clear all the temp variables.
+        tempDate = 0;
+        tempCount = 0;
+        tempBT = "";
+        tempUUID = "";
+    }
+    catch(error) {
+        console.error("(seatableController)(loadTableData) Error loading table data: ", error);
+    }
+}
 
 
 //Function: Get the data from a table specified by the table name in the SeaTable base, given by a select component in the frontend.
 const getTableData = async (req, res) => {
-    try {
-        const baseToken = await getBaseToken();
-        const baseUUID = await getBaseUUID();
-        const { tableName } = req.params;
-        const options = {
-            method: 'GET',
-            url: `${urlBase}/api-gateway/api/v2/dtables/${baseUUID}/rows/?table_name=${tableName}&convert_keys=true`,
-            headers: {
-                accept: 'application/json',
-                authorization: `Bearer ${baseToken}`,
-            },
-        };
+    const { tableName } = req.params;
+    const tableData = cachedTablesData.find(table => table.tableName === tableName);
 
-        const response = await axios(options);
-        res.status(200).json(response.data);
-    }
-    catch(error) {
-        console.error("(seatableController)(getTableData) Error fetching table data: ", error);
-        res.status(500).json({ success: false, error: error.message });
-    }
+    res.status(200).json(tableData.data);
 }
 
 
@@ -240,8 +298,7 @@ const updateRows = async (req, res) => {
         const baseToken = await getBaseToken();
         const baseUUID = await getBaseUUID();
         const { tableName, rows } = req.body;
-        console.log("Rows: ", rows);
-        console.log
+
         const options = {
             method: 'PUT',
             url: `${urlBase}/api-gateway/api/v2/dtables/${baseUUID}/rows/`,
@@ -257,6 +314,11 @@ const updateRows = async (req, res) => {
         };
 
         const response = await axios(options);
+
+        //Update the cached table data with the new data to avoid fetching the data again.
+        const tableData = cachedTablesData.find(table => table.tableName === tableName); //Find the table with the matching tableName.
+        tableData.data = response.data; //
+
         res.status(200).json(response.data);
     }
     catch(error) {
