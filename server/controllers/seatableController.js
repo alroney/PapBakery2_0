@@ -180,31 +180,6 @@ const getAvailableTables = async (req, res) => {
 }
 
 
-//Function: Retrieve the current table selected and return the data in the table (rows/columns).
-const getDataInTable = async (req, res) => {
-    try {
-        if(Object.keys(cachedBaseInfo).length === 0) {
-            console.log("No data is cached, fetching BaseInfo.");
-            await getBaseInfo();
-        }
-
-        const tableSelected = req.params.tableName;
-        const tableData = cachedBaseInfo.tables.find(table => table.name === tableSelected);
-
-        if(!tableData) {
-            console.log("Table not found.");
-            res.status(404).json({ error: `Table "${tableSelected}" not found.` });
-        }
-
-        const { columns, rows } = tableData;
-    }
-    catch(error) {
-        console.error("(seatableController)(getDataInTable) Error fetching data in table: ", error);
-        res.status(500).json({ error: error.message });
-    }
-}
-
-
 
 //Function: Get the data from a table specified by the table name in the SeaTable base, given by a select component in the frontend.
 const getTableData = async (req, res) => {
@@ -231,7 +206,64 @@ const getTableData = async (req, res) => {
 }
 
 
+const runSQL = async (req, res) => {
+    try {
+        const baseToken = await getBaseToken();
+        const baseUUID = await getBaseUUID();
+        const { sql } = req.body;
+        const options = {
+            method: 'POST',
+            url: `${urlBase}/api-gateway/api/v2/dtables/${baseUUID}/sql`,
+            headers: {
+                accept: 'application/json',
+                'content-type': 'application/json',
+                authorization: `Bearer ${baseToken}`,
+            },
+            data: {
+                sql: sql,
+                convert_keys: true,
+            },
+        };
+
+        const response = await axios(options);
+        res.status(200).json(response.data.results);
+    }
+    catch(error) {
+        console.error("(seatableController)(runSQL) Error running SQL: ", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
 
 
+const updateRows = async (req, res) => {
+    try {
+        const baseToken = await getBaseToken();
+        const baseUUID = await getBaseUUID();
+        const { tableName, rows } = req.body;
+        console.log("Rows: ", rows);
+        console.log
+        const options = {
+            method: 'PUT',
+            url: `${urlBase}/api-gateway/api/v2/dtables/${baseUUID}/rows/`,
+            headers: {
+                accept: 'application/json',
+                'content-type': 'application/json',
+                authorization: `Bearer ${baseToken}`,
+            },
+            data: {
+                table_name: tableName,
+                updates: rows, //Use the rows object to update the rows. "updates" is expected by the SeaTable API.
+            },
+        };
 
-module.exports = { getAvailableTables, getBaseInfo, getTableData, fetchAndStoreNewBaseToken };
+        const response = await axios(options);
+        res.status(200).json(response.data);
+    }
+    catch(error) {
+        console.error("(seatableController)(updateRows) Error updating rows: ", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+
+module.exports = { getAvailableTables, getBaseInfo, getTableData, fetchAndStoreNewBaseToken, runSQL, updateRows };
