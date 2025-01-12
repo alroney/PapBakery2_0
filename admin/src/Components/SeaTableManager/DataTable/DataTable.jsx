@@ -98,6 +98,7 @@ const DataTable = ({tableName}) => {
             console.error("Error saving edit: ", error);
         }
     };
+    
 
     const cancelEdit = () => {
         setIsEditing(false);
@@ -150,6 +151,7 @@ const DataTable = ({tableName}) => {
             </table>
             {isEditing && tableName !== 'none' ? (
                 <div>
+                    <button onClick={fixCalculations}>Fix Calculations</button>
                     <img onClick={saveEdit} src={save_icon} alt="Save" className="save-icon"/>
                     <img onClick={cancelEdit} src={cancel_icon} alt="Cancel" className="cancel-icon"/>
                 </div>

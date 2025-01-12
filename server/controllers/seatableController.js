@@ -171,6 +171,7 @@ const getBaseInfo = async (req, res) => {
 }
 
 
+
 //Function: Get the names of the available tables in the SeaTable base.
 const getAvailableTables = async (req, res) => {
     try {
@@ -188,6 +189,8 @@ const getAvailableTables = async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 }
+
+
 
 //Function: Fetch the data of a table (specified by the table name) from the SeaTable base.
 const fetchTableData = async (tableName, next) => {
@@ -221,6 +224,8 @@ const fetchTableData = async (tableName, next) => {
         next(error);
     }
 }
+
+
 
 //Function: Retrieve list of available tables and cache the data of each table, calling fetchTableData for each table.
 const cacheAllTablesData = async () => {
@@ -292,7 +297,7 @@ const runSQL = async (req, res) => {
     }
 }
 
-
+//Function: Update the specified table's rows in the SeaTable base.
 const updateRows = async (req, res) => {
     try {
         const baseToken = await getBaseToken();
@@ -317,7 +322,7 @@ const updateRows = async (req, res) => {
 
         //Update the cached table data with the new data to avoid fetching the data again.
         const tableData = cachedTablesData.find(table => table.tableName === tableName); //Find the table with the matching tableName.
-        tableData.data = response.data; //
+        tableData.data = response.data;
 
         res.status(200).json(response.data);
     }
