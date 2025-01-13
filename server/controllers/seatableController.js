@@ -262,14 +262,10 @@ const cacheAllTablesData = async () => {
 const getTableData = async (req, res) => {
     try {
         const { tableName } = req.params;
-        let tableData;
-        do {
-            tableData = cachedTablesData.find(table => table.tableName === tableName);
-            if(tableData === undefined) {
-                console.log("Table data not found. Fetching tables.");
-                await getAvailableTables();
-            }
-        } while(tableData === undefined);
+        if(cachedTablesData.length === 0) {
+            await getAvailableTables();
+        }
+        const tableData = cachedTablesData.find(table => table.tableName === tableName);
         res.status(200).json(tableData.data);
     }
     catch(error) {
@@ -341,13 +337,48 @@ const updateRows = async (req, res) => {
     }
 }
 
+const calculateCategoryIngredientCost = async () => {
+    if(cachedTablesData.length === 0) {
+        await getAvailableTables();
+    }
 
-const calculateCategoryIngredientCost = () => {
-    const ingredientTableData = cachedTablesData.find(table => table.tableName === "Ingredient");
-    const categoryIngredientTableData = cachedTablesData.find(table => table.tableName === "CategoryIngredient");
+    try{
+        const ingD = cachedTablesData.find(table => table.tableName === "Ingredient");
+        const cIngD = cachedTablesData.find(table => table.tableName === "CategoryIngredient");
+        const ingredients = ingD.data.rows;
+        const categoryIngredients = cIngD.data.rows;
+        return categoryIngredients.map((row) => {
+            const ingredient = ingredients.find((ingredient) => ingredient.ShortName === row.IngredientName);
 
-    
+            if(!ingredient) {
+                console.error(`(seatableController)(calculateCategoryIngredientCost) Ingredient ${row.IngredientName} not found.`);
+                return {...row, Cost: "Error: Ingredient not found"};
+            }
+
+            const { UnitType, UnitSize, PurchaseCost } = ingredient;
+            const convertedValue = convertUnits(UnitSize, UnitType, "grams");
+            const costPerUnit = PurchaseCost / convertedValue;
+            const cost = (costPerUnit * row.Quantity) || 0;
+
+            return {...row, Cost: cost};
+
+        });
+    }
+    catch(error) {
+        console.error("(seatableController)(calculateCategoryIngredientCost) Error calculating category ingredient cost: ", error);
+    }
 }
 
+const calculate = async (req, res) => {
+    try {
+        const result = await calculateCategoryIngredientCost();
+        res.status(200).json(result);
+    }
+    catch (error) {
+        console.error("Error calculating: ", error);
+        res.status(500).json({ success: false, error: error.message });    
+    }
 
-module.exports = { getAvailableTables, getBaseInfo, getTableData, fetchAndStoreNewBaseToken, runSQL, updateRows };
+}
+
+module.exports = { getAvailableTables, getBaseInfo, getTableData, fetchAndStoreNewBaseToken, runSQL, updateRows, calculate };

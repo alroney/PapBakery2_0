@@ -30,11 +30,10 @@ const unitNamesToAbbreviations = {
 
 //Function: normalize unit names by removing plurality, spaces, and converting to lowercase
 const normalizeUnitName = (unit) => {
-    return unit
-        .toLowerCase()
-        .replace(/\s+/g, '_')
-        .replace(/s$|es$/, '')
-        .replace(/ies$/, 'y');
+    console.log("unit: ", unit);
+    const normUnit = unit.toLowerCase().replace(/\s+/g, '_').replace(/s$/, '').replace(/ies$/, 'y');
+    console.log("Normalized Unit: ", normUnit);
+    return normUnit;
 }
 
 //Function: check if a unit is valid and return its abbreviation
@@ -87,7 +86,10 @@ const convertUnit = (value, fromUnit, toUnit) => {
 
     try {
         if (fromFactor && toFactor) {
-            return value * (unitConversionFactors[fromFactor] / unitConversionFactors[toFactor]);
+            //Convert the value to the base unit
+            const convertedValue = value * (unitConversionFactors[fromFactor] / unitConversionFactors[toFactor]);
+            console.log(`${value} ${fromUnit} is equal to ${convertedValue} ${toUnit}`);
+            return convertedValue;
         }
         throw new Error("Invalid unit provided");
     }

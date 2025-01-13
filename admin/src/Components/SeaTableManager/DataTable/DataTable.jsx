@@ -72,6 +72,18 @@ const DataTable = ({tableName}) => {
         setEditedData([...data]);
     };
 
+    const recalculate = async () => {
+        try {
+            const response = await fetch(`${apiBase}/seatable/calculate`);
+
+            const data = await response.json();
+            setEditedData(data);
+        }
+        catch(error) {
+            console.error("Error recalculating: ", error);
+        }
+    }
+
     const saveEdit = async () => {
         try {
             const formattedRows = editedData.map((row) => ({
@@ -151,7 +163,11 @@ const DataTable = ({tableName}) => {
             </table>
             {isEditing && tableName !== 'none' ? (
                 <div>
-                    <button onClick={fixCalculations}>Fix Calculations</button>
+                    {tableName === 'CategoryIngredient' && (
+                        <button onClick={recalculate} className="recalculate-button">
+                            Recalculate
+                        </button>
+                    )}
                     <img onClick={saveEdit} src={save_icon} alt="Save" className="save-icon"/>
                     <img onClick={cancelEdit} src={cancel_icon} alt="Cancel" className="cancel-icon"/>
                 </div>
