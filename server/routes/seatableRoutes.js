@@ -7,9 +7,9 @@ router.get('/tables', getAvailableTables);
 router.get('/baseinfo', getBaseInfo);
 router.get('/table/:tableName', getTableData);
 router.get('/refreshToken', fetchAndStoreNewBaseToken);
-router.get('/calculate', calculate);
 
 router.post('/runsql', runSQL);
+router.post('/calculate', calculate);
 
 router.put('/update', updateRows);
 

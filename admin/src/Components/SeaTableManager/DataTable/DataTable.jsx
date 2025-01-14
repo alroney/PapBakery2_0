@@ -39,9 +39,13 @@ const DataTable = ({tableName}) => {
         
     }, [tableName]);
 
+
+    
     const handleSQLChange = (e) => {
         setSQL(e.target.value);
     };
+
+
 
     const runSQL = async () => {
         try {
@@ -61,20 +65,33 @@ const DataTable = ({tableName}) => {
         }
     };
 
+
+
     const handleCellChange = (rowIndex, header, value) => {
         const updatedData = [...editedData];
         updatedData[rowIndex][header] = value;
         setEditedData(updatedData);
     };
 
+
+
     const startEdit = () => {
         setIsEditing(true);
         setEditedData([...data]);
     };
 
+
+
     const recalculate = async () => {
         try {
-            const response = await fetch(`${apiBase}/seatable/calculate`);
+            const response = await fetch(`${apiBase}/seatable/calculate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({tableName}),
+            }
+            );
 
             const data = await response.json();
             setEditedData(data);
@@ -83,6 +100,8 @@ const DataTable = ({tableName}) => {
             console.error("Error recalculating: ", error);
         }
     }
+
+
 
     const saveEdit = async () => {
         try {
@@ -163,7 +182,7 @@ const DataTable = ({tableName}) => {
             </table>
             {isEditing && tableName !== 'none' ? (
                 <div>
-                    {tableName === 'CategoryIngredient' && (
+                    {(tableName === 'CategoryIngredient' || tableName === 'FlavorIngredient') && (
                         <button onClick={recalculate} className="recalculate-button">
                             Recalculate
                         </button>
@@ -173,7 +192,10 @@ const DataTable = ({tableName}) => {
                 </div>
                 ) : (
                 <div>
-                    <img onClick={() => {startEdit()}} src={edit_icon} alt='Edit' className="edit-icon"/>
+                    {data.length > 0 && (
+                        <img onClick={() => {startEdit()}} src={edit_icon} alt='Edit' className="edit-icon"/>
+                    )}
+                    
                 </div>
                 )    
             }
