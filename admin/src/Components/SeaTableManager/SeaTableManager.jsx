@@ -37,6 +37,16 @@ const seatableManager = () => {
     setSelectedTable(e.target.value);
   }
 
+  const test = async () => {
+    try {
+      const response = await fetch(`${apiBase}/seatable/test`);
+      const data = await response.json();
+      console.log("Test Data: ", data);
+    }
+    catch(error) {
+      console.error("Error testing: ", error);
+    }
+  }
   
 
   return (
@@ -50,6 +60,9 @@ const seatableManager = () => {
                     return <option key={index} value={table}>{table}</option>
                 })}
             </select>
+        </div>
+        <div>
+            <button onClick={test}>Test Maps</button>
         </div>
         <DataTable tableName={selectedTable} />
     </div>

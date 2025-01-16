@@ -8,11 +8,9 @@ const urlBase = "https://cloud.seatable.io"; //SeaTable server.
 let cachedBaseInfo = {};
 let cachedTables = [];
 let cachedTablesData = [{}]; //Array to store the data of the tables
-let cachedActiveTable = {};
 let tempDate = 0; //Temporary variable to compare another date with the current date.
-let tempCount = 0; //Temporary variable to count the number of times a function is called.
 let tempBT = ""; //Temporary variable to store the base token.
-let tempUUID = ""; //Temporary variable to store the base UUID. 
+let tempUUID = ""; //Temporary variable to store the base UUID.
 
 
 
@@ -226,11 +224,13 @@ const fetchTableData = async (tableName, next) => {
 
 //Function: Retrieve list of available tables and cache the data of each table, calling fetchTableData for each table.
 const cacheAllTablesData = async () => {
+    let ctd;
+    let ct = cachedTables;
     try {
         cachedTablesData.length = 0; //Clear cachedTablesData to avoid duplicates.
 
         //Iterate over cachedTables and fetch data for each table.
-        for(const tableName of cachedTables) {
+        for(const tableName of ct) {
             try {
                 const tableData = await fetchTableData(tableName);
                 cachedTablesData.push({
@@ -245,11 +245,13 @@ const cacheAllTablesData = async () => {
         }
 
         console.log("All tables cached successfully.");
+        ctd = cachedTablesData;
         //Clear all the temp variables.
         tempDate = 0;
         tempCount = 0;
         tempBT = "";
         tempUUID = "";
+        return ctd;
     }
     catch(error) {
         console.error("(seatableController)(loadTableData) Error loading table data: ", error);
@@ -271,7 +273,6 @@ const getTableData = async (req, res) => {
         console.error("(seatableController)(getTableData) Error getting table data: ", error);
         res.status(500).json({ success: false, error: error.message });
     }
-    
 }
 
 
@@ -393,4 +394,9 @@ const calculate = async (req, res) => {
 }
 
 
-module.exports = { getAvailableTables, getBaseInfo, getTableData, fetchAndStoreNewBaseToken, runSQL, updateRows, calculate };
+const getCachedTablesData = () => {
+    const ctd = cachedTablesData;
+    return ctd;
+}
+
+module.exports = { getAvailableTables, getBaseInfo, getTableData, fetchAndStoreNewBaseToken, runSQL, updateRows, calculate, getCachedTablesData };
