@@ -1,8 +1,6 @@
-const Token = require('../models/tokenSchema'); //Import the SeaTable token model.
 const axios = require('axios'); //Axios is a promise-based HTTP client for the browser and Node.js.
 const convertUnits = require('../utils/unitConversion'); //Converts units of measurement.
-
-const source = "SeaTable"; //Reference for the token.
+const { fetchStoredToken, getBaseTokenAndUUID, getBaseInfo } = require('./seatableControllers/stcTokener'); //Import functions from tokenController.js.
 const urlBase = "https://cloud.seatable.io"; //SeaTable server.
 
 let cachedBaseInfo = {};
@@ -14,172 +12,28 @@ let tempUUID = ""; //Temporary variable to store the base UUID.
 
 
 
-//Function: Fetch Stored Token from Mongo.
-const fetchStoredToken = async (keyName) => {
-    try {
-        const token = await Token.findOne({ source: source, keyName: keyName });
-        let needsRefresh = false;
-
-        if(token) {
-            if(token.expiresAt === null || token.expiresAt === undefined) {
-                console.log(`${source} ${keyName} found.`);
-            }
-            else {
-                const currentTime = new Date();
-
-                if(currentTime > token.expiresAt) { //If the token is  expired (current time is greater than the expiration time of 2 days).
-                    console.log(`${source} ${keyName} found but expired.`);
-                    await fetchAndStoreNewBaseToken(); //Fetch and store a new token.
-                    needsRefresh = true; //Set the flag to true to indicate that the token needs to be refreshed to get the new token value.
-                }
-                else {
-                    console.log(`${source} ${keyName} with expiration found and not expired.`);
-                }
-            }
-        }
-        else {
-            console.log(`(seatableController)(fetchStoredToken) ${source} ${keyName} not found.`);
-            await fetchAndStoreNewBaseToken();
-            needsRefresh = true;
-        }
-
-        //If the token needs to be refreshed, fetch the new token.
-        if(needsRefresh) {
-            const newToken = await Token.findOne({ source: source, keyName: keyName });
-            return newToken.keyValue;
-        }
-        else {
-            return token.keyValue;
-        }
-
-    }
-    catch(error) {
-        console.error("(seatableController)(fetchToken) Error fetching token: ", error);
-    }
-}
-
-
-
-//Function: Fetch and store the base token for the SeaTable API.
-const fetchAndStoreNewBaseToken = async (req, res) => {
-    const url = `${urlBase}/api/v2.1/dtable/app-access-token/`;
-    const apiKey = process.env.SEATABLE_API_TOKEN;
-    const options = {
-        method: 'GET',
-        url: url,
-        headers: {
-            accept: 'application/json',
-            authorization: `Bearer ${apiKey}`,
-        }
-    };
-
-    try {
-        const response = await axios(options);
-        const { access_token, dtable_uuid } = response.data;
-        const expiresAt = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000); //2 days.
-
-        //Prepare bulk operations for MongoDB to update the token.
-        const operations = [
-            //Upsert the base token.
-            {
-                updateOne: {
-                    filter: { source: source, keyName: "base_token" },
-                    update: {
-                        $set: {
-                            keyValue: access_token,
-                            expiresAt: expiresAt,
-                        },
-                    },
-                    upsert: true, //Create if it doesn't exist.
-                },
-            },
-            //Upsert the dtable_uuid.
-            {
-                updateOne: {
-                    filter: { source: source, keyName: "dtable_uuid" },
-                    update: {
-                        $set: {
-                            keyValue: dtable_uuid,
-                        },
-                    },
-                    upsert: true,
-                },
-            }
-        ]
-
-        //Execute the bulk write.
-        try {
-            await Token.bulkWrite(operations);
-            console.log("SeaTable Tokens update successfully.");
-        }
-        catch(error) {
-            console.error("(seatableController)(fetchAndStoreNewBaseToken) Error storing token using bulkWrite: ", error);
-        }
-    }
-    catch(error) {
-        console.error("Error fetching data: ", error);
-        res.status(500).json({ error: error.message });
-    }
-}
-
-//Function: Get the base token and UUID from the mongoDB.
-const getBaseTokenAndUUID = async () => {
-    try {
-        tempDate = new Date(); //Set the tempDate to the current date.
-        const baseToken = await fetchStoredToken("base_token");
-        const baseUUID = await fetchStoredToken("dtable_uuid");
-
-        tempBT = baseToken; //Set the tempBT to the baseToken.
-        tempUUID = baseUUID; //Set the tempUUID to the baseUUID.
-
-        return { baseToken, baseUUID };
-    }
-    catch(error) {
-        console.error("(seatableController)(getBaseTokenAndUUID) Error fetching base token and UUID: ", error);
-    }
-}
-
-
-
-//Function: Get the base info from SeaTable. Consists of tables with row/column data.
-const getBaseInfo = async (req, res) => {
-    const { baseToken, baseUUID } = await getBaseTokenAndUUID();
-
-    try {
-        const options = {
-            method: 'GET',
-            url: `${urlBase}/api-gateway/api/v2/dtables/${baseUUID}/`,
-            headers: {
-                accept: 'application/json',
-                authorization: `Bearer ${baseToken}`,
-            },
-        };
-
-        const response = await axios(options);
-        cachedBaseInfo = response.data;
-        let temp = [];
-        cachedBaseInfo.tables.forEach(table => {
-            temp.push(table.name);
-        })
-        cachedTables = temp;
-    }
-    catch(error) {
-        console.error("(seatableController)(getBaseInfo) Error fetching base info: ", error);
-        res.status(500).json({ error: error.message });
-    }
-}
-
-
 
 //Function: Get the names of the available tables in the SeaTable base.
 const getAvailableTables = async (req, res) => {
+    let temp = [];
+    cachedTables.length = 0; //Clear the cached tables to avoid duplicates.
     try {
+        
+        const baseInfo = await getBaseInfo();
+        const baseInfoTables = baseInfo.tables;
+
+        console.log("Base Info: ", cachedBaseInfo);
+
         if(cachedTables.length === 0) {
             console.log("Fetching tables.");
-            await getBaseInfo();
+            baseInfo.tables.forEach(table => {
+                temp.push(table.name);
+            });
         }
-        console.log("Using cached tables.");
-        await cacheAllTablesData();
+        
+        
+        cachedTables = temp;
+        await cacheAllTablesData(baseInfoTables);
         res.status(200).json({ success: true, tables: cachedTables });
     }
     catch(error) {
@@ -190,49 +44,54 @@ const getAvailableTables = async (req, res) => {
 
 
 
-//Function: Fetch the data of a table (specified by the table name) from the SeaTable base.
-const fetchTableData = async (tableName, next) => {
-    const currentTime = new Date();
-    const timeDiff = Math.abs(currentTime - tempDate) / 1000 / 60; // Convert to minutes
-    
-    //If time difference is greater than 10 minutes, check the base token again. This is to prevent unnecessary token checks. Each time this is called.
-    if (timeDiff > 10) {
-        const { baseToken, baseUUID } = await getBaseTokenAndUUID();
-    }
-
-    //Prepare the options for the axios request.
-    const options = {
-        method: 'GET',
-        url: `${urlBase}/api-gateway/api/v2/dtables/${tempUUID}/rows/?table_name=${tableName}&convert_keys=true`,
-        headers: {
-            accept: 'application/json',
-            authorization: `Bearer ${tempBT}`,
-        },
-    };
-
+//Function: Assign the data of a table from the baseInfoTables object according to the table name.
+const assignTableData = async (tableName, bIT) => {
     try {
-        const response = await axios(options);
-        return response.data;
+        const table = bIT.find(table => table.name === tableName); //Find the table info by the table name.
+        if (!table || !table.columns || !table.rows) {
+            throw new Error(`Table ${tableName} not found or invalid structure`);
+        }
+
+        let data = {rows: table.rows};
+
+        const processedRows = table.rows.map(row => {
+            const newRow = {};
+            Object.entries(row).forEach(([key, value]) => {
+                    const column = table.columns.find(col => col.key === key);
+                    if (column) {
+                        newRow[column.name] = value;
+                    }
+                    else{
+                        newRow[key] = value;
+                    }
+                
+            });
+            return newRow;
+        });
+
+        data.rows = processedRows;
+
+        return data;
     }
     catch(error) {
-        console.error("(seatableController)(fetchTableData) Error fetching table data: ", error);
-        next(error);
+        console.error("(seatableController)(assignTableData) Error assigning table data: ", error);
     }
 }
 
 
 
 //Function: Retrieve list of available tables and cache the data of each table, calling fetchTableData for each table.
-const cacheAllTablesData = async () => {
+const cacheAllTablesData = async (baseInfoTables) => {
     let ctd;
     let ct = cachedTables;
+    const bIT = baseInfoTables;
     try {
         cachedTablesData.length = 0; //Clear cachedTablesData to avoid duplicates.
 
         //Iterate over cachedTables and fetch data for each table.
         for(const tableName of ct) {
             try {
-                const tableData = await fetchTableData(tableName);
+                const tableData = await assignTableData(tableName, bIT);
                 cachedTablesData.push({
                     tableName: tableName, //Store the table name.
                     data: tableData, //Store the fetched data.
@@ -310,6 +169,8 @@ const updateRows = async (req, res) => {
     try {
         const { baseToken, baseUUID } = await getBaseTokenAndUUID();
         const { tableName, rows } = req.body;
+        console.log(`Before Update of ${tableName} table: `, cachedTablesData.find(table => table.tableName === tableName).data);
+        console.log("Rows: ", rows);
         const options = {
             method: 'PUT',
             url: `${urlBase}/api-gateway/api/v2/dtables/${baseUUID}/rows/`,
@@ -327,8 +188,17 @@ const updateRows = async (req, res) => {
 
         //If the update is successful, update the cached data.
         if(response.data.success) {
-            const tableData = await fetchTableData(tableName);
-            cachedTablesData.find(table => table.tableName === tableName).data = tableData;
+            const tableToUpdate = cachedTablesData.find(table => table.tableName === tableName);
+            if(tableToUpdate) { //If the table is found, update the rows.
+                console.log("Updating cached table data.");
+                rows.forEach(update => { //Iterate over the rows to update.
+                    const rowIndex = tableToUpdate.data.rows.findIndex(row => row._id === update.row_id); //Find the row by the row_id. The 'data' in this line is the data of the table and not from the API above.
+                    if (rowIndex !== -1) { //If the row is found, update the row.
+                        tableToUpdate.data.rows[rowIndex] = { ...tableToUpdate.data.rows[rowIndex], ...update.row };
+                    }
+                });
+            }
+            console.log(`Updated ${tableName} table successfully: ${cachedTablesData.find(table => table.tableName === tableName).data}`);
         }
 
         res.status(200).json(response.data);
@@ -399,4 +269,4 @@ const getCachedTablesData = () => {
     return ctd;
 }
 
-module.exports = { getAvailableTables, getBaseInfo, getTableData, fetchAndStoreNewBaseToken, runSQL, updateRows, calculate, getCachedTablesData };
+module.exports = { getAvailableTables, getTableData, runSQL, updateRows, calculate, getCachedTablesData };
