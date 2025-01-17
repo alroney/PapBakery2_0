@@ -1,6 +1,6 @@
 const axios = require('axios'); //Axios is a promise-based HTTP client for the browser and Node.js.
 const convertUnits = require('../utils/unitConversion'); //Converts units of measurement.
-const { fetchStoredToken, getBaseTokenAndUUID, getBaseInfo } = require('./seatableControllers/stcTokener'); //Import functions from tokenController.js.
+const { fetchStoredToken, getBaseTokenAndUUID, getBaseInfo } = require('./seatableControllers/stTokenController'); //Import functions from tokenController.js.
 const urlBase = "https://cloud.seatable.io"; //SeaTable server.
 
 let cachedBaseInfo = {};
@@ -169,8 +169,6 @@ const updateRows = async (req, res) => {
     try {
         const { baseToken, baseUUID } = await getBaseTokenAndUUID();
         const { tableName, rows } = req.body;
-        console.log(`Before Update of ${tableName} table: `, cachedTablesData.find(table => table.tableName === tableName).data);
-        console.log("Rows: ", rows);
         const options = {
             method: 'PUT',
             url: `${urlBase}/api-gateway/api/v2/dtables/${baseUUID}/rows/`,
@@ -190,7 +188,6 @@ const updateRows = async (req, res) => {
         if(response.data.success) {
             const tableToUpdate = cachedTablesData.find(table => table.tableName === tableName);
             if(tableToUpdate) { //If the table is found, update the rows.
-                console.log("Updating cached table data.");
                 rows.forEach(update => { //Iterate over the rows to update.
                     const rowIndex = tableToUpdate.data.rows.findIndex(row => row._id === update.row_id); //Find the row by the row_id. The 'data' in this line is the data of the table and not from the API above.
                     if (rowIndex !== -1) { //If the row is found, update the row.
@@ -198,7 +195,6 @@ const updateRows = async (req, res) => {
                     }
                 });
             }
-            console.log(`Updated ${tableName} table successfully: ${cachedTablesData.find(table => table.tableName === tableName).data}`);
         }
 
         res.status(200).json(response.data);

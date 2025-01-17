@@ -1,6 +1,6 @@
 const axios = require('axios');
 const urlBase = "https://cloud.seatable.io"; //SeaTable server.
-const { fetchStoredToken, storeNewToken } = require('../../controllers/tokenController');
+const { fetchStoredToken, storeNewToken } = require('../tokenController');
 
 
 
