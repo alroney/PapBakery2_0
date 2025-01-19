@@ -1,14 +1,10 @@
 const axios = require('axios'); //Axios is a promise-based HTTP client for the browser and Node.js.
 const convertUnits = require('../utils/unitConversion'); //Converts units of measurement.
-const { fetchStoredToken, getBaseTokenAndUUID, getBaseInfo } = require('./seatableControllers/stTokenController'); //Import functions from tokenController.js.
+const { fetchStoredToken, getBaseTokenAndUUID } = require('./seatableControllers/stTokenController'); //Import functions from tokenController.js.
+const { getCachedTablesData } = require('./seatableControllers/stDataController'); //Import the cached tables data from stDataController.js.
 const urlBase = "https://cloud.seatable.io"; //SeaTable server.
 
-let cachedBaseInfo = {};
-let cachedTables = [];
-let cachedTablesData = [{}]; //Array to store the data of the tables
-let tempDate = 0; //Temporary variable to compare another date with the current date.
-let tempBT = ""; //Temporary variable to store the base token.
-let tempUUID = ""; //Temporary variable to store the base UUID.
+
 
 //Function: Run SQL queries on the SeaTable base.
 const runSQL = async (req, res) => {
@@ -94,6 +90,7 @@ const calculateTypeIngredientCost = async (cT) => {
      */
 
     try{
+        let cachedTablesData = getCachedTablesData();
         const ingD = cachedTablesData.find(table => table.tableName === "Ingredient");
         const cTD = cachedTablesData.find(table => table.tableName === cT);
         const ingredients = ingD.data.rows; //Get the ingredients data
@@ -139,10 +136,6 @@ const calculate = async (req, res) => {
 
 
 
-//Test function to get the available tables for the Maps.
-const getCachedTablesData = () => {
-    const ctd = cachedTablesData;
-    return ctd;
-}
 
-module.exports = { runSQL, updateRows, calculate, getCachedTablesData };
+
+module.exports = { runSQL, updateRows, calculate };

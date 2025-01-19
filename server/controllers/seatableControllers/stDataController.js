@@ -35,7 +35,11 @@ const getBaseInfo = async (req, res) => {
     }
 }
 
-
+//Test function to get the available tables for the Maps.
+const getCachedTablesData = () => {
+    const ctd = cachedTablesData;
+    return ctd;
+}
 
 //Function: Get the names of the available tables in the SeaTable base.
 const getAvailableTables = async (req, res) => {
@@ -158,4 +162,4 @@ const getTableData = async (req, res) => {
     }
 }
 
-module.exports = { getAvailableTables, getTableData };
+module.exports = { getAvailableTables, getTableData, getCachedTablesData };

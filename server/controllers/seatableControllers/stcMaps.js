@@ -1,4 +1,4 @@
-const { getCachedTablesData } = require('../seatableController');
+const { getCachedTablesData } = require('../seatableControllers/stDataController'); //Import the getCachedTablesData function from the stDataController.js file.
 
 
 
