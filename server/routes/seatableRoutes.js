@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { getAvailableTables, getTableData, runSQL, updateRows, calculate } = require('../controllers/seatableController');
-const { getBaseInfo } = require('../controllers/seatableControllers/stTokenController');
+const { runSQL, updateRows, calculate } = require('../controllers/seatableController');
 const { testSTCMaps } = require('../controllers/seatableControllers/stcTestMap');
-const checkAuth = require('../middlewares/seatableMiddleware');
+const { getAvailableTables, getTableData } = require('../controllers/seatableControllers/stDataController');
+// const checkAuth = require('../middlewares/seatableMiddleware');
 
 router.get('/tables', getAvailableTables);
 router.get('/table/:tableName', getTableData);

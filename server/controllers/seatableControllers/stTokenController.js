@@ -4,7 +4,7 @@ const { fetchStoredToken, storeNewToken } = require('../tokenController');
 
 
 
-const fetchNewBaseToken = async (req, res) => {
+const fetchNewBaseToken = async () => {
     //Prepare the request to fetch the new base token.
     const url = `${urlBase}/api/v2.1/dtable/app-access-token/`;
     const apiKey = process.env.SEATABLE_API_TOKEN;
@@ -27,16 +27,15 @@ const fetchNewBaseToken = async (req, res) => {
     }
     catch(error) {
         console.error("(seatableController)(fetchNewBaseToken) Error fetching new base token: ", error);
-        res.status(500).json({ error: error.message });
     }
 }
 
 
 
-//Function: Fetch and store the base token for the SeaTable API.
-const storeNewBaseToken = async (req, res) => {
+//Function: Fetch and store the base token for the SeaTable API into the Token schema in the MongoDB.
+const storeNewBaseToken = async () => {
     //Prepare bulk operations for MongoDB to update the token.
-    const { access_token, dtable_uuid, expiresAt, source } = await fetchNewBaseToken(req, res);
+    const { access_token, dtable_uuid, expiresAt, source } = await fetchNewBaseToken();
     const keyPairs = [
         { keyName: "base_token", keyValue: access_token, expiresAt },
         { keyName: "dtable_uuid", keyValue: dtable_uuid, expiresAt: null },
@@ -51,7 +50,6 @@ const storeNewBaseToken = async (req, res) => {
         console.error("(seatableController)(fetchAndStoreNewBaseToken) Error storing token using bulkWrite: ", error);
     }
 }
-
 
 
 
@@ -78,31 +76,4 @@ const getBaseTokenAndUUID = async () => {
     }
 }
 
-
-
-//Function: Get the base info from SeaTable. Consists of tables with row/column data.
-const getBaseInfo = async (req, res) => {
-    const { baseToken, baseUUID } = await getBaseTokenAndUUID();
-    
-    try {
-        const options = {
-            method: 'GET',
-            url: `${urlBase}/api-gateway/api/v2/dtables/${baseUUID}/`,
-            headers: {
-                accept: 'application/json',
-                authorization: `Bearer ${baseToken}`,
-            },
-        };
-
-        const response = await axios(options);
-        cachedBaseInfo = response.data;
-
-        return cachedBaseInfo;
-    }
-    catch(error) {
-        console.error("(stcTokener)(getBaseInfo) Error fetching base info: ", error);
-        res.status(500).json({ error: error.message });
-    }
-}
-
-module.exports = { fetchStoredToken, getBaseTokenAndUUID, getBaseInfo };
+module.exports = { fetchStoredToken, getBaseTokenAndUUID };
