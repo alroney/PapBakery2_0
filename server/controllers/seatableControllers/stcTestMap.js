@@ -20,9 +20,8 @@ const buildRecipes = (req, res) => {
     try {
         const {
             categoryIngredientMap,
-            flavorIngredientMap,
-            categoryFlavorMap,
-        } = getMaps('categoryIngredientMap', 'flavorIngredientMap', 'categoryFlavorMap');
+            subCategoryIngredientMap,
+        } = getMaps('categoryIngredientMap', 'subCategoryIngredientMap');
         const recipes = [];
 
     }
