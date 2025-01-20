@@ -42,6 +42,10 @@ const seatableManager = () => {
       const response = await fetch(`${apiBase}/seatable/test`);
       const data = await response.json();
       console.log("Test Data: ", data);
+      if(data.success) {
+        const maps = data.maps;
+        document.getElementById('category-map').innerHTML = JSON.stringify(maps);
+      }
     }
     catch(error) {
       console.error("Error testing: ", error);
@@ -63,6 +67,9 @@ const seatableManager = () => {
         </div>
         <div>
             <button onClick={test}>Test Maps</button>
+            <div>
+                <span id='category-map'></span>
+            </div>
         </div>
         <DataTable tableName={selectedTable} />
     </div>
