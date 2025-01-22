@@ -83,6 +83,8 @@ const buildProducts = async (req, res) => {
     }
 }
 
+
+//Function: Convert the foreign keys in the given map.
 const convertForeignKeys = (map, idToName) => {
     try {
         const tableName = Object.keys(map)[0].replace('Map', '');
@@ -114,21 +116,19 @@ const convertForeignKeys = (map, idToName) => {
     }
 }
 
-
+//Function: Process the foreign key conversion based on the column name and input value. 
 const processForeignKeyConversion = (columnName, input) => {
     const camelColumnName = columnName.charAt(0).toLowerCase() + columnName.slice(1); //Convert columnName to camel case.
     const mapName = camelColumnName.replace(/ID|Name/g, '') + 'Map'; //Remove 'ID' or 'Name' from the end and replace with 'Map'.  
     const map = getMaps([mapName])[mapName];
 
+    //Begin the iteration over the map values.
     for(const entry of Object.values(map)) {
         if(entry[columnName] === input) {
-            console.log("Attempting conversion...");
             if(columnName.endsWith('ID')) {
-                console.log("Converting ID to Name.");
                 return {newColumnName: columnName.replace('ID', 'Name'), newValue: entry[columnName.replace('ID', 'Name')]};
             }
             else if(columnName.endsWith('Name')){
-                console.log("Converting Name to ID.");
                 return {newColumnName: columnName.replace('Name', 'ID'), newValue: entry[columnName.replace('Name', 'ID')]};
             }
             else {
