@@ -2,14 +2,12 @@ const { getMaps } = require('./stcMaps');
 
 const testSTCMaps = async (req, res) => {
     try {
-        console.log("Testing STC Maps...");
-        const { categoryMap } = getMaps(['categoryMap']);
-        console.log("Finished testing STC Maps.");
-        console.log("Category Map: ", categoryMap);
-        res.status(200).json({ success: true, categoryMap });
+        const map = getMaps(['subCategoryIngredientMap']);
+        convertForeignKeys(map, true);
+        res.status(200).json({ success: true, map });
     }
     catch (error) {
-        console.error("Error testing STC Maps: ", error);
+        console.error("(stcTestMap)(testSTCMaps) Error testing STC Maps: ", error);
         res.status(500).json({ success: false, message: "Internal server error." });
     }
 }
@@ -22,7 +20,9 @@ const buildRecipes = (req, res) => {
             categoryIngredientMap,
             subCategoryIngredientMap,
         } = getMaps('categoryIngredientMap', 'subCategoryIngredientMap');
-        const recipes = [];
+        const recipes = {};
+
+
 
     }
     catch(error) {
@@ -82,5 +82,61 @@ const buildProducts = async (req, res) => {
         res.status(500).json({ success: false, message: "Internal server error." });
     }
 }
+
+const convertForeignKeys = (map, idToName) => {
+    try {
+        const tableName = Object.keys(map)[0].replace('Map', '');
+
+        //Sub-function: Process the column data.
+        const processColumn = (column, row, idToName) => {
+            console.log("Current column: ", column);
+            if(column.toLowerCase().startsWith(tableName.toLowerCase())) return;
+            
+            const value = row[column];
+            const shouldConvert = idToName ? column.endsWith('ID') : column.endsWith('Name');
+            
+            if(shouldConvert) {
+                console.log(`Converting ${column} value: ${value}`);
+                const {newColumnName, newValue} = processForeignKeyConversion(column, value);
+                console.log(`New column name: ${newColumnName}, New value: ${newValue}`);
+            }
+        };
+
+        //Iterate over the map values.
+        for (const entry of Object.values(map)) {
+            Object.values(entry).forEach(row => {
+                Object.keys(row).forEach(column => processColumn(column, row, idToName));
+            });
+        }
+    }
+    catch(error) {
+        console.error("(stcTestMap.js)(replaceNameWithId) Error replacing name with ID: ", error);
+    }
+}
+
+
+const processForeignKeyConversion = (columnName, input) => {
+    const camelColumnName = columnName.charAt(0).toLowerCase() + columnName.slice(1); //Convert columnName to camel case.
+    const mapName = camelColumnName.replace(/ID|Name/g, '') + 'Map'; //Remove 'ID' or 'Name' from the end and replace with 'Map'.  
+    const map = getMaps([mapName])[mapName];
+
+    for(const entry of Object.values(map)) {
+        if(entry[columnName] === input) {
+            console.log("Attempting conversion...");
+            if(columnName.endsWith('ID')) {
+                console.log("Converting ID to Name.");
+                return {newColumnName: columnName.replace('ID', 'Name'), newValue: entry[columnName.replace('ID', 'Name')]};
+            }
+            else if(columnName.endsWith('Name')){
+                console.log("Converting Name to ID.");
+                return {newColumnName: columnName.replace('Name', 'ID'), newValue: entry[columnName.replace('Name', 'ID')]};
+            }
+            else {
+                console.log(`Column name ${columnName} does not end with 'ID' or 'Name'.`);
+            }
+        }
+    }
+}
+
 
 module.exports = { testSTCMaps };

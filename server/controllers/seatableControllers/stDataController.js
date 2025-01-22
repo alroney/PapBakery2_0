@@ -1,6 +1,8 @@
 const axios = require('axios'); //Axios is a promise-based HTTP client for the browser and Node.js.
 const urlBase = "https://cloud.seatable.io"; //SeaTable server.
 const { getBaseTokenAndUUID } = require('./stTokenController'); //Import the getBaseInfo function from the stBaseController.js file.
+const fs = require('fs');
+const path = require('path');
 
 let cachedBaseInfo = {};
 let cachedTables = [];
@@ -130,6 +132,9 @@ const cacheAllTablesData = async (baseInfoTables) => {
             }
             
         }
+
+        const filePath = path.join(__dirname, '../../toBeDELETED/cachedTables.json');
+        fs.writeFileSync(filePath, JSON.stringify(cachedTablesData, null, 2));
 
         console.log("All tables cached successfully.");
         ctd = cachedTablesData;
