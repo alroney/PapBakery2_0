@@ -89,7 +89,7 @@ const convertForeignKeys = (map, idToName) => {
     try {
         const tableName = Object.keys(map)[0].replace('Map', '');
 
-        //Sub-function: Process the column data.
+        //Nested Function: Process the column data.
         const processColumn = (column, row, idToName) => {
             console.log("Current column: ", column);
             if(column.toLowerCase().startsWith(tableName.toLowerCase())) return;
@@ -98,9 +98,9 @@ const convertForeignKeys = (map, idToName) => {
             const shouldConvert = idToName ? column.endsWith('ID') : column.endsWith('Name');
             
             if(shouldConvert) {
-                console.log(`Converting ${column} value: ${value}`);
                 const {newColumnName, newValue} = processForeignKeyConversion(column, value);
-                console.log(`New column name: ${newColumnName}, New value: ${newValue}`);
+                delete row[column]; //Remove the old column.
+                row[newColumnName] = newValue; //Add the new column with the updated value.
             }
         };
 
