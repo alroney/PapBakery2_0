@@ -4,9 +4,6 @@ const cachedTables = require('../../toBeDELETED/cachedTables.json');
 
 
 const mapSTCData = (ctd, mapNames) => {
-    
-
-
     //Dynamically create tables and maps objects based on ctd
     const tables = {};
     const maps = {};
@@ -63,6 +60,7 @@ const mapSTCData = (ctd, mapNames) => {
 
     return selectedMaps;
 };
+
 
 
 //Function: Get the maps from the SeaTableControllers cachedTablesData.

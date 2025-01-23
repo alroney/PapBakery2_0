@@ -2,15 +2,18 @@ const { getMaps } = require('./stcMaps');
 
 const testSTCMaps = async (req, res) => {
     try {
-        const map = getMaps(['subCategoryIngredientMap']);
-        convertForeignKeys(map, true);
-        res.status(200).json({ success: true, map });
+        const map = getMaps(['categoryShapeMap']);
+        const updatedMap = convertForeignKeys(map, true);
+        updatedMap;
+        res.status(200).json({ success: true, updatedMap });
     }
     catch (error) {
         console.error("(stcTestMap)(testSTCMaps) Error testing STC Maps: ", error);
         res.status(500).json({ success: false, message: "Internal server error." });
     }
 }
+
+
 
 
 
@@ -87,32 +90,51 @@ const buildProducts = async (req, res) => {
 //Function: Convert the foreign keys in the given map.
 const convertForeignKeys = (map, idToName) => {
     try {
+        console.log("Old Map: ", map);
         const tableName = Object.keys(map)[0].replace('Map', '');
 
         //Nested Function: Process the column data.
-        const processColumn = (column, row, idToName) => {
-            console.log("Current column: ", column);
+        const processColumn = (column, columns, idToName) => {
             if(column.toLowerCase().startsWith(tableName.toLowerCase())) return;
             
-            const value = row[column];
+            const value = columns[column];
             const shouldConvert = idToName ? column.endsWith('ID') : column.endsWith('Name');
             
             if(shouldConvert) {
-                const {newColumnName, newValue} = processForeignKeyConversion(column, value);
-                delete row[column]; //Remove the old column.
-                row[newColumnName] = newValue; //Add the new column with the updated value.
+                const result = processForeignKeyConversion(column, value);
+                if (result) {
+                    const keys = Object.keys(columns);
+                    const newColumns = {};
+                    
+                    keys.forEach(key => {
+                        if (key === column) {
+                            newColumns[result.newColumnName] = result.newValue;
+                        } else {
+                            newColumns[key] = columns[key];
+                        }
+                    });
+                    
+                    // Replace the row contents
+                    Object.keys(columns).forEach(key => delete columns[key]);
+                    Object.assign(columns, newColumns);
+                }
             }
         };
 
-        //Iterate over the map values.
-        for (const entry of Object.values(map)) {
-            Object.values(entry).forEach(row => {
-                Object.keys(row).forEach(column => processColumn(column, row, idToName));
+        // Iterate over the map values
+        Object.values(map).forEach(row => { //In the map object.
+            Object.keys(row).forEach(rowKey => { //In the row object.
+                const columns = row[rowKey]; //List columns in the row.
+                Object.keys(columns).forEach(column => { //In the columns object.
+                    processColumn(column, columns, idToName) //Process the column using the column name (column), the columns object (columns), and the boolean to determine what direction of attack will be (idToName).
+                });
             });
-        }
+        });
+        console.log("New Map: ", map);
+        return map;
     }
     catch(error) {
-        console.error("(stcTestMap.js)(replaceNameWithId) Error replacing name with ID: ", error);
+        console.error("(stcTestMap.js)(replaceNameWithId) Error converting foreign keys: ", error);
     }
 }
 

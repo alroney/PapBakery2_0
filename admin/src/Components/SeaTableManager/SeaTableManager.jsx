@@ -43,8 +43,8 @@ const seatableManager = () => {
       const data = await response.json();
       console.log("Test Data: ", data);
       if(data.success) {
-        const maps = data.maps;
-        document.getElementById('category-map').innerHTML = JSON.stringify(maps);
+        const updatedMap = data.updatedMap;
+        document.getElementById('category-map').innerHTML = JSON.stringify(updatedMap);
       }
     }
     catch(error) {
