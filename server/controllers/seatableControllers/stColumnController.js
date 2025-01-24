@@ -35,7 +35,7 @@ const createColumnOperation = (op_type, table_name, column, additionalData = {})
     ...additionalData
 });
 
-// Column operations
+//Object: Column operations. keys are the operation names (name of the function) and values are the functions that execute the operations.
 const columnOperations = {
     updateColumnType: (table_name, column, new_column_type, column_data) => {
         const data = createColumnOperation('modify_column_type', table_name, column, { new_column_type });
