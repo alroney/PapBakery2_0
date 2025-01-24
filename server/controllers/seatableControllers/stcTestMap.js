@@ -1,4 +1,5 @@
 const { getMaps } = require('./stcMaps');
+const { columnOperations } = require('./stColumnController');
 
 const testSTCMaps = async (req, res) => {
     try {
@@ -14,6 +15,7 @@ const testSTCMaps = async (req, res) => {
 }
 
 
+//Function: Update the column in SeaTable.
 
 
 
@@ -92,17 +94,23 @@ const convertForeignKeys = (map, idToName) => {
     try {
         console.log("Old Map: ", map);
         const tableName = Object.keys(map)[0].replace('Map', '');
+        const allColumnData = {};
 
         //Nested Function: Process the column data.
-        const processColumn = (column, columns, idToName) => {
+        const processColumn = (rowKey, column, columns, idToName) => {
             if(column.toLowerCase().startsWith(tableName.toLowerCase())) return;
-            
             const value = columns[column];
             const shouldConvert = idToName ? column.endsWith('ID') : column.endsWith('Name');
             
             if(shouldConvert) {
                 const result = processForeignKeyConversion(column, value);
                 if (result) {
+                    //Store the new value with rowKey and column value.
+                    if(!allColumnData[result.newColumnName]) {//If the new column name does not exist in allColumnData, create it.
+                        allColumnData[result.newColumnName] = {};
+                    }
+                    allColumnData[result.newColumnName][rowKey] = result.newValue;
+                    
                     const keys = Object.keys(columns);
                     const newColumns = {};
                     
@@ -112,8 +120,8 @@ const convertForeignKeys = (map, idToName) => {
                         } else {
                             newColumns[key] = columns[key];
                         }
+                        
                     });
-                    
                     // Replace the row contents
                     Object.keys(columns).forEach(key => delete columns[key]);
                     Object.assign(columns, newColumns);
@@ -122,15 +130,16 @@ const convertForeignKeys = (map, idToName) => {
         };
 
         // Iterate over the map values
-        Object.values(map).forEach(row => { //In the map object.
-            Object.keys(row).forEach(rowKey => { //In the row object.
-                const columns = row[rowKey]; //List columns in the row.
-                Object.keys(columns).forEach(column => { //In the columns object.
-                    processColumn(column, columns, idToName) //Process the column using the column name (column), the columns object (columns), and the boolean to determine what direction of attack will be (idToName).
+        Object.values(map).forEach(row => {
+            Object.keys(row).forEach(rowKey => {
+                const columns = row[rowKey];
+                Object.keys(columns).forEach(column => {
+                    processColumn(rowKey, column, columns, idToName);
                 });
             });
         });
-        console.log("New Map: ", map);
+
+        console.log("allColumnData: ", allColumnData);
         return map;
     }
     catch(error) {
