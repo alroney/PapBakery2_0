@@ -60,15 +60,12 @@ const getBaseTokenAndUUID = async () => {
         const baseToken = await fetchStoredToken(source, "base_token");
         const baseUUID = await fetchStoredToken(source, "dtable_uuid");
 
-        console.log("Message 1: ", baseToken.message, "Needs refresh: ", baseToken.needsRefresh);
-        console.log("Message 2: ", baseUUID.message, "Needs refresh: ", baseUUID.needsRefresh);
-
         if(baseToken.needsRefresh || baseUUID.needsRefresh) {
             console.log("Refreshing base token and UUID.");
             await storeNewBaseToken();
             return getBaseTokenAndUUID();
         }
-
+        
         return { baseToken: baseToken.keyValue, baseUUID: baseUUID.keyValue };
     }
     catch(error) {

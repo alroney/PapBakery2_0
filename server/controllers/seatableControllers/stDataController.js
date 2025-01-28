@@ -52,8 +52,6 @@ const getAvailableTables = async (req, res) => {
         const baseInfo = await getBaseInfo();
         const baseInfoTables = baseInfo.tables;
 
-        console.log("Base Info: ", cachedBaseInfo);
-
         if(cachedTables.length === 0) {
             console.log("Fetching tables.");
             baseInfo.tables.forEach(table => {

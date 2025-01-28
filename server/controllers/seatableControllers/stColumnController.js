@@ -1,28 +1,30 @@
 const axios = require('axios');
+const { getBaseTokenAndUUID } = require('./stTokenController');
 const urlBase = "https://cloud.seatable.io/api-gateway/api/v2/dtables"; //SeaTable server.
 
 //Function: Execute the column operation on the SeaTable base.
 const updateColumn = async (data) => {
-    const { base_token, dtable_uuid } = data;
-    const url = `${urlBase}/${dtable_uuid}/columns/`;
+    console.log("(UpdateColumn) Data: ", data);
+    const { baseToken, baseUUID } = await getBaseTokenAndUUID();
+    const url = `${urlBase}/${baseUUID}/columns/`;
     const options = {
         method: 'PUT',
         url: url,
         headers: {
             accept: 'application/json',
-            authorization: `Token ${base_token}`,
             'content-type': 'application/json',
+            authorization: `Token ${baseToken}`,
+
         },
         data: data
     };
 
     try {
         const response = await axios(options);
-        console.log("Column created: ", response.data);
-        return { success: true, message: "Column created successfully." };
+        return response.data;
     }
     catch(error) {
-        console.error("(seatableController)(createColumn) Error creating column: ", error);
+        console.error("(seatableController)(updateColumn) Error updating column: ", error);
         return { success: false, error: error.message };
     }
 }

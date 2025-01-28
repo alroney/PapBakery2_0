@@ -65,8 +65,8 @@ const mapSTCData = (ctd, mapNames) => {
 
 //Function: Get the maps from the SeaTableControllers cachedTablesData.
 const getMaps = (mapNames) => {
-    // const ctd = getCachedTablesData(); //Get the cachedTablesData.
-    const ctd = cachedTables; //TEMPORARY: Use the cachedTables.json file for testing.
+    const ctd = getCachedTablesData(); //Get the cachedTablesData.
+    // const ctd = cachedTables; //TEMPORARY: Use the cachedTables.json file for testing.
     return mapSTCData(ctd, mapNames); //Return the mapping of the SeaTableControllers cachedTablesData.
 }
 

@@ -39,6 +39,7 @@ const runSQL = async (req, res) => {
 //Function: Update the specified table's rows in the SeaTable base.
 const updateRows = async (req, res) => {
     try {
+        let cachedTablesData = getCachedTablesData();
         const { baseToken, baseUUID } = await getBaseTokenAndUUID();
         const { tableName, rows } = req.body;
         const options = {
