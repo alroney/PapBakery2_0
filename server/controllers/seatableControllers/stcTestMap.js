@@ -122,16 +122,16 @@ const updateRowData = async (table_name, data) => {
             table_name, //The table name.
         };
 
-        const upd = []; // Array to store all updates
+        const upd = []; //Array to store all updates.
         
-        // First collect all updates
+        //First collect all updates.
         Object.keys(data).forEach(rowKey => {
             const row_id = rowKey;
             const row = data[rowKey];
             upd.push({ row, row_id });
         });
 
-        // Assign the collected updates to obj
+        //Assign the collected updates to the updates property in obj.
         obj.updates = upd;
 
         //Update the rows.
@@ -155,7 +155,6 @@ const convertForeignKeys = async (maps, idToName) => {
         console.log("Converting foreign keys...");
         Object.keys(maps).forEach(async map => {
             const tableName = map.replace('Map', '').charAt(0).toUpperCase() + map.replace('Map', '').slice(1);
-            const updatedColumnsData = {};
             const rows = maps[map];
 
             //Get first row to determine columns. Since all rows have the same columns, we only need to check one row.
