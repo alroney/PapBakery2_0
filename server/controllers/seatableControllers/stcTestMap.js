@@ -89,7 +89,6 @@ const buildProducts = async (req, res) => {
 
 
 
-
 //Helper function to rename and update column type.
 const renameAndUpdateColumnType = async (table_name, column, new_column_name, new_column_type, column_data) => {
     try {
@@ -149,74 +148,74 @@ const updateRowData = async (table_name, data) => {
 
 
 //Function: Convert the foreign keys in the given map.
-const convertForeignKeys = async (maps, idToName) => {
+const convertForeignKeys = async (map, idToName) => {
     try {
+        console.log("Map[Object.keys]: ", Object.keys(map));
+        const mapName = Object.keys(map)[0];
         let count = 0; //Count for row iteration.
         console.log("Converting foreign keys...");
-        Object.keys(maps).forEach(async map => {
-            const tableName = map.replace('Map', '').charAt(0).toUpperCase() + map.replace('Map', '').slice(1);
-            const rows = maps[map];
+        const tableName = mapName.replace('Map', '').charAt(0).toUpperCase() + mapName.replace('Map', '').slice(1);
+        const rows = map[Object.keys(map)[0]]; //Get the rows from the map.
 
-            //Get first row to determine columns. Since all rows have the same columns, we only need to check one row.
-            const firstRowKey = Object.keys(rows)[0];
-            if (!firstRowKey) return; //Skip if map is empty.
-            
-            const columnStructure = Object.keys(rows[firstRowKey])
-                .filter(column => !column.toLowerCase().startsWith(tableName.toLowerCase()))
-                .filter(column => idToName ? column.endsWith('ID') : column.endsWith('Name'));
+        //Get first row to determine columns. Since all rows have the same columns, we only need to check one row.
+        const firstRowKey = Object.keys(rows)[0];
+        if (!firstRowKey) return; //Skip if map is empty.
+        
+        const columnStructure = Object.keys(rows[firstRowKey])
+            .filter(column => !column.toLowerCase().startsWith(tableName.toLowerCase()))
+            .filter(column => idToName ? column.endsWith('ID') : column.endsWith('Name'));
 
-            
-            //Rename and update column type for each identified column.
-            columnStructure.forEach( async column => {
-                let newColumnName = '';
-                let newColumnType = '';
-                const column_data = {};
-                if(column.toLowerCase().includes('id')) {
-                    newColumnName = column.replace('ID', 'Name');
-                    newColumnType = 'text';
-                    column_data['format'] = 'text';
-                }
-                else if(column.toLowerCase().includes('name')) {
-                    newColumnName = column.replace('Name', 'ID');
-                    newColumnType = 'number';
-                    column_data['format'] = 'number';
-                }
-                // const newColumnName = column.replace(idToName ? 'ID' : 'Name', idToName ? 'Name' : 'ID');
-                // const newColumnType = idToName ? 'text' : 'number';
-                console.log(`newColumnName: ${newColumnName}, newColumnType: ${newColumnType}`);
-                await renameAndUpdateColumnType(tableName, column, newColumnName, newColumnType, column_data)
-                    .catch(error => console.error(`Error processing column ${column}: `, error));
-            });
-
-            console.log("Exited columnStructure loop.");
-
-            // First, collect all changes to avoid modifying during iteration
-            const changes = {};
-            Object.keys(rows).forEach(rowKey => {
-                const columns = rows[rowKey];
-                changes[rowKey] = {}; //Initialize the changes object with the rowKey. Not using `...columns` to prevent unchanged columns from being included.
-                
-                columnStructure.forEach(column => {
-                    const value = columns[column];
-                    const result = processForeignKeyConversion(column, value);
-                    if (result) {
-                        const { newColumnName, newValue } = result;
-                        delete changes[rowKey][column];
-                        changes[rowKey][newColumnName] = newValue;
-                    }
-                });
-            });
-
-            // Then apply all changes at once
-            Object.keys(changes).forEach(rowKey => {
-                rows[rowKey] = changes[rowKey];
-            });
-
-
-            await new Promise(resolve => setTimeout(resolve, 5000)); //Wait for 5 seconds before updating the rows. This is to ensure that the column changes are completed before updating the rows.
-            await updateRowData(tableName, rows);
-            console.log(`Foreign keys converted for ${tableName}.`);
+        
+        //Rename and update column type for each identified column.
+        columnStructure.forEach( async column => {
+            let newColumnName = '';
+            let newColumnType = '';
+            const column_data = {};
+            if(column.toLowerCase().includes('id')) {
+                newColumnName = column.replace('ID', 'Name');
+                newColumnType = 'text';
+                column_data['format'] = 'text';
+            }
+            else if(column.toLowerCase().includes('name')) {
+                newColumnName = column.replace('Name', 'ID');
+                newColumnType = 'number';
+                column_data['format'] = 'number';
+            }
+            // const newColumnName = column.replace(idToName ? 'ID' : 'Name', idToName ? 'Name' : 'ID');
+            // const newColumnType = idToName ? 'text' : 'number';
+            console.log(`newColumnName: ${newColumnName}, newColumnType: ${newColumnType}`);
+            await renameAndUpdateColumnType(tableName, column, newColumnName, newColumnType, column_data)
+                .catch(error => console.error(`Error processing column ${column}: `, error));
         });
+
+        console.log("Exited columnStructure loop.");
+
+        // First, collect all changes to avoid modifying during iteration
+        const changes = {};
+        Object.keys(rows).forEach(rowKey => {
+            const columns = rows[rowKey];
+            changes[rowKey] = {}; //Initialize the changes object with the rowKey. Not using `...columns` to prevent unchanged columns from being included.
+            
+            columnStructure.forEach(column => {
+                const value = columns[column];
+                const result = processForeignKeyConversion(column, value);
+                if (result) {
+                    const { newColumnName, newValue } = result;
+                    delete changes[rowKey][column];
+                    changes[rowKey][newColumnName] = newValue;
+                }
+            });
+        });
+
+        // Then apply all changes at once
+        Object.keys(changes).forEach(rowKey => {
+            rows[rowKey] = changes[rowKey];
+        });
+
+        
+        await new Promise(resolve => setTimeout(resolve, 1000)); //Wait for 1 seconds before updating the rows. This is to ensure that the column changes are completed before updating the rows.
+        await updateRowData(tableName, rows);
+        console.log(`Foreign keys converted for ${tableName}.`);
 
         console.log("Foreign keys conversion complete.");
     }

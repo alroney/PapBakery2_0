@@ -46,6 +46,7 @@ const mapSTCData = (ctd, mapNames) => {
     };
 
     const selectedMaps = {};
+    //Iterate over the mapNames array.
     mapNames.forEach(mapName => {
         if(maps.hasOwnProperty(mapName)) { //Check if the mapName exists in the maps object.
             const tableName = tables[`${mapName.replace('Map', 'Table')}`];
