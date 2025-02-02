@@ -1,14 +1,15 @@
 const { getMaps } = require('./stcMaps');
 const columnOperations  = require('./stColumnController');
 const { updateRow } = require('./stRowController');
+const { createTable } = require('./stTableController');
 
 
 const testSTCMaps = async (req, res) => {
     try {
-        const unchangedMap = getMaps(['categoryShapeMap']);
-        const updatedMap = convertForeignKeys(unchangedMap, true);
-        updatedMap;
-        res.status(200).json({ success: true, updatedMap });
+        // const unchangedMap = getMaps(['categoryShapeMap']);
+        // const updatedMap = convertForeignKeys(unchangedMap, true);
+        await createNewTable();
+        res.status(200).json({ success: true });
     }
     catch (error) {
         console.error("(stcTestMap)(testSTCMaps) Error testing STC Maps: ", error);
@@ -16,6 +17,27 @@ const testSTCMaps = async (req, res) => {
     }
 }
 
+
+const createNewTable = async () => {
+    try {
+        const tableData = {
+            table_name: 'ProductTest-A',
+            columns: [
+                    {
+                        column_name: 'C1',
+                        column_type: 'number',
+                    }
+                ]
+
+        };
+
+        console.log("tableData: ", tableData);
+        await createTable(tableData);
+    }
+    catch(error) {
+        console.error("(stcTestMap)(createNewTable) Error creating new table: ", error);
+    }
+}
 
 
 const buildRecipes = (req, res) => {
@@ -150,10 +172,7 @@ const updateRowData = async (table_name, data) => {
 //Function: Convert the foreign keys in the given map.
 const convertForeignKeys = async (map, idToName) => {
     try {
-        console.log("Map[Object.keys]: ", Object.keys(map));
-        const mapName = Object.keys(map)[0];
-        let count = 0; //Count for row iteration.
-        console.log("Converting foreign keys...");
+        const mapName = Object.keys(map)[0]; //Get the map name.
         const tableName = mapName.replace('Map', '').charAt(0).toUpperCase() + mapName.replace('Map', '').slice(1);
         const rows = map[Object.keys(map)[0]]; //Get the rows from the map.
 
@@ -215,9 +234,6 @@ const convertForeignKeys = async (map, idToName) => {
         
         await new Promise(resolve => setTimeout(resolve, 1000)); //Wait for 1 seconds before updating the rows. This is to ensure that the column changes are completed before updating the rows.
         await updateRowData(tableName, rows);
-        console.log(`Foreign keys converted for ${tableName}.`);
-
-        console.log("Foreign keys conversion complete.");
     }
     catch(error) {
         console.error("(stcTestMap.js)(convertForeignKeys) Error converting foreign keys: ", error);

@@ -1382,10 +1382,10 @@
           "_creator": "f4440a38c8c44a93a7a6badffac34047@auth.local",
           "_ctime": "2024-12-30T14:50:13.013+00:00",
           "_last_modifier": "main",
-          "_mtime": "2025-02-02T15:40:28.321+00:00",
+          "_mtime": "2025-02-02T15:41:06.417+00:00",
           "CategoryShapeID": 1,
-          "CategoryID": 1,
-          "ShapeID": 1
+          "CategoryName": "Biscuit",
+          "ShapeName": "Bone"
         },
         {
           "_id": "AiAVFA91Td-S75UmF6Extg",
@@ -1393,10 +1393,10 @@
           "_creator": "f4440a38c8c44a93a7a6badffac34047@auth.local",
           "_ctime": "2024-12-30T14:50:13.013+00:00",
           "_last_modifier": "main",
-          "_mtime": "2025-02-02T15:40:28.321+00:00",
+          "_mtime": "2025-02-02T15:41:06.417+00:00",
           "CategoryShapeID": 2,
-          "CategoryID": 1,
-          "ShapeID": 2
+          "CategoryName": "Biscuit",
+          "ShapeName": "Paw"
         },
         {
           "_id": "COq8RSndSqSgqBmaOQn34w",
@@ -1404,10 +1404,10 @@
           "_creator": "f4440a38c8c44a93a7a6badffac34047@auth.local",
           "_ctime": "2024-12-30T14:50:13.013+00:00",
           "_last_modifier": "main",
-          "_mtime": "2025-02-02T15:40:28.321+00:00",
+          "_mtime": "2025-02-02T15:41:06.417+00:00",
           "CategoryShapeID": 3,
-          "CategoryID": 1,
-          "ShapeID": 4
+          "CategoryName": "Biscuit",
+          "ShapeName": "Ying-Yang"
         },
         {
           "_id": "A5eMdvEpRz672mpqIr_qIw",
@@ -1415,10 +1415,10 @@
           "_creator": "f4440a38c8c44a93a7a6badffac34047@auth.local",
           "_ctime": "2024-12-30T14:50:13.013+00:00",
           "_last_modifier": "main",
-          "_mtime": "2025-02-02T15:40:28.321+00:00",
+          "_mtime": "2025-02-02T15:41:06.417+00:00",
           "CategoryShapeID": 4,
-          "CategoryID": 2,
-          "ShapeID": 1
+          "CategoryName": "Training Treat",
+          "ShapeName": "Bone"
         },
         {
           "_id": "fvLOctFBQ-aQ3RKCbz_Btw",
@@ -1426,10 +1426,10 @@
           "_creator": "f4440a38c8c44a93a7a6badffac34047@auth.local",
           "_ctime": "2024-12-30T14:50:13.013+00:00",
           "_last_modifier": "main",
-          "_mtime": "2025-02-02T15:40:28.321+00:00",
+          "_mtime": "2025-02-02T15:41:06.417+00:00",
           "CategoryShapeID": 5,
-          "CategoryID": 2,
-          "ShapeID": 2
+          "CategoryName": "Training Treat",
+          "ShapeName": "Paw"
         },
         {
           "_id": "F7OjlxPfTQ2TOSBuqV7MiQ",
@@ -1437,10 +1437,10 @@
           "_creator": "f4440a38c8c44a93a7a6badffac34047@auth.local",
           "_ctime": "2024-12-30T14:50:13.013+00:00",
           "_last_modifier": "main",
-          "_mtime": "2025-02-02T15:40:28.321+00:00",
+          "_mtime": "2025-02-02T15:41:06.417+00:00",
           "CategoryShapeID": 6,
-          "CategoryID": 2,
-          "ShapeID": 3
+          "CategoryName": "Training Treat",
+          "ShapeName": "Dot"
         }
       ]
     }
