@@ -17,17 +17,20 @@ const mapSTCData = (ctd, mapNames) => {
             const mapName = tableName.charAt(0).toLowerCase() + tableName.slice(1) + "Map"; //Create a map name from the table name. 1.) Take the first letter and lowercase it, 2.) Add the rest of the table name which is done by slicing the table name from the second character to the end, 3.) Add "Map" to the end of the map name.
             const tableKey = tableName.charAt(0).toLowerCase() + tableName.slice(1) + "Table";
             tables[tableKey] = tableName; //tableKey is the key and tableName is the value.
-            maps[mapName] = {}; //Create an empty object inside the maps object.
+            maps[mapName] = []; //Create an empty object inside the maps object.
 
             //Dynamically create map functions.
             mapFunctions[mapName] = (map, row) => {
                 const rowData = {}; //Create an object to store the row data.
                 Object.keys(row).forEach(column => { //Iterate over the columns in the row.
                     if(!column.startsWith('_')) { //Exclude columns that start with '_'.
-                        rowData[column] = row[column]; //Add the column data to the rowData object.
+                        rowData[column.charAt(0).toLowerCase() + column.slice(1)] = row[column]; //Add the column data to the rowData object with lowercase first letter
+                    }
+                    if(column === '_id') {
+                        rowData._id = row[column]; //Add the _id to the rowData object.
                     }
                 });
-                map[row[Object.keys(row)[0]]] = rowData; //Add the row data to the map object.
+                map.push(rowData); //Add the row data to the map object.
                 return map;
             };
         }
@@ -66,8 +69,8 @@ const mapSTCData = (ctd, mapNames) => {
 
 //Function: Get the maps from the SeaTableControllers cachedTablesData.
 const getMaps = (mapNames) => {
-    const ctd = getCachedTablesData(); //Get the cachedTablesData.
-    // const ctd = cachedTables; //TEMPORARY: Use the cachedTables.json file for testing.
+    // const ctd = getCachedTablesData(); //Get the cachedTablesData.
+    const ctd = cachedTables; //TEMPORARY: Use the cachedTables.json file for testing.
     return mapSTCData(ctd, mapNames); //Return the mapping of the SeaTableControllers cachedTablesData.
 }
 

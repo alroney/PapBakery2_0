@@ -6,9 +6,9 @@ const { createTable } = require('./stTableController');
 
 const testSTCMaps = async (req, res) => {
     try {
-        // const unchangedMap = getMaps(['categoryShapeMap']);
-        // const updatedMap = convertForeignKeys(unchangedMap, true);
-        await createNewTable();
+        const map = getMaps(['categoryShapeMap']);
+        const updatedMap = convertForeignKeys(map, false);
+        updatedMap;
         res.status(200).json({ success: true });
     }
     catch (error) {
@@ -40,7 +40,7 @@ const createNewTable = async () => {
 }
 
 
-const buildRecipes = (req, res) => {
+const buildRecipes = () => {
     try {
         const {
             categoryIngredientMap,
@@ -53,13 +53,12 @@ const buildRecipes = (req, res) => {
     }
     catch(error) {
         console.error("Error building recipes: ", error);
-        res.status(500).json({ success: false, message: "Internal server error." });
     }
 }
 
 
 
-const buildProducts = async (req, res) => {
+const buildProducts = async () => {
     try {
         const { categoryMap,
                 subCategoryMap, 
@@ -71,6 +70,29 @@ const buildProducts = async (req, res) => {
                 categoryShapeSizeMap 
             } = getMaps(['categoryMap', 'subCategoryMap', 'flavorMap', 'shapeMap', 'sizeMap', 'ingredientMap', 'categoryShapeMap', 'categoryShapeSizeMap']);
         const products = [];
+
+        const columns = [
+            {
+                column_name: 'SKU',
+                column_type: 'text',
+            },
+            {
+                column_name: 'Name',
+                column_type: 'text',
+            },
+            {
+                column_name: 'RecipeCost',
+                column_type: 'number',
+            },
+            {
+                column_name: 'Description',
+                column_type: 'text',
+            },
+            {
+                column_name: 'Ingredients',
+                column_type: 'text',
+            }
+        ]
 
         //Build the products array.
         Object.keys(categoryShapeSizeMap).forEach(key => {
@@ -94,6 +116,7 @@ const buildProducts = async (req, res) => {
 
             //Run through each flavor.
             Object.keys(flavorMap).forEach(flavorID => {
+                console.log("FlavorID: ", flavorID);
                 const flavorData = flavorMap[flavorID];
                 const { name, description } = flavorData;
 
@@ -105,7 +128,6 @@ const buildProducts = async (req, res) => {
     }
     catch (error) {
         console.error("Error building products: ", error);
-        res.status(500).json({ success: false, message: "Internal server error." });
     }
 }
 
@@ -135,6 +157,7 @@ const renameAndUpdateColumnType = async (table_name, column, new_column_name, ne
 };
 
 
+
 //Helper function to rearrange the data into proper formation for updating the rows.
 const updateRowData = async (table_name, data) => {
     try {
@@ -145,10 +168,17 @@ const updateRowData = async (table_name, data) => {
 
         const upd = []; //Array to store all updates.
         
+        //Function to clean the row data. This function removes the _id from the row data and returns the cleaned row data.
+        const cleanRowData = (rowData) => {
+            const { _id, ...rest } = rowData;
+            return { row: rest, row_id: _id };
+        };
+
+
         //First collect all updates.
         Object.keys(data).forEach(rowKey => {
-            const row_id = rowKey;
-            const row = data[rowKey];
+            
+            const { row, row_id } = cleanRowData(data[rowKey]);
             upd.push({ row, row_id });
         });
 
@@ -157,10 +187,10 @@ const updateRowData = async (table_name, data) => {
 
         //Update the rows.
         console.log("Updating rows with data: ", obj);
-        const result = await updateRow(obj);
-        if (!result.success) {
-            console.log(`Failed to update rows.`);
-        }
+        // const result = await updateRow(obj);
+        // if (!result.success) {
+        //     console.log(`Failed to update rows.`);
+        // }
     }
     catch(error) {
         console.error("(stcTestMap.js)(updateRowData) Error updating row data: ", error);
@@ -174,19 +204,22 @@ const convertForeignKeys = async (map, idToName) => {
     try {
         const mapName = Object.keys(map)[0]; //Get the map name.
         const tableName = mapName.replace('Map', '').charAt(0).toUpperCase() + mapName.replace('Map', '').slice(1);
-        const rows = map[Object.keys(map)[0]]; //Get the rows from the map.
+        const rows = map[Object.keys(map)]; //Get the rows from the map.
 
-        //Get first row to determine columns. Since all rows have the same columns, we only need to check one row.
-        const firstRowKey = Object.keys(rows)[0];
-        if (!firstRowKey) return; //Skip if map is empty.
+        console.log("mapName: ", mapName);
+        console.log("tableName: ", tableName);
+        console.log("rows: ", rows);
+
         
-        const columnStructure = Object.keys(rows[firstRowKey])
+        
+        const columnStructure = Object.keys(rows[0]) //Get the column structure from the first row.
             .filter(column => !column.toLowerCase().startsWith(tableName.toLowerCase()))
             .filter(column => idToName ? column.endsWith('ID') : column.endsWith('Name'));
 
         
         //Rename and update column type for each identified column.
         columnStructure.forEach( async column => {
+            console.log(`Processing column ${column}.`);
             let newColumnName = '';
             let newColumnType = '';
             const column_data = {};
@@ -203,33 +236,33 @@ const convertForeignKeys = async (map, idToName) => {
             // const newColumnName = column.replace(idToName ? 'ID' : 'Name', idToName ? 'Name' : 'ID');
             // const newColumnType = idToName ? 'text' : 'number';
             console.log(`newColumnName: ${newColumnName}, newColumnType: ${newColumnType}`);
-            await renameAndUpdateColumnType(tableName, column, newColumnName, newColumnType, column_data)
-                .catch(error => console.error(`Error processing column ${column}: `, error));
+            // await renameAndUpdateColumnType(tableName, column, newColumnName, newColumnType, column_data)
+            //     .catch(error => console.error(`Error processing column ${column}: `, error));
         });
-
-        console.log("Exited columnStructure loop.");
 
         // First, collect all changes to avoid modifying during iteration
         const changes = {};
-        Object.keys(rows).forEach(rowKey => {
-            const columns = rows[rowKey];
-            changes[rowKey] = {}; //Initialize the changes object with the rowKey. Not using `...columns` to prevent unchanged columns from being included.
+        Object.keys(rows).forEach(row => {
+            const columns = rows[row]; //Get the columns inside of the current row in rows.
+            changes[row] = {_id: columns._id}; //Initialize the changes object with the current row. Not using `...columns` to prevent unchanged columns from being included.
             
             columnStructure.forEach(column => {
                 const value = columns[column];
                 const result = processForeignKeyConversion(column, value);
                 if (result) {
                     const { newColumnName, newValue } = result;
-                    delete changes[rowKey][column];
-                    changes[rowKey][newColumnName] = newValue;
+                    delete changes[row][column];
+                    changes[row][newColumnName] = newValue;
                 }
             });
         });
 
         // Then apply all changes at once
-        Object.keys(changes).forEach(rowKey => {
-            rows[rowKey] = changes[rowKey];
+        Object.keys(changes).forEach(row => {
+            rows[row] = changes[row];
         });
+
+        console.log("Rows after conversion: ", rows);
 
         
         await new Promise(resolve => setTimeout(resolve, 1000)); //Wait for 1 seconds before updating the rows. This is to ensure that the column changes are completed before updating the rows.
@@ -239,6 +272,8 @@ const convertForeignKeys = async (map, idToName) => {
         console.error("(stcTestMap.js)(convertForeignKeys) Error converting foreign keys: ", error);
     }
 }
+
+
 
 //Function: Process the foreign key conversion based on the column name and input value. 
 const processForeignKeyConversion = (columnName, input) => {
