@@ -1,3 +1,4 @@
+const { capitalize } = require('../../utils/helpers');
 const { getMaps } = require('./stcMaps');
 const columnOperations  = require('./stColumnController');
 const { updateRow } = require('./stRowController');
@@ -138,20 +139,19 @@ const renameAndUpdateColumnType = async (table_name, column, new_column_name, ne
     try {
         // Rename the column
         const renamed = await columnOperations.renameColumn(table_name, column, new_column_name);
-        
 
         // Update the column type
         console.log("(stcTestMap.js)(renameAndUpdateColumnType) new_column_type: ", new_column_type);
         const retyped = await columnOperations.updateColumnType(table_name, new_column_name, new_column_type, column_data);
         renamed;
-        console.log("Retyped: ", retyped);
+        retyped;
 
         
 
         return { success: true, message: "Column renamed and updated successfully." };
     }
     catch(error) {
-        console.error("(stcTestMap.js)(renameAndUpdateColumnType) Error renaming and updating column type: ", error);
+        // console.error("(stcTestMap.js)(renameAndUpdateColumnType) Error renaming and updating column type: ", error);
         return { success: false, message: "Internal server error." };
     }
 };
@@ -179,6 +179,7 @@ const updateRowData = async (table_name, data) => {
         Object.keys(data).forEach(rowKey => {
             
             const { row, row_id } = cleanRowData(data[rowKey]);
+            console.log("row: ", row);
             upd.push({ row, row_id });
         });
 
@@ -208,7 +209,6 @@ const convertForeignKeys = async (map, idToName) => {
 
         console.log("mapName: ", mapName);
         console.log("table_name: ", table_name);
-        console.log("rows: ", rows);
 
         
         
@@ -221,6 +221,7 @@ const convertForeignKeys = async (map, idToName) => {
         
         //Rename and update column type for each identified column.
         columnStructure.forEach( async column => {
+            column = capitalize(column); //Capitalize the first letter of the column name.
             console.log(`Processing column ${column}.`);
             let newColumnName = '';
             let newColumnType = '';
@@ -238,8 +239,8 @@ const convertForeignKeys = async (map, idToName) => {
 
             console.log("column: ", column);
             console.log(`newColumnName: ${newColumnName}, newColumnType: ${newColumnType}`);
-            // await renameAndUpdateColumnType(table_name, column, newColumnName, newColumnType, column_data)
-            //     .catch(error => console.error(`Error processing column ${column}: `, error));
+            await renameAndUpdateColumnType(table_name, column, newColumnName, newColumnType, column_data)
+                .catch(error => console.error(`Error processing column ${column}: `, error));
         });
 
         // First, collect all changes to avoid modifying during iteration
@@ -254,7 +255,7 @@ const convertForeignKeys = async (map, idToName) => {
                 if (result) {
                     const { newColumnName, newValue } = result;
                     delete changes[row][column];
-                    changes[row][newColumnName] = newValue;
+                    changes[row][capitalize(newColumnName)] = newValue; //Assign the new value to the new column name. Capitalize the first letter of the new column name.
                 }
             });
         });
@@ -268,7 +269,7 @@ const convertForeignKeys = async (map, idToName) => {
 
         
         await new Promise(resolve => setTimeout(resolve, 1000)); //Wait for 1 seconds before updating the rows. This is to ensure that the column changes are completed before updating the rows.
-        // await updateRowData(table_name, rows);
+        await updateRowData(table_name, rows); //Update the rows with the converted foreign keys.
     }
     catch(error) {
         console.error("(stcTestMap.js)(convertForeignKeys) Error converting foreign keys: ", error);

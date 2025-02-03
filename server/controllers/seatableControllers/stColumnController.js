@@ -25,7 +25,8 @@ const updateColumn = async (data) => {
     }
     catch(error) {
         console.error("(seatableController)(updateColumn) Error updating column: ", error);
-        return { success: false, error: error.message };
+
+        return { success: false, error: error.message};
     }
 }
 
