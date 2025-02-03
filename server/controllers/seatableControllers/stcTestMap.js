@@ -187,10 +187,10 @@ const updateRowData = async (table_name, data) => {
 
         //Update the rows.
         console.log("Updating rows with data: ", obj);
-        // const result = await updateRow(obj);
-        // if (!result.success) {
-        //     console.log(`Failed to update rows.`);
-        // }
+        const result = await updateRow(obj);
+        if (!result.success) {
+            console.log(`Failed to update rows.`);
+        }
     }
     catch(error) {
         console.error("(stcTestMap.js)(updateRowData) Error updating row data: ", error);
@@ -203,18 +203,20 @@ const updateRowData = async (table_name, data) => {
 const convertForeignKeys = async (map, idToName) => {
     try {
         const mapName = Object.keys(map)[0]; //Get the map name.
-        const tableName = mapName.replace('Map', '').charAt(0).toUpperCase() + mapName.replace('Map', '').slice(1);
+        const table_name = mapName.replace('Map', '').charAt(0).toUpperCase() + mapName.replace('Map', '').slice(1);
         const rows = map[Object.keys(map)]; //Get the rows from the map.
 
         console.log("mapName: ", mapName);
-        console.log("tableName: ", tableName);
+        console.log("table_name: ", table_name);
         console.log("rows: ", rows);
 
         
         
         const columnStructure = Object.keys(rows[0]) //Get the column structure from the first row.
-            .filter(column => !column.toLowerCase().startsWith(tableName.toLowerCase()))
+            .filter(column => !column.toLowerCase().startsWith(table_name.toLowerCase()))
             .filter(column => idToName ? column.endsWith('ID') : column.endsWith('Name'));
+
+        console.log("columnStructure: ", columnStructure);
 
         
         //Rename and update column type for each identified column.
@@ -223,20 +225,20 @@ const convertForeignKeys = async (map, idToName) => {
             let newColumnName = '';
             let newColumnType = '';
             const column_data = {};
-            if(column.toLowerCase().includes('id')) {
+            if(column.endsWith('ID')) {
                 newColumnName = column.replace('ID', 'Name');
                 newColumnType = 'text';
                 column_data['format'] = 'text';
             }
-            else if(column.toLowerCase().includes('name')) {
+            else if(column.endsWith('Name')) {
                 newColumnName = column.replace('Name', 'ID');
                 newColumnType = 'number';
                 column_data['format'] = 'number';
             }
-            // const newColumnName = column.replace(idToName ? 'ID' : 'Name', idToName ? 'Name' : 'ID');
-            // const newColumnType = idToName ? 'text' : 'number';
+
+            console.log("column: ", column);
             console.log(`newColumnName: ${newColumnName}, newColumnType: ${newColumnType}`);
-            // await renameAndUpdateColumnType(tableName, column, newColumnName, newColumnType, column_data)
+            // await renameAndUpdateColumnType(table_name, column, newColumnName, newColumnType, column_data)
             //     .catch(error => console.error(`Error processing column ${column}: `, error));
         });
 
@@ -266,7 +268,7 @@ const convertForeignKeys = async (map, idToName) => {
 
         
         await new Promise(resolve => setTimeout(resolve, 1000)); //Wait for 1 seconds before updating the rows. This is to ensure that the column changes are completed before updating the rows.
-        await updateRowData(tableName, rows);
+        // await updateRowData(table_name, rows);
     }
     catch(error) {
         console.error("(stcTestMap.js)(convertForeignKeys) Error converting foreign keys: ", error);
