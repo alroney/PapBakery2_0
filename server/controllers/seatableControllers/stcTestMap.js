@@ -65,14 +65,15 @@ const buildProducts = async () => {
         const { categoryMap,
                 subCategoryMap,
                 subCategoryIngredientMap, 
-                flavorMap, 
+                flavorMap,
+                flourMap,
                 shapeMap, 
                 sizeMap, 
                 ingredientMap,
                 categoryIngredientMap,
                 categoryShapeMap, 
                 categoryShapeSizeMap 
-            } = getMaps(['categoryMap', 'subCategoryMap', 'subCategoryIngredientMap', 'flavorMap', 'shapeMap', 'sizeMap', 'ingredientMap', 'categoryIngredientMap', 'categoryShapeMap', 'categoryShapeSizeMap']);
+            } = getMaps(['categoryMap', 'subCategoryMap', 'subCategoryIngredientMap', 'flavorMap', 'flourMap', 'shapeMap', 'sizeMap', 'ingredientMap', 'categoryIngredientMap', 'categoryShapeMap', 'categoryShapeSizeMap']);
         const products = [];
 
         //Function (helper): Transform the map into a usable format. 
@@ -90,6 +91,7 @@ const buildProducts = async () => {
         const subCategoryMapT = transformMap(subCategoryMap, 'subCategory');
         const subCategoryIngredientMapT = transformMap(subCategoryIngredientMap, 'subCategoryIngredient');
         const flavorMapT = transformMap(flavorMap, 'flavor');
+        const flourMapT = transformMap(flourMap, 'flour');
         const shapeMapT = transformMap(shapeMap, 'shape');
         const sizeMapT = transformMap(sizeMap, 'size');
         const ingredientMapT = transformMap(ingredientMap, 'ingredient');
@@ -171,11 +173,47 @@ const buildProducts = async () => {
                         ingredientsByCategory[ingredientCategory] = [];
                     }
 
+                    // Collect ingredients for the category and quantity used in the recipe.
                     Object.keys(ingredientMapT).forEach(ingredientKey => {
                         const ingredientData = ingredientMapT[ingredientKey];
                         if (ingredientData.ingredientCategory === ingredientCategory) {
+                            let specialID = 0;
                             const { ingredientName, costPerUnit } = ingredientData;
-                            ingredientsByCategory[ingredientCategory].push({ name: ingredientName, quantity, costPerUnit });
+                            switch(ingredientCategory.toLowerCase()) {
+                                case 'flavor agent': {
+                                    Object.keys(flavorMapT).forEach(flavorKey => {
+                                        const flavor = flavorMapT[flavorKey];
+                                        if (flavor.flavorName === ingredientName) {
+                                            specialID = flavorKey;
+                                            return;
+                                        }
+                                    });
+
+                                    break;
+                                };
+                                case 'flour': {
+                                    Object.keys(flourMapT).forEach(flourKey => {
+                                        const flour = flourMapT[flourKey];
+                                        if ((flour.type + ' Flour') === ingredientName) {
+                                            specialID = flourKey;
+                                            return;
+                                        }
+                                    });
+
+                                    break;
+                                };
+                                default: {
+                                    console.log("No special ID found for ingredient category: ", ingredientCategory);
+                                    specialID = 0;
+                                    break;
+                                };
+                            }
+                            ingredientsByCategory[ingredientCategory].push({ 
+                                name: ingredientName, 
+                                quantity, 
+                                costPerUnit,
+                                ...(specialID !== 0 && { specialID }) // Add special ID if it exists
+                            });
                         }
                     });
                 }
@@ -225,7 +263,8 @@ const buildProducts = async () => {
                 Object.keys(combination).forEach(ingredientName => {
                     tempIngredients[ingredientName] = {
                         quantity: combination[ingredientName].quantity,
-                        costPerUnit: combination[ingredientName].costPerUnit
+                        costPerUnit: combination[ingredientName].costPerUnit,
+                        ...(combination[ingredientName].specialID && { specialID: combination[ingredientName].specialID })
                     };
                 });
                 
