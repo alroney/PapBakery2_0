@@ -458,7 +458,7 @@
           "UnitSize": 80,
           "PurchaseCost": 2.43,
           "CostPerUnit": 0.030375,
-          "Category": "FLOUR"
+          "IngredientCategory": "FLOUR"
         },
         {
           "_id": "SGnCpmHwRreejrAo74yd_w",
@@ -474,7 +474,7 @@
           "UnitSize": 80,
           "PurchaseCost": 3.47,
           "CostPerUnit": 0.043375,
-          "Category": "FLOUR"
+          "IngredientCategory": "FLOUR"
         },
         {
           "_id": "L7WVBcuBQueCulQ0h0K00w",
@@ -490,7 +490,7 @@
           "UnitSize": 64,
           "PurchaseCost": 17.79,
           "CostPerUnit": 0.27796875,
-          "Category": "FLOUR"
+          "IngredientCategory": "FLOUR"
         },
         {
           "_id": "KYmIcvMLT_qz0rF6SICreg",
@@ -506,7 +506,7 @@
           "UnitSize": 64,
           "PurchaseCost": 12.58,
           "CostPerUnit": 0.1965625,
-          "Category": "DAIRY"
+          "IngredientCategory": "DAIRY"
         },
         {
           "_id": "fFyyrO47RaaaoSxjZZo2GA",
@@ -522,7 +522,7 @@
           "UnitSize": 12,
           "PurchaseCost": 2.16,
           "CostPerUnit": 0.18,
-          "Category": "DAIRY"
+          "IngredientCategory": "DAIRY"
         },
         {
           "_id": "LVZJd9INQb6xhCJjQf6YCg",
@@ -538,7 +538,7 @@
           "UnitSize": 32,
           "PurchaseCost": 1.59,
           "CostPerUnit": 0.0496875,
-          "Category": "DAIRY"
+          "IngredientCategory": "DAIRY"
         },
         {
           "_id": "UTc5aay3T1qtGQASnVVpMQ",
@@ -554,7 +554,7 @@
           "UnitSize": 46,
           "PurchaseCost": 3.12,
           "CostPerUnit": 0.06782608696,
-          "Category": "FLAVOR AGENT"
+          "IngredientCategory": "FLAVOR AGENT"
         },
         {
           "_id": "SmC12F9fTKuTYh973wHOLA",
@@ -570,7 +570,7 @@
           "UnitSize": 40,
           "PurchaseCost": 6.28,
           "CostPerUnit": 0.157,
-          "Category": "FLAVOR AGENT"
+          "IngredientCategory": "FLAVOR AGENT"
         },
         {
           "_id": "P4_13CEtRiufG7ZttLbk3A",
@@ -586,7 +586,7 @@
           "UnitSize": 15,
           "PurchaseCost": 1.47,
           "CostPerUnit": 0.098,
-          "Category": "FLAVOR AGENT"
+          "IngredientCategory": "FLAVOR AGENT"
         },
         {
           "_id": "WJv2s9YWQpiTj6ID0rAQpg",
@@ -602,7 +602,7 @@
           "UnitSize": 4.16,
           "PurchaseCost": 0.15,
           "CostPerUnit": 0.03605769231,
-          "Category": "FLAVOR AGENT"
+          "IngredientCategory": "FLAVOR AGENT"
         },
         {
           "_id": "Kv70-ZmnQoqRw7djocmZeA",
@@ -618,7 +618,7 @@
           "UnitSize": 16,
           "PurchaseCost": 3,
           "CostPerUnit": 0.1875,
-          "Category": "FLAVOR AGENT"
+          "IngredientCategory": "FLAVOR AGENT"
         },
         {
           "_id": "R-5x7QSQSFegF4Jr-ZlKJg",
@@ -634,7 +634,7 @@
           "UnitSize": 1.8,
           "PurchaseCost": 8.58,
           "CostPerUnit": 4.766666667,
-          "Category": "SPICE"
+          "IngredientCategory": "SPICE"
         },
         {
           "_id": "Dgl_rwgpSwyZ0BDsqls4sw",
@@ -650,7 +650,7 @@
           "UnitSize": 2.37,
           "PurchaseCost": 1.99,
           "CostPerUnit": 0.8396624473,
-          "Category": "SPICE"
+          "IngredientCategory": "SPICE"
         },
         {
           "_id": "IUJJmOltSFK83UNg9fXWiw",
@@ -666,7 +666,7 @@
           "UnitSize": 1.5,
           "PurchaseCost": 2.99,
           "CostPerUnit": 1.993333333,
-          "Category": "SPICE"
+          "IngredientCategory": "SPICE"
         },
         {
           "_id": "KpNGvKcySd6COGfWmOcjXw",
@@ -682,7 +682,7 @@
           "UnitSize": 1.1,
           "PurchaseCost": 5.29,
           "CostPerUnit": 4.809090909,
-          "Category": "SPICE"
+          "IngredientCategory": "SPICE"
         },
         {
           "_id": "Swh8QxOiSG2ABXPK6-Hszg",
@@ -698,7 +698,7 @@
           "UnitSize": 1.12,
           "PurchaseCost": 5.99,
           "CostPerUnit": 5.348214286,
-          "Category": "SPICE"
+          "IngredientCategory": "SPICE"
         },
         {
           "_id": "WVa8-bc3SsONO2K-j1B0yw",
@@ -714,7 +714,7 @@
           "UnitSize": 32,
           "PurchaseCost": 3,
           "CostPerUnit": 0.09375,
-          "Category": "SWEET"
+          "IngredientCategory": "SWEET"
         },
         {
           "_id": "cVl9CjsYSZam3w8WC05wmw",
@@ -730,7 +730,7 @@
           "UnitSize": 16,
           "PurchaseCost": 2.86,
           "CostPerUnit": 0.17875,
-          "Category": "SWEET"
+          "IngredientCategory": "SWEET"
         },
         {
           "_id": "NLIeqNZaTHO5j08uH2ablQ",
@@ -746,7 +746,7 @@
           "UnitSize": 160,
           "PurchaseCost": 8.79,
           "CostPerUnit": 0.0549375,
-          "Category": "SWEET"
+          "IngredientCategory": "SWEET"
         },
         {
           "_id": "BWG_9thQSj2j3zfervtRag",
@@ -762,7 +762,7 @@
           "UnitSize": 24,
           "PurchaseCost": 10.99,
           "CostPerUnit": 0.4579166667,
-          "Category": "SWEET"
+          "IngredientCategory": "SWEET"
         },
         {
           "_id": "d4U0928ZRP6O1TbLqp3Srw",
@@ -778,7 +778,7 @@
           "UnitSize": 46.07,
           "PurchaseCost": 10.49,
           "CostPerUnit": 0.2276969829,
-          "Category": "SWEET"
+          "IngredientCategory": "SWEET"
         },
         {
           "_id": "JXGT9n3AShqMUOlVOGkpYA",
@@ -794,7 +794,7 @@
           "UnitSize": 12,
           "PurchaseCost": 4.19,
           "CostPerUnit": 0.3491666667,
-          "Category": "SWEET"
+          "IngredientCategory": "SWEET"
         },
         {
           "_id": "AQpP2WEYSMKOc72e1J6enA",
@@ -810,7 +810,7 @@
           "UnitSize": 8,
           "PurchaseCost": 23.99,
           "CostPerUnit": 2.99875,
-          "Category": "SWEET"
+          "IngredientCategory": "SWEET"
         },
         {
           "_id": "WujNbqv9RnG30v7nNrv-aQ",
@@ -826,7 +826,7 @@
           "UnitSize": 8.1,
           "PurchaseCost": 2.29,
           "CostPerUnit": 0.2827160494,
-          "Category": "BAKING AGENT"
+          "IngredientCategory": "BAKING AGENT"
         },
         {
           "_id": "Zx9dY5FDQ42U8nYyRiVuLA",
@@ -842,7 +842,7 @@
           "UnitSize": 16,
           "PurchaseCost": 1.29,
           "CostPerUnit": 0.080625,
-          "Category": "BAKING AGENT"
+          "IngredientCategory": "BAKING AGENT"
         },
         {
           "_id": "JfqkE0_CSVqoOI7mfSkyVA",
@@ -858,7 +858,7 @@
           "UnitSize": 1.5,
           "PurchaseCost": 4.29,
           "CostPerUnit": 2.86,
-          "Category": "BAKING AGENT"
+          "IngredientCategory": "BAKING AGENT"
         },
         {
           "_id": "BgYq_A-vTueo_AbTML3oqQ",
@@ -874,7 +874,7 @@
           "UnitSize": 26,
           "PurchaseCost": 1.69,
           "CostPerUnit": 0.065,
-          "Category": "BAKING AGENT"
+          "IngredientCategory": "BAKING AGENT"
         },
         {
           "_id": "A4ySwSiERZGCdlyp7en35g",
@@ -890,7 +890,7 @@
           "UnitSize": 0,
           "PurchaseCost": 0,
           "CostPerUnit": 0,
-          "Category": "WATER"
+          "IngredientCategory": "WATER"
         }
       ]
     }
@@ -1017,9 +1017,9 @@
           "_creator": "f4440a38c8c44a93a7a6badffac34047@auth.local",
           "_ctime": "2024-12-30T14:50:13.011+00:00",
           "_last_modifier": "f4440a38c8c44a93a7a6badffac34047@auth.local",
-          "_mtime": "2025-01-19T16:22:35.406+00:00",
+          "_mtime": "2025-02-03T17:16:57.974+00:00",
           "SubCategoryID": 1,
-          "SubCategoryName": "SunnySide Biscuits",
+          "SubCategoryName": "SunnySide",
           "Description": "Containing Eggs.",
           "CategoryID": 1
         },
@@ -1029,9 +1029,9 @@
           "_creator": "f4440a38c8c44a93a7a6badffac34047@auth.local",
           "_ctime": "2024-12-30T14:50:13.011+00:00",
           "_last_modifier": "f4440a38c8c44a93a7a6badffac34047@auth.local",
-          "_mtime": "2025-01-19T16:22:35.894+00:00",
+          "_mtime": "2025-02-03T17:17:01.490+00:00",
           "SubCategoryID": 2,
-          "SubCategoryName": "Bare Biscuits",
+          "SubCategoryName": "Bare",
           "Description": "Nothing special added.",
           "CategoryID": 1
         },
@@ -1041,9 +1041,9 @@
           "_creator": "f4440a38c8c44a93a7a6badffac34047@auth.local",
           "_ctime": "2024-12-30T14:50:13.011+00:00",
           "_last_modifier": "f4440a38c8c44a93a7a6badffac34047@auth.local",
-          "_mtime": "2025-01-19T16:22:36.365+00:00",
+          "_mtime": "2025-02-03T17:17:05.444+00:00",
           "SubCategoryID": 3,
-          "SubCategoryName": "LiteTrain Treats",
+          "SubCategoryName": "LiteTrain",
           "Description": "Nothing special added.",
           "CategoryID": 2
         }
@@ -1059,11 +1059,11 @@
           "_participants": [],
           "_creator": "f4440a38c8c44a93a7a6badffac34047@auth.local",
           "_ctime": "2025-01-19T16:25:24.825+00:00",
-          "_last_modifier": "f4440a38c8c44a93a7a6badffac34047@auth.local",
-          "_mtime": "2025-01-19T16:28:10.468+00:00",
+          "_last_modifier": "main",
+          "_mtime": "2025-02-03T17:59:26.929+00:00",
           "SubCategoryIngredientID": "1",
-          "SubCategoryName": "1",
-          "IngredientName": "Egg",
+          "SubCategoryID": 1,
+          "IngredientID": 5,
           "Quantity": 1
         }
       ]
@@ -1090,10 +1090,10 @@
           "_creator": "f4440a38c8c44a93a7a6badffac34047@auth.local",
           "_ctime": "2024-12-30T14:50:13.012+00:00",
           "_last_modifier": "f4440a38c8c44a93a7a6badffac34047@auth.local",
-          "_mtime": "2024-12-30T14:50:13.012+00:00",
+          "_mtime": "2025-02-03T17:43:28.289+00:00",
           "FlavorID": 2,
           "FlavorName": "Peanut Butter",
-          "Description": "Made with fresh bananas for that tropical taste your pets crave."
+          "Description": "Made with creamy nutiness."
         },
         {
           "_id": "UVufXCZLR_CCxyqjjB0-pA",
@@ -1112,10 +1112,10 @@
           "_creator": "f4440a38c8c44a93a7a6badffac34047@auth.local",
           "_ctime": "2024-12-30T14:50:13.012+00:00",
           "_last_modifier": "f4440a38c8c44a93a7a6badffac34047@auth.local",
-          "_mtime": "2024-12-30T14:50:13.012+00:00",
+          "_mtime": "2025-02-03T17:43:18.212+00:00",
           "FlavorID": 4,
           "FlavorName": "Banana",
-          "Description": "Made with creamy nutiness."
+          "Description": "Made with fresh bananas for that tropical taste your pets crave."
         },
         {
           "_id": "LMCqwJEDQK615fee2WaqRQ",
@@ -1382,10 +1382,10 @@
           "_creator": "f4440a38c8c44a93a7a6badffac34047@auth.local",
           "_ctime": "2024-12-30T14:50:13.013+00:00",
           "_last_modifier": "main",
-          "_mtime": "2025-02-03T15:19:04.047+00:00",
+          "_mtime": "2025-02-03T15:19:34.797+00:00",
           "CategoryShapeID": 1,
-          "CategoryName": "Biscuit",
-          "ShapeName": "Bone"
+          "CategoryID": 1,
+          "ShapeID": 1
         },
         {
           "_id": "AiAVFA91Td-S75UmF6Extg",
@@ -1393,10 +1393,10 @@
           "_creator": "f4440a38c8c44a93a7a6badffac34047@auth.local",
           "_ctime": "2024-12-30T14:50:13.013+00:00",
           "_last_modifier": "main",
-          "_mtime": "2025-02-03T15:19:04.047+00:00",
+          "_mtime": "2025-02-03T15:19:34.797+00:00",
           "CategoryShapeID": 2,
-          "CategoryName": "Biscuit",
-          "ShapeName": "Paw"
+          "CategoryID": 1,
+          "ShapeID": 2
         },
         {
           "_id": "COq8RSndSqSgqBmaOQn34w",
@@ -1404,10 +1404,10 @@
           "_creator": "f4440a38c8c44a93a7a6badffac34047@auth.local",
           "_ctime": "2024-12-30T14:50:13.013+00:00",
           "_last_modifier": "main",
-          "_mtime": "2025-02-03T15:19:04.047+00:00",
+          "_mtime": "2025-02-03T15:19:34.797+00:00",
           "CategoryShapeID": 3,
-          "CategoryName": "Biscuit",
-          "ShapeName": "Ying-Yang"
+          "CategoryID": 1,
+          "ShapeID": 4
         },
         {
           "_id": "A5eMdvEpRz672mpqIr_qIw",
@@ -1415,10 +1415,10 @@
           "_creator": "f4440a38c8c44a93a7a6badffac34047@auth.local",
           "_ctime": "2024-12-30T14:50:13.013+00:00",
           "_last_modifier": "main",
-          "_mtime": "2025-02-03T15:19:04.047+00:00",
+          "_mtime": "2025-02-03T15:19:34.797+00:00",
           "CategoryShapeID": 4,
-          "CategoryName": "Training Treat",
-          "ShapeName": "Bone"
+          "CategoryID": 2,
+          "ShapeID": 1
         },
         {
           "_id": "fvLOctFBQ-aQ3RKCbz_Btw",
@@ -1426,10 +1426,10 @@
           "_creator": "f4440a38c8c44a93a7a6badffac34047@auth.local",
           "_ctime": "2024-12-30T14:50:13.013+00:00",
           "_last_modifier": "main",
-          "_mtime": "2025-02-03T15:19:04.047+00:00",
+          "_mtime": "2025-02-03T15:19:34.797+00:00",
           "CategoryShapeID": 5,
-          "CategoryName": "Training Treat",
-          "ShapeName": "Paw"
+          "CategoryID": 2,
+          "ShapeID": 2
         },
         {
           "_id": "F7OjlxPfTQ2TOSBuqV7MiQ",
@@ -1437,10 +1437,10 @@
           "_creator": "f4440a38c8c44a93a7a6badffac34047@auth.local",
           "_ctime": "2024-12-30T14:50:13.013+00:00",
           "_last_modifier": "main",
-          "_mtime": "2025-02-03T15:19:04.047+00:00",
+          "_mtime": "2025-02-03T15:19:34.797+00:00",
           "CategoryShapeID": 6,
-          "CategoryName": "Training Treat",
-          "ShapeName": "Dot"
+          "CategoryID": 2,
+          "ShapeID": 3
         }
       ]
     }
