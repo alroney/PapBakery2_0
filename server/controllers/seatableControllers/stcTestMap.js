@@ -3,6 +3,7 @@ const { getMaps } = require('./stcMaps');
 const columnOperations  = require('./stColumnController');
 const { updateRow } = require('./stRowController');
 const { createTable } = require('./stTableController');
+const { convertUnit, convertPricePerUnit } = require('../../utils/unitConversion');
 
 
 const testSTCMaps = async (req, res) => {
@@ -144,7 +145,7 @@ const buildProducts = async () => {
             console.log(`Category: ${categoryID}, Shape: ${shapeID}, Size: ${sizeID}`);
             
             
-            // Function to generate all combinations of ingredients
+            //Function: Generate all combinations of ingredients.
             function generateCombinations(categories, index, currentCombination, allCombinations) {
                 if (index === categories.length) {
                     allCombinations.push({ ...currentCombination });
@@ -159,7 +160,7 @@ const buildProducts = async () => {
                 });
             }
 
-            // Collect ingredients by category
+            //Collect ingredients by category.
             let ingredientsByCategory = {};
             Object.keys(categoryIngredientMapT).forEach(categoryIngredientKey => {
                 const categoryIngredientData = categoryIngredientMapT[categoryIngredientKey];
@@ -173,12 +174,15 @@ const buildProducts = async () => {
                         ingredientsByCategory[ingredientCategory] = [];
                     }
 
-                    // Collect ingredients for the category and quantity used in the recipe.
+                    //Collect ingredients for the category and quantity used in the recipe.
                     Object.keys(ingredientMapT).forEach(ingredientKey => {
                         const ingredientData = ingredientMapT[ingredientKey];
                         if (ingredientData.ingredientCategory === ingredientCategory) {
                             let specialID = 0;
-                            const { ingredientName, costPerUnit } = ingredientData;
+                            const { ingredientName, costPerUnit, unitType } = ingredientData;
+                            const cost = quantity * convertPricePerUnit(costPerUnit, unitType, 'g');
+                            
+                            //Check if the ingredientCategory should have a special ID assigned from IDs of the other tables related to the ingredientCategory.
                             switch(ingredientCategory.toLowerCase()) {
                                 case 'flavor agent': {
                                     Object.keys(flavorMapT).forEach(flavorKey => {
@@ -188,7 +192,6 @@ const buildProducts = async () => {
                                             return;
                                         }
                                     });
-
                                     break;
                                 };
                                 case 'flour': {
@@ -199,7 +202,6 @@ const buildProducts = async () => {
                                             return;
                                         }
                                     });
-
                                     break;
                                 };
                                 default: {
@@ -210,9 +212,9 @@ const buildProducts = async () => {
                             }
                             ingredientsByCategory[ingredientCategory].push({ 
                                 name: ingredientName, 
-                                quantity, 
-                                costPerUnit,
-                                ...(specialID !== 0 && { specialID }) // Add special ID if it exists
+                                quantity,
+                                cost,
+                                ...(specialID !== 0 && { specialID }) //Add special ID if it is not 0.
                             });
                         }
                     });
@@ -243,8 +245,10 @@ const buildProducts = async () => {
                             Object.keys(ingredientMapT).forEach(ingredientKey => { //Iterate over the ingredientMapT to get the ingredient data.
                                 const ingredientData = ingredientMapT[ingredientKey];
                                 if(ingredientID === Number(ingredientKey)) {
-                                    const { ingredientName, costPerUnit } = ingredientData;
-                                    tempIngredients[ingredientName] = { quantity, costPerUnit };
+                                    const { ingredientName, costPerUnit, unitType } = ingredientData;
+                                    const cost = quantity * convertPricePerUnit(costPerUnit, unitType, 'g');
+
+                                    tempIngredients[ingredientName] = { quantity, cost };
                                     return true;
                                 }
                             });
@@ -263,7 +267,7 @@ const buildProducts = async () => {
                 Object.keys(combination).forEach(ingredientName => {
                     tempIngredients[ingredientName] = {
                         quantity: combination[ingredientName].quantity,
-                        costPerUnit: combination[ingredientName].costPerUnit,
+                        cost : Number(combination[ingredientName].cost.toFixed(4)),
                         ...(combination[ingredientName].specialID && { specialID: combination[ingredientName].specialID })
                     };
                 });

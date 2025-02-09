@@ -99,4 +99,25 @@ const convertUnit = (value, fromUnit, toUnit) => {
     }
 }
 
-module.exports = convertUnit;
+
+
+const convertPricePerUnit = (price, fromUnit, toUnit) => {
+    const fromFactor = checkAndValidateUnit(fromUnit);
+    const toFactor = checkAndValidateUnit(toUnit);
+
+    try {
+        if (fromFactor && toFactor) {
+            //Convert the value to the base unit
+            const convertedPrice = price / (unitConversionFactors[fromFactor] / unitConversionFactors[toFactor]);
+            console.log(`${price} per ${fromUnit} is equal to ${convertedPrice} per ${toUnit}`);
+            return convertedPrice;
+        }
+        throw new Error("Invalid unit provided");
+    }
+    catch(error) {
+        console.error("Error while converting price per unit: ", error);
+        throw error;
+    }
+}
+
+module.exports = { convertUnit, convertPricePerUnit };
