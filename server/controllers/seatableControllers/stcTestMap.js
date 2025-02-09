@@ -274,6 +274,24 @@ const buildProducts = async () => {
                 
                 console.log("Current ingredient combination:", tempIngredients);
                 
+                
+                const sortedIngredients = Object.entries(tempIngredients)
+                    .map(([name, data]) => ({
+                        name,
+                        quantity: name === 'Egg' ? data.quantity * 48 : data.quantity, //Convert egg quantities to grams and sort ingredients by quantity
+                        cost: data.cost,
+                        ...(data.specialID && { specialID: data.specialID })
+                    }))
+                    .sort((a, b) => b.quantity - a.quantity);
+
+                // Extract just the ingredient names into an array, then join them into a string.
+                const ingredientList = sortedIngredients.map(item => item.name).join(', ');
+                console.log("Sorted ingredient names:", ingredientList);
+
+                //Calculate the total cost of the recipe
+                const recipeCost = sortedIngredients.reduce((total, item) => total + item.cost, 0);
+                console.log("Recipe cost:", Number(recipeCost.toFixed(2)));
+
                 // Clear the added ingredients to prepare for next combination
                 Object.keys(combination).forEach(ingredientName => {
                     delete tempIngredients[ingredientName];
