@@ -63,66 +63,62 @@ const buildRecipes = () => {
 
 const buildProducts = async () => {
     try {
-        const { categoryMap,
-                subCategoryMap,
-                subCategoryIngredientMap, 
-                flavorMap,
-                flourMap,
-                shapeMap, 
-                sizeMap, 
-                ingredientMap,
-                categoryIngredientMap,
-                categoryShapeMap, 
-                categoryShapeSizeMap 
-            } = getMaps(['categoryMap', 'subCategoryMap', 'subCategoryIngredientMap', 'flavorMap', 'flourMap', 'shapeMap', 'sizeMap', 'ingredientMap', 'categoryIngredientMap', 'categoryShapeMap', 'categoryShapeSizeMap']);
-        const products = [];
+        const maps = getMaps([
+            'categoryMap', 'subCategoryMap', 'subCategoryIngredientMap', 'flavorMap', 'flourMap', 
+            'shapeMap', 'sizeMap', 'ingredientMap', 'categoryIngredientMap', 'categoryShapeMap', 'categoryShapeSizeMap'
+        ]);
 
-        //Function (helper): Transform the map into a usable format. 
+        const cache = {};
+
+        //Arrow Function: transform the map into a more usable format.
         const transformMap = (map, tableName) => {
-            return map.reduce((acc, item) => {
+            if (cache[tableName]) return cache[tableName];
+            const transformed = map.reduce((acc, item) => { //Reduce the map to an object.
                 const tableIdKey = `${tableName}ID`;
                 const tableIdValue = item[tableIdKey];
-                const { _id, [tableIdKey]: idToRemove, ...rest } = item; //Destructure the _id and tableIdKey from the item.
+                const { _id, [tableIdKey]: idToRemove, ...rest } = item;
                 acc[tableIdValue] = rest;
                 return acc;
             }, {});
+            cache[tableName] = transformed;
+            return transformed;
         };
 
-        const categoryMapT = transformMap(categoryMap, 'category');
-        const subCategoryMapT = transformMap(subCategoryMap, 'subCategory');
-        const subCategoryIngredientMapT = transformMap(subCategoryIngredientMap, 'subCategoryIngredient');
-        const flavorMapT = transformMap(flavorMap, 'flavor');
-        const flourMapT = transformMap(flourMap, 'flour');
-        const shapeMapT = transformMap(shapeMap, 'shape');
-        const sizeMapT = transformMap(sizeMap, 'size');
-        const ingredientMapT = transformMap(ingredientMap, 'ingredient');
-        const categoryIngredientMapT = transformMap(categoryIngredientMap, 'categoryIngredient');
-        const categoryShapeMapT = transformMap(categoryShapeMap, 'categoryShape');
-        const categoryShapeSizeMapT = transformMap(categoryShapeSizeMap, 'categoryShapeSize');
+        //Send each map (key) to be transformed and store it (here) in transformedMaps.
+        const transformedMaps = Object.keys(maps).reduce((acc, key) => {
+            const tableName = key.replace('Map', '');
+            acc[(key)+'T'] = transformMap(maps[key], tableName); //Transform the map and store it in transformedMaps. acc[(key)+'T'] is the key for the transformed map.
+            return acc;
+        }, {});
+
+        const { 
+            categoryMapT, subCategoryMapT, subCategoryIngredientMapT, flavorMapT, flourMapT, 
+            shapeMapT, sizeMapT, ingredientMapT, categoryIngredientMapT, categoryShapeMapT, categoryShapeSizeMapT 
+        } = transformedMaps;
         
 
-        const columns = [
-            {
-                column_name: 'SKU',
-                column_type: 'text',
-            },
-            {
-                column_name: 'Name',
-                column_type: 'text',
-            },
-            {
-                column_name: 'RecipeCost',
-                column_type: 'number',
-            },
-            {
-                column_name: 'Description',
-                column_type: 'text',
-            },
-            {
-                column_name: 'Ingredients',
-                column_type: 'text',
-            }
-        ]
+        // const columns = [
+        //     {
+        //         column_name: 'SKU',
+        //         column_type: 'text',
+        //     },
+        //     {
+        //         column_name: 'Name',
+        //         column_type: 'text',
+        //     },
+        //     {
+        //         column_name: 'RecipeCost',
+        //         column_type: 'number',
+        //     },
+        //     {
+        //         column_name: 'Description',
+        //         column_type: 'text',
+        //     },
+        //     {
+        //         column_name: 'Ingredients',
+        //         column_type: 'text',
+        //     }
+        // ]
 
         // const tableData = {
         //     table_name: 'Products-A',
@@ -132,206 +128,114 @@ const buildProducts = async () => {
         // // Create the table
         // await createTable(tableData);
         let cssmtCount = 0;
-        const productData = [];
-        Object.keys(categoryShapeSizeMapT).forEach(key => {
-            if(cssmtCount > 2) {
-                return;
-            }
+        const products = [];
+
+        for(const key in categoryShapeSizeMapT) {
+            if(cssmtCount > 2) break;
             cssmtCount++;
-            console.log("Count: ", cssmtCount);
-            let tempIngredients = {};
+
             const { categoryShapeID, sizeID, batchSize } = categoryShapeSizeMapT[key];
             const { categoryID, shapeID } = categoryShapeMapT[categoryShapeID];
-            
-            //Get descriptions for size, shape, and category.
             const categoryDesc = categoryMapT[categoryID].description;
             const sizeDesc = sizeMapT[sizeID].description;
             const shapeDesc = shapeMapT[shapeID].description;
 
-            //Function: Generate all combinations of ingredients.
-            function generateCombinations(categories, index, currentCombination, allCombinations) {
+            const ingredientsByCategory = Object.keys(categoryIngredientMapT).reduce((acc, categoryIngredientKey) => {
+                const categoryIngredientData = categoryIngredientMapT[categoryIngredientKey];
+                const { ingredientCategory, quantity, categoryID: catID } = categoryIngredientData;
+                if(catID !== categoryID) return acc; //Skip the current iteration if the categoryID does not match the categoryID.
+
+                if(!acc[ingredientCategory]) acc[ingredientCategory] = []; //Initialize the array for the ingredient category.
+                for(const ingredientKey in ingredientMapT) { //Iterate over the ingredientMapT to get the ingredient data.
+                    const ingredientData = ingredientMapT[ingredientKey];
+                    if(ingredientData.ingredientCategory === ingredientCategory) {
+                        const { ingredientName, costPerUnit, unitType } = ingredientData;
+                        const cost = quantity * convertPricePerUnit(costPerUnit, unitType, 'g');
+                        acc[ingredientCategory].push({ name: ingredientName, quantity, cost, ingID: ingredientKey, ingCat: ingredientCategory });
+                    }
+                }
+                return acc;
+            }, {});
+
+            const allCombinations = [];
+            const generateCombinations = (categories, index, currentCombination) => {
                 if (index === categories.length) {
                     allCombinations.push({ ...currentCombination });
                     return;
                 }
-
-                const category = categories[index];
-                category.forEach(ingredient => {
+                categories[index].forEach(ingredient => {
                     currentCombination[ingredient.name] = ingredient;
-                    generateCombinations(categories, index + 1, currentCombination, allCombinations);
+                    generateCombinations(categories, index + 1, currentCombination);
                     delete currentCombination[ingredient.name];
                 });
-            }
+            };
+            generateCombinations(Object.values(ingredientsByCategory), 0, {});
 
-            //Collect ingredients by category.
-            let ingredientsByCategory = {};
-            Object.keys(categoryIngredientMapT).forEach(categoryIngredientKey => {
-                const categoryIngredientData = categoryIngredientMapT[categoryIngredientKey];
-                const { ingredientCategory, quantity } = categoryIngredientData;
-                const catID = categoryIngredientData.categoryID;
-                if ( catID !== categoryID) {
-                    return;
-                }
-                else {
-                    if (!ingredientsByCategory[ingredientCategory]) {
-                        ingredientsByCategory[ingredientCategory] = [];
-                    }
+            for (const combination of allCombinations) {
+                const tempIngredients = { ...combination };
+                for (const subCategoryKey in subCategoryMapT) {
+                    const subCategoryData = subCategoryMapT[subCategoryKey];
+                    const { subCategoryName, categoryID: scd_categoryID, description: scd_description } = subCategoryData;
+                    if (scd_categoryID !== categoryID) continue;
 
-                    //Collect ingredients for the category and quantity used in the recipe.
-                    Object.keys(ingredientMapT).forEach(ingredientKey => {
-                        const ingredientData = ingredientMapT[ingredientKey];
-                        if (ingredientData.ingredientCategory === ingredientCategory) {
-                            let specialID = 0;
-                            let ingCat = '';
-                            const { ingredientName, costPerUnit, unitType } = ingredientData;
-                            const cost = quantity * convertPricePerUnit(costPerUnit, unitType, 'g');
-                            
-                            //Check if the ingredientCategory should have a special ID assigned from IDs of the other tables related to the ingredientCategory.
-                            switch(ingredientCategory.toLowerCase()) {
-                                case 'flavor agent': {
-                                    Object.keys(flavorMapT).forEach(flavorKey => {
-                                        const flavor = flavorMapT[flavorKey];
-                                        if (flavor.flavorName === ingredientName) {
-                                            ingCat = 'flavor';
-                                            specialID = flavorKey;
-                                            return;
-                                        }
-                                    });
-                                    break;
-                                };
-                                case 'flour': {
-                                    Object.keys(flourMapT).forEach(flourKey => {
-                                        const flour = flourMapT[flourKey];
-                                        if ((flour.type + ' Flour') === ingredientName) {
-                                            ingCat = 'flour';
-                                            specialID = flourKey;
-                                            return;
-                                        }
-                                    });
-                                    break;
-                                };
-                                default: {
-                                    console.log("No special ID found for ingredient category: ", ingredientCategory);
-                                    ingCat = '';
-                                    specialID = 0;
-                                    break;
-                                };
-                            }
-                            ingredientsByCategory[ingredientCategory].push({ 
-                                name: ingredientName, 
-                                quantity,
-                                cost,
-                                ...(ingCat && { ingCat }), //Add ingredient category if it is not empty.
-                                ...(specialID !== 0 && { specialID }) //Add special ID if it is not 0.
-                            });
-                        }
-                    }); //End of ingredientMapT iteration.
-                }
-            }); //End of categoryIngredientMapT iteration.
-            
-
-            //Each category can have multiple subcategories.
-            Object.keys(subCategoryMapT).forEach(subCategoryKey => {
-                tempIngredients = {}; //Reset the tempIngredients object for each subcategory.
-                const subCategoryData = subCategoryMapT[subCategoryKey];
-                const { subCategoryName } = subCategoryData;
-                const scd_categoryID = subCategoryData.categoryID;
-                const scd_description = subCategoryData.description;
-                
-                if(scd_categoryID !== categoryID) { //If the foreign key does not match, skip the current iteration.
-                    return;
-                }
-
-                else { //If the categoryID foreign key matches the categoryID, then look in the subCategoryIngredientMap for the ingredients used in the subcategory.
-                    Object.keys(subCategoryIngredientMapT).forEach(subCategoryIngredientKey => {
+                    for (const subCategoryIngredientKey in subCategoryIngredientMapT) {
                         const subCategoryIngredientData = subCategoryIngredientMapT[subCategoryIngredientKey];
                         const { subCategoryID, ingredientID, quantity } = subCategoryIngredientData;
-                        if(subCategoryID !== Number(subCategoryKey)) {
-                            return;
-                        }
-                        else {
-                            Object.keys(ingredientMapT).forEach(ingredientKey => { //Iterate over the ingredientMapT to get the ingredient data.
-                                const ingredientData = ingredientMapT[ingredientKey];
-                                if(ingredientID === Number(ingredientKey)) {
-                                    const { ingredientName, costPerUnit, unitType } = ingredientData;
-                                    const cost = quantity * convertPricePerUnit(costPerUnit, unitType, 'g');
+                        if (subCategoryID !== Number(subCategoryKey)) continue;
 
-                                    tempIngredients[ingredientName] = { quantity, cost };
-                                    return true;
-                                }
-                            });
-                            
-                        }
-                    });
-                    
-                }
-
-                // Generate all combinations
-                let allCombinations = [];
-                generateCombinations(Object.values(ingredientsByCategory), 0, {}, allCombinations);
-
-                allCombinations.forEach(combination => {
-                    //Add ingredients from the combination to tempIngredients
-                    Object.keys(combination).forEach(ingredientName => {
-                        tempIngredients[ingredientName] = {
-                            quantity: combination[ingredientName].quantity,
-                            cost : Number(combination[ingredientName].cost.toFixed(4)),
-                            ...(combination[ingredientName].ingCat && { ingCat: combination[ingredientName].ingCat }), //Add ingredient category if it is not empty.
-                            ...(combination[ingredientName].specialID && { specialID: combination[ingredientName].specialID }) //Add special ID if it is not 0.
-                        };
-                    });
-                    
-                    
-                    //Extract specialIDs and names for each ingredient category.
-                    const specialIDs = Object.entries(tempIngredients)
-                        .reduce((acc, [name, data]) => {
-                            if (data.ingCat && data.specialID) {
-                                acc[data.ingCat] = {
-                                    id: data.specialID,
-                                    name: name
-                                };
+                        for (const ingredientKey in ingredientMapT) {
+                            const ingredientData = ingredientMapT[ingredientKey];
+                            if (ingredientID === Number(ingredientKey)) {
+                                const { ingredientName, costPerUnit, unitType } = ingredientData;
+                                const cost = quantity * convertPricePerUnit(costPerUnit, unitType, 'g');
+                                tempIngredients[ingredientName] = { quantity, cost, ingCat: ingredientData.ingredientCategory, ingID: ingredientKey};
                             }
-                            return acc;
-                        }, {});
-                    const flavorDesc = specialIDs.flavor ? flavorMapT[specialIDs.flavor.id].description : 'No Description for Flavor'; //Get the flavor description if it exists, otherwise set to 'No Description for Flavor'.
-                    const sku = `${subCategoryKey}${specialIDs.flavor.id}${shapeID}-${sizeID}${specialIDs.flour.id}`; //Generate the SKU (Stock Keeping Unit) for the product.
-                    const sortedIngredients = Object.entries(tempIngredients)
-                        .map(([name, data]) => ({
-                            name,
-                            quantity: name === 'Egg' ? data.quantity * 48 : data.quantity, //Convert egg quantities to grams and sort ingredients by quantity
-                            cost: data.cost,
-                            ...(data.specialID && { specialID: data.specialID })
-                        }))
-                        .sort((a, b) => b.quantity - a.quantity);
-                    const ingredientList = sortedIngredients.map(item => item.name).join(', '); //Extract just the ingredient names into an array, then join them into a string.
-                    const recipeCost = sortedIngredients.reduce((total, item) => total + item.cost, 0); //Calculate the total cost of the recipe.
-                    const productDesc = `${categoryDesc} ${flavorDesc} ${scd_description} ${shapeDesc} ${sizeDesc}`; //Combine the descriptions into a single product description.
-                    const productName = `${specialIDs.flavor.name} ${subCategoryName} ${categoryMapT[categoryID].categoryName}`; //Combine the names into a single product name.
-                    
-                    //Prepare the product object. (Single product)
-                    const product = {
+                        }
+                    }
+
+                    const specialIDs = Object.entries(tempIngredients).reduce((acc, [name, data]) => {
+                        if (data.ingCat && data.ingID) {
+                            const firstWord = data.ingCat.split(' ')[0].toLowerCase(); //Get the first word of the ingredient category.
+                            const mapKey = `${firstWord}MapT`; //Get the map that is associated with the ingredient category.
+                            if (transformedMaps[mapKey]) { //Check if the map exists in transformedMaps.
+                                const specialID = Object.keys(transformedMaps[mapKey]).find(key => transformedMaps[mapKey][key][`${firstWord}Name`] === ingredientMapT[data.ingID].ingredientName);
+                                acc[firstWord] = { id: specialID, name: specialID ? transformedMaps[mapKey][specialID][`${firstWord}Name`] : '' };
+                            } 
+                            else { //The map does not exist therefore no specialID is necessary for the ingredient.
+                                acc[firstWord] = { id: '0', name: '' };
+                            }
+                        } 
+                        else {
+                            acc[name.toLowerCase()] = { id: '0', name };
+                        }
+                        return acc;
+                    }, {});
+
+                    const flavorDesc = specialIDs.flavor ? flavorMapT[specialIDs.flavor.id].description : 'No Description for Flavor';
+                    const sku = `${subCategoryKey}${specialIDs.flavor.id}${shapeID}-${sizeID}${specialIDs.flour.id}`;
+                    const sortedIngredients = Object.entries(tempIngredients).map(([name, data]) => ({
+                        name,
+                        quantity: name === 'Egg' ? data.quantity * 48 : data.quantity,
+                        cost: data.cost,
+                        ...(data.specialID && { specialID: data.specialID })
+                    })).sort((a, b) => b.quantity - a.quantity);
+
+                    const ingredientList = sortedIngredients.map(item => item.name).join(', ');
+                    const recipeCost = sortedIngredients.reduce((total, item) => total + item.cost, 0);
+                    const productDesc = `${categoryDesc} ${flavorDesc} ${scd_description} ${shapeDesc} ${sizeDesc}`;
+                    const productName = `${specialIDs.flavor.name} ${subCategoryName} ${categoryMapT[categoryID].categoryName}`;
+
+                    products.push({
                         SKU: String(sku),
                         Name: productName,
                         RecipeCost: Number(recipeCost.toFixed(4)),
                         Description: productDesc,
                         Ingredients: ingredientList,
-                    }
-                    
-
-                    //Add the product to the productData array.
-                    productData.push(product);
-
-
-                    //Clear the added ingredients to prepare for next combination
-                    Object.keys(combination).forEach(ingredientName => {
-                        delete tempIngredients[ingredientName];
                     });
-                }); //End of allCombinations iteration.
-            }); //End of subCategoryMapT iteration.
-        }); //End of categoryShapeSizeMapT iteration.
-
-        console.log("productData: ", productData);
-
+                }
+            }
+        }
+        console.log("Products: ", products);
     }
     catch (error) {
         console.error("Error building products: ", error);

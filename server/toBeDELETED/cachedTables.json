@@ -1141,9 +1141,9 @@
           "_creator": "f4440a38c8c44a93a7a6badffac34047@auth.local",
           "_ctime": "2025-02-05T15:50:32.410+00:00",
           "_last_modifier": "f4440a38c8c44a93a7a6badffac34047@auth.local",
-          "_mtime": "2025-02-05T15:53:44.809+00:00",
+          "_mtime": "2025-02-10T15:50:20.651+00:00",
           "FlourID": "1",
-          "Type": "All Purpose"
+          "FlourName": "All Purpose Flour"
         },
         {
           "_id": "UxlPfIx6QSKffFj6CrXIeQ",
@@ -1151,9 +1151,9 @@
           "_creator": "f4440a38c8c44a93a7a6badffac34047@auth.local",
           "_ctime": "2025-02-05T15:50:35.468+00:00",
           "_last_modifier": "f4440a38c8c44a93a7a6badffac34047@auth.local",
-          "_mtime": "2025-02-05T15:53:48.395+00:00",
+          "_mtime": "2025-02-10T15:50:25.701+00:00",
           "FlourID": "2",
-          "Type": "Whole Wheat"
+          "FlourName": "Whole Wheat Flour"
         },
         {
           "_id": "Ffp0WmJESVKHfJJqe6lqOw",
@@ -1161,9 +1161,9 @@
           "_creator": "f4440a38c8c44a93a7a6badffac34047@auth.local",
           "_ctime": "2025-02-05T15:50:36.196+00:00",
           "_last_modifier": "f4440a38c8c44a93a7a6badffac34047@auth.local",
-          "_mtime": "2025-02-05T15:53:49.823+00:00",
+          "_mtime": "2025-02-10T15:50:29.873+00:00",
           "FlourID": "3",
-          "Type": "Oat"
+          "FlourName": "Oat Flour"
         }
       ]
     }
