@@ -310,7 +310,7 @@ const buildProducts = async () => {
                     console.log("\n=================================");
                     console.log(`SKU: ${sku}`);
                     console.log(`Name: ${specialIDs.flavor.name} ${subCategoryName} ${categoryMapT[categoryID].categoryName}`);
-                    console.log(`Description: ${categoryDesc} ${flavorDesc} ${shapeDesc} ${sizeDesc}`);
+                    console.log(`Description: ${categoryDesc} ${flavorDesc} ${scd_description} ${shapeDesc} ${sizeDesc}`);
                     console.log(`Ingredients: ${ingredientList}`);
                     console.log(`Recipe Cost: $${recipeCost.toFixed(2)}`);
 
