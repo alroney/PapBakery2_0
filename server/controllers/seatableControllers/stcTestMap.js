@@ -125,7 +125,7 @@ const buildProducts = async () => {
         ]
 
         // const tableData = {
-        //     table_name: 'Products',
+        //     table_name: 'Products-A',
         //     columns
         // };
 
@@ -142,6 +142,11 @@ const buildProducts = async () => {
             const { categoryShapeID, sizeID, batchSize } = categoryShapeSizeMapT[key];
             const { categoryID, shapeID } = categoryShapeMapT[categoryShapeID];
             
+            //Get descriptions for size, shape, and category.
+            const categoryDesc = categoryMapT[categoryID].description;
+            const sizeDesc = sizeMapT[sizeID].description;
+            const shapeDesc = shapeMapT[shapeID].description;
+
             //Function: Generate all combinations of ingredients.
             function generateCombinations(categories, index, currentCombination, allCombinations) {
                 if (index === categories.length) {
@@ -287,7 +292,7 @@ const buildProducts = async () => {
                             }
                             return acc;
                         }, {});
-
+                    const flavorDesc = specialIDs.flavor ? flavorMapT[specialIDs.flavor.id].description : 'No Description for Flavor'; //Get the flavor description if it exists, otherwise set to 'No Description for Flavor'.
                     const sku = `${subCategoryKey}${specialIDs.flavor.id}${shapeID}-${sizeID}${specialIDs.flour.id}`; //Generate the SKU (Stock Keeping Unit) for the product.
                     const sortedIngredients = Object.entries(tempIngredients)
                         .map(([name, data]) => ({
@@ -305,6 +310,7 @@ const buildProducts = async () => {
                     console.log("\n=================================");
                     console.log(`SKU: ${sku}`);
                     console.log(`Name: ${specialIDs.flavor.name} ${subCategoryName} ${categoryMapT[categoryID].categoryName}`);
+                    console.log(`Description: ${categoryDesc} ${flavorDesc} ${shapeDesc} ${sizeDesc}`);
                     console.log(`Ingredients: ${ingredientList}`);
                     console.log(`Recipe Cost: $${recipeCost.toFixed(2)}`);
 
