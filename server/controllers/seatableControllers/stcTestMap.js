@@ -133,17 +133,14 @@ const buildProducts = async () => {
         // await createTable(tableData);
         let cssmtCount = 0;
         Object.keys(categoryShapeSizeMapT).forEach(key => {
-            if(cssmtCount > 0) {
+            if(cssmtCount > 2) {
                 return;
             }
             cssmtCount++;
+            console.log("Count: ", cssmtCount);
             let tempIngredients = {};
             const { categoryShapeID, sizeID, batchSize } = categoryShapeSizeMapT[key];
             const { categoryID, shapeID } = categoryShapeMapT[categoryShapeID];
-
-
-            console.log(`Category: ${categoryID}, Shape: ${shapeID}, Size: ${sizeID}`);
-            
             
             //Function: Generate all combinations of ingredients.
             function generateCombinations(categories, index, currentCombination, allCombinations) {
@@ -179,6 +176,7 @@ const buildProducts = async () => {
                         const ingredientData = ingredientMapT[ingredientKey];
                         if (ingredientData.ingredientCategory === ingredientCategory) {
                             let specialID = 0;
+                            let ingCat = '';
                             const { ingredientName, costPerUnit, unitType } = ingredientData;
                             const cost = quantity * convertPricePerUnit(costPerUnit, unitType, 'g');
                             
@@ -188,6 +186,7 @@ const buildProducts = async () => {
                                     Object.keys(flavorMapT).forEach(flavorKey => {
                                         const flavor = flavorMapT[flavorKey];
                                         if (flavor.flavorName === ingredientName) {
+                                            ingCat = 'flavor';
                                             specialID = flavorKey;
                                             return;
                                         }
@@ -198,6 +197,7 @@ const buildProducts = async () => {
                                     Object.keys(flourMapT).forEach(flourKey => {
                                         const flour = flourMapT[flourKey];
                                         if ((flour.type + ' Flour') === ingredientName) {
+                                            ingCat = 'flour';
                                             specialID = flourKey;
                                             return;
                                         }
@@ -206,6 +206,7 @@ const buildProducts = async () => {
                                 };
                                 default: {
                                     console.log("No special ID found for ingredient category: ", ingredientCategory);
+                                    ingCat = '';
                                     specialID = 0;
                                     break;
                                 };
@@ -214,16 +215,18 @@ const buildProducts = async () => {
                                 name: ingredientName, 
                                 quantity,
                                 cost,
+                                ...(ingCat && { ingCat }), //Add ingredient category if it is not empty.
                                 ...(specialID !== 0 && { specialID }) //Add special ID if it is not 0.
                             });
                         }
-                    });
+                    }); //End of ingredientMapT iteration.
                 }
-            });
+            }); //End of categoryIngredientMapT iteration.
             
 
             //Each category can have multiple subcategories.
             Object.keys(subCategoryMapT).forEach(subCategoryKey => {
+                tempIngredients = {}; //Reset the tempIngredients object for each subcategory.
                 const subCategoryData = subCategoryMapT[subCategoryKey];
                 const { subCategoryName } = subCategoryData;
                 const scd_categoryID = subCategoryData.categoryID;
@@ -241,7 +244,6 @@ const buildProducts = async () => {
                             return;
                         }
                         else {
-                            
                             Object.keys(ingredientMapT).forEach(ingredientKey => { //Iterate over the ingredientMapT to get the ingredient data.
                                 const ingredientData = ingredientMapT[ingredientKey];
                                 if(ingredientID === Number(ingredientKey)) {
@@ -255,52 +257,67 @@ const buildProducts = async () => {
                             
                         }
                     });
+                    
                 }
+
+                // Generate all combinations
+                let allCombinations = [];
+                generateCombinations(Object.values(ingredientsByCategory), 0, {}, allCombinations);
+
+                allCombinations.forEach(combination => {
+                    //Add ingredients from the combination to tempIngredients
+                    Object.keys(combination).forEach(ingredientName => {
+                        tempIngredients[ingredientName] = {
+                            quantity: combination[ingredientName].quantity,
+                            cost : Number(combination[ingredientName].cost.toFixed(4)),
+                            ...(combination[ingredientName].ingCat && { ingCat: combination[ingredientName].ingCat }), //Add ingredient category if it is not empty.
+                            ...(combination[ingredientName].specialID && { specialID: combination[ingredientName].specialID }) //Add special ID if it is not 0.
+                        };
+                    });
+                    
+                    
+                    //Extract specialIDs and names for each ingredient category.
+                    const specialIDs = Object.entries(tempIngredients)
+                        .reduce((acc, [name, data]) => {
+                            if (data.ingCat && data.specialID) {
+                                acc[data.ingCat] = {
+                                    id: data.specialID,
+                                    name: name
+                                };
+                            }
+                            return acc;
+                        }, {});
+
+                    const sku = `${subCategoryKey}${specialIDs.flavor.id}${shapeID}-${sizeID}${specialIDs.flour.id}`; //Generate the SKU (Stock Keeping Unit) for the product.
+                    const sortedIngredients = Object.entries(tempIngredients)
+                        .map(([name, data]) => ({
+                            name,
+                            quantity: name === 'Egg' ? data.quantity * 48 : data.quantity, //Convert egg quantities to grams and sort ingredients by quantity
+                            cost: data.cost,
+                            ...(data.specialID && { specialID: data.specialID })
+                        }))
+                        .sort((a, b) => b.quantity - a.quantity);
+                    const ingredientList = sortedIngredients.map(item => item.name).join(', '); //Extract just the ingredient names into an array, then join them into a string.
+                    const recipeCost = sortedIngredients.reduce((total, item) => total + item.cost, 0); //Calculate the total cost of the recipe.
+
+
+                    //Print the product details.
+                    console.log("\n=================================");
+                    console.log(`SKU: ${sku}`);
+                    console.log(`Name: ${specialIDs.flavor.name} ${subCategoryName} ${categoryMapT[categoryID].categoryName}`);
+                    console.log(`Ingredients: ${ingredientList}`);
+                    console.log(`Recipe Cost: $${recipeCost.toFixed(2)}`);
+
+
+                    //Clear the added ingredients to prepare for next combination
+                    Object.keys(combination).forEach(ingredientName => {
+                        delete tempIngredients[ingredientName];
+                    });
+                }); //End of allCombinations iteration.
             }); //End of subCategoryMapT iteration.
-
-            // Generate all combinations
-            let allCombinations = [];
-            generateCombinations(Object.values(ingredientsByCategory), 0, {}, allCombinations);
-
-            allCombinations.forEach(combination => {
-                // Add ingredients from the combination to tempIngredients
-                Object.keys(combination).forEach(ingredientName => {
-                    tempIngredients[ingredientName] = {
-                        quantity: combination[ingredientName].quantity,
-                        cost : Number(combination[ingredientName].cost.toFixed(4)),
-                        ...(combination[ingredientName].specialID && { specialID: combination[ingredientName].specialID })
-                    };
-                });
-                
-                console.log("Current ingredient combination:", tempIngredients);
-                
-                
-                const sortedIngredients = Object.entries(tempIngredients)
-                    .map(([name, data]) => ({
-                        name,
-                        quantity: name === 'Egg' ? data.quantity * 48 : data.quantity, //Convert egg quantities to grams and sort ingredients by quantity
-                        cost: data.cost,
-                        ...(data.specialID && { specialID: data.specialID })
-                    }))
-                    .sort((a, b) => b.quantity - a.quantity);
-
-                // Extract just the ingredient names into an array, then join them into a string.
-                const ingredientList = sortedIngredients.map(item => item.name).join(', ');
-                console.log("Sorted ingredient names:", ingredientList);
-
-                //Calculate the total cost of the recipe
-                const recipeCost = sortedIngredients.reduce((total, item) => total + item.cost, 0);
-                console.log("Recipe cost:", Number(recipeCost.toFixed(2)));
-
-                // Clear the added ingredients to prepare for next combination
-                Object.keys(combination).forEach(ingredientName => {
-                    delete tempIngredients[ingredientName];
-                });
-            });
             
-            console.log("Count: ", cssmtCount);
-        });
-        
+            console.log("\n=====================================================\n");
+        }); //End of categoryShapeSizeMapT iteration.
     }
     catch (error) {
         console.error("Error building products: ", error);

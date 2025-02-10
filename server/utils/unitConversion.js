@@ -30,9 +30,7 @@ const unitNamesToAbbreviations = {
 
 //Function: normalize unit names by removing plurality, spaces, and converting to lowercase
 const normalizeUnitName = (unit) => {
-    console.log("unit: ", unit);
     const normUnit = unit.toLowerCase().replace(/\s+/g, '_').replace(/s$/, '').replace(/ies$/, 'y');
-    console.log("Normalized Unit: ", normUnit);
     return normUnit;
 }
 
@@ -88,7 +86,6 @@ const convertUnit = (value, fromUnit, toUnit) => {
         if (fromFactor && toFactor) {
             //Convert the value to the base unit
             const convertedValue = value * (unitConversionFactors[fromFactor] / unitConversionFactors[toFactor]);
-            console.log(`${value} ${fromUnit} is equal to ${convertedValue} ${toUnit}`);
             return convertedValue;
         }
         throw new Error("Invalid unit provided");
@@ -109,7 +106,6 @@ const convertPricePerUnit = (price, fromUnit, toUnit) => {
         if (fromFactor && toFactor) {
             //Convert the value to the base unit
             const convertedPrice = price / (unitConversionFactors[fromFactor] / unitConversionFactors[toFactor]);
-            console.log(`${price} per ${fromUnit} is equal to ${convertedPrice} per ${toUnit}`);
             return convertedPrice;
         }
         throw new Error("Invalid unit provided");
