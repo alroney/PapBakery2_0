@@ -132,6 +132,7 @@ const buildProducts = async () => {
         // // Create the table
         // await createTable(tableData);
         let cssmtCount = 0;
+        const productData = [];
         Object.keys(categoryShapeSizeMapT).forEach(key => {
             if(cssmtCount > 2) {
                 return;
@@ -304,15 +305,21 @@ const buildProducts = async () => {
                         .sort((a, b) => b.quantity - a.quantity);
                     const ingredientList = sortedIngredients.map(item => item.name).join(', '); //Extract just the ingredient names into an array, then join them into a string.
                     const recipeCost = sortedIngredients.reduce((total, item) => total + item.cost, 0); //Calculate the total cost of the recipe.
+                    const productDesc = `${categoryDesc} ${flavorDesc} ${scd_description} ${shapeDesc} ${sizeDesc}`; //Combine the descriptions into a single product description.
+                    const productName = `${specialIDs.flavor.name} ${subCategoryName} ${categoryMapT[categoryID].categoryName}`; //Combine the names into a single product name.
+                    
+                    //Prepare the product object. (Single product)
+                    const product = {
+                        SKU: String(sku),
+                        Name: productName,
+                        RecipeCost: Number(recipeCost.toFixed(4)),
+                        Description: productDesc,
+                        Ingredients: ingredientList,
+                    }
+                    
 
-
-                    //Print the product details.
-                    console.log("\n=================================");
-                    console.log(`SKU: ${sku}`);
-                    console.log(`Name: ${specialIDs.flavor.name} ${subCategoryName} ${categoryMapT[categoryID].categoryName}`);
-                    console.log(`Description: ${categoryDesc} ${flavorDesc} ${scd_description} ${shapeDesc} ${sizeDesc}`);
-                    console.log(`Ingredients: ${ingredientList}`);
-                    console.log(`Recipe Cost: $${recipeCost.toFixed(2)}`);
+                    //Add the product to the productData array.
+                    productData.push(product);
 
 
                     //Clear the added ingredients to prepare for next combination
@@ -321,9 +328,10 @@ const buildProducts = async () => {
                     });
                 }); //End of allCombinations iteration.
             }); //End of subCategoryMapT iteration.
-            
-            console.log("\n=====================================================\n");
         }); //End of categoryShapeSizeMapT iteration.
+
+        console.log("productData: ", productData);
+
     }
     catch (error) {
         console.error("Error building products: ", error);
