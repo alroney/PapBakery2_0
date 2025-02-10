@@ -1,7 +1,7 @@
 const { capitalize } = require('../../utils/helpers');
 const { getMaps } = require('./stcMaps');
 const columnOperations  = require('./stColumnController');
-const { updateRow } = require('./stRowController');
+const { updateRow, appendRow } = require('./stRowController');
 const { createTable } = require('./stTableController');
 const { convertUnit, convertPricePerUnit } = require('../../utils/unitConversion');
 
@@ -20,17 +20,62 @@ const testSTCMaps = async (req, res) => {
     }
 }
 
+const updateProductsTable = async (req, res) => {
+    try {
+        const products = await buildProducts();
+        const table_name = 'Products-A';
+        const columns = [
+            {
+                column_name: 'ProductID',
+                column_type: 'auto-number',
+                column_data: { format: "0" }
+            },
+            {
+                column_name: 'ProductSKU',
+                column_type: 'text',
+            },
+            {
+                column_name: 'ProductName',
+                column_type: 'text',
+            },
+            {
+                column_name: 'RecipeCost',
+                column_type: 'number',
+            },
+            {
+                column_name: 'Description',
+                column_type: 'text',
+            },
+            {
+                column_name: 'Ingredients',
+                column_type: 'text',
+            },
+        ]
 
-const createNewTable = async () => {
+        const existingMaps = getMaps(['Products-A']);
+        if (existingMaps['Products-A'].length > 0) {
+            console.log("Products-A table already exists");
+            res.status(200).json({ success: true, message: "Products-A table already exists." });
+        }
+        else {
+            console.log("Products-A table does not exist. Creating Products-A table...");
+            await createNewTable(table_name, columns);
+            await appendRow({ table_name, rows: products });
+            res.status(200).json({ success: true, message: "Products-A table created successfully." });
+        }
+
+    }
+    catch(error) {
+        console.error("(stcTestMap)(updateProductData) Error updating product data: ", error);
+        res.status(500).json({ success: false, message: "Internal server error." });
+    }
+}
+
+const createNewTable = async (table_name, columns) => {
     try {
         const tableData = {
-            table_name: 'ProductTest-A',
-            columns: [
-                    {
-                        column_name: 'C1',
-                        column_type: 'number',
-                    }
-                ]
+            table_name,
+            columns,
 
         };
 
@@ -179,7 +224,7 @@ const buildProducts = async () => {
                     const productName = `${recipeIngredients.flavor.name} ${subCategoryName} ${categoryMapT[categoryID].categoryName}`;
 
                     products.push({ //Push the product data to the products array.
-                        SKU: String(sku),
+                        ProductSKU: String(sku),
                         ProductName: productName,
                         RecipeCost: Number(recipeCost.toFixed(4)),
                         Description: productDesc,
@@ -364,4 +409,4 @@ const processForeignKeyConversion = (columnName, input) => {
 }
 
 
-module.exports = { testSTCMaps };
+module.exports = { testSTCMaps, updateProductsTable };

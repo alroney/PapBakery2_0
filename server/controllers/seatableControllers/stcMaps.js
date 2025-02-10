@@ -13,7 +13,7 @@ const mapSTCData = (ctd, mapNames) => {
     ctd.forEach(table => {
         const tableName = table.tableName;
         //Exclude tables that end with '-A'.
-        if (!tableName.endsWith('-A')) {
+        // if (!tableName.endsWith('-A')) {
             const mapName = tableName.charAt(0).toLowerCase() + tableName.slice(1) + "Map"; //Create a map name from the table name. 1.) Take the first letter and lowercase it, 2.) Add the rest of the table name which is done by slicing the table name from the second character to the end, 3.) Add "Map" to the end of the map name.
             const tableKey = tableName.charAt(0).toLowerCase() + tableName.slice(1) + "Table";
             tables[tableKey] = tableName; //tableKey is the key and tableName is the value.
@@ -33,7 +33,7 @@ const mapSTCData = (ctd, mapNames) => {
                 map.push(rowData); //Add the row data to the map object.
                 return map;
             };
-        }
+        // }
     });
 
     const findTable = (tableName) => ctd.find((table) => table.tableName === tableName);
@@ -69,8 +69,8 @@ const mapSTCData = (ctd, mapNames) => {
 
 //Function: Get the maps from the SeaTableControllers cachedTablesData.
 const getMaps = (mapNames) => {
-    // const ctd = getCachedTablesData(); //Get the cachedTablesData.
-    const ctd = cachedTables; //TEMPORARY: Use the cachedTables.json file for testing.
+    const ctd = getCachedTablesData(); //Get the cachedTablesData.
+    // const ctd = cachedTables; //TEMPORARY: Use the cachedTables.json file for testing.
     return mapSTCData(ctd, mapNames); //Return the mapping of the SeaTableControllers cachedTablesData.
 }
 

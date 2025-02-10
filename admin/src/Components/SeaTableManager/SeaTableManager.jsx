@@ -51,6 +51,19 @@ const seatableManager = () => {
       console.error("Error testing: ", error);
     }
   }
+
+  const updateProductsTable = async () => {
+    try {
+      const response = await fetch(`${apiBase}/seatable/updateProductsTable`);
+      const data = await response.json();
+      if(data.success) {
+        console.log("Products table updated successfully.");
+      }
+    }
+    catch(error) {
+      console.error("Error updating products table: ", error);
+    }
+  }
   
 
   return (
@@ -67,9 +80,7 @@ const seatableManager = () => {
         </div>
         <div>
             <button onClick={test}>Test Maps</button>
-            <div>
-                <span id='category-map'></span>
-            </div>
+            <button onClick={updateProductsTable}>Update Available Products</button>
         </div>
         <DataTable tableName={selectedTable} />
     </div>
