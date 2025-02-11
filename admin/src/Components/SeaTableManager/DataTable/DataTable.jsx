@@ -70,6 +70,20 @@ const DataTable = ({tableName}) => {
     const handleCellChange = (rowIndex, header, value) => {
         const updatedData = [...editedData];
         updatedData[rowIndex][header] = value;
+
+        //Recalculate the CostPerUnit if UnitSize or PurchaseCost is changed.
+        if(tableName === 'Ingredient' && (header === 'UnitSize' || header === 'PurchaseCost')) {
+            const unitSize = parseFloat(updatedData[rowIndex]['UnitSize']);
+            const purchaseCost = parseFloat(updatedData[rowIndex]['PurchaseCost']);
+            if(!isNaN(unitSize) && !isNaN(purchaseCost) && unitSize > 0) {
+                const costPerUnit = purchaseCost / unitSize;
+                updatedData[rowIndex]['CostPerUnit'] = costPerUnit.toFixed(4); //Update CostPerUnit.
+            }
+            else {
+                updatedData[rowIndex]['CostPerUnit'] = '0.00'; //Set to 0 if values are invalid.
+            }
+        }
+
         setEditedData(updatedData);
     };
 
