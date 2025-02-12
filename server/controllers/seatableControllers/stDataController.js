@@ -149,6 +149,7 @@ const cacheAllTablesData = async (baseInfoTables) => {
 }
 
 
+
 //Function: Get the data from a table specified by the table name in the SeaTable base, given by a select component in the frontend.
 const getTableData = async (req, res) => {
     try {

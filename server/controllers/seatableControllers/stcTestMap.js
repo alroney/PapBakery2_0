@@ -2,7 +2,7 @@ const { capitalize } = require('../../utils/helpers');
 const { getMaps } = require('./stcMaps');
 const columnOperations  = require('./stColumnController');
 const { updateRow, appendRow } = require('./stRowController');
-const { createTable } = require('./stTableController');
+const { createTable, deleteTable } = require('./stTableController');
 const { convertUnit, convertPricePerUnit } = require('../../utils/unitConversion');
 
 
@@ -22,52 +22,69 @@ const testSTCMaps = async (req, res) => {
 
 const updateProductsTable = async (req, res) => {
     try {
-        const products = await buildProducts();
         const table_name = 'Products-A';
-        const columns = [
-            {
-                column_name: 'ProductID',
-                column_type: 'auto-number',
-                column_data: { format: "0" }
-            },
-            {
-                column_name: 'ProductSKU',
-                column_type: 'text',
-            },
-            {
-                column_name: 'ProductName',
-                column_type: 'text',
-            },
-            {
-                column_name: 'RecipeCost',
-                column_type: 'number',
-            },
-            {
-                column_name: 'Description',
-                column_type: 'text',
-            },
-            {
-                column_name: 'Ingredients',
-                column_type: 'text',
-            },
-        ]
+        const clearedToContinue = true;
+        const existingMaps = getMaps(['products-AMap']);
 
-        const existingMaps = getMaps(['Products-A']);
-        if (existingMaps['Products-A'].length > 0) {
-            console.log("Products-A table already exists");
-            res.status(200).json({ success: true, message: "Products-A table already exists." });
+        if (existingMaps['products-AMap'].length > 0) {
+            console.log("Deleting old table...");
+            deleteOldTable(table_name);
         }
-        else {
-            console.log("Products-A table does not exist. Creating Products-A table...");
+
+        if(clearedToContinue) {
+            const products = await buildProducts();
+            const columns = [
+                {
+                    column_name: 'ProductID',
+                    column_type: 'auto-number',
+                    column_data: { format: "0" }
+                },
+                {
+                    column_name: 'ProductSKU',
+                    column_type: 'text',
+                },
+                {
+                    column_name: 'ProductName',
+                    column_type: 'text',
+                },
+                {
+                    column_name: 'RecipeCost',
+                    column_type: 'number',
+                },
+                {
+                    column_name: 'Description',
+                    column_type: 'text',
+                },
+                {
+                    column_name: 'Ingredients',
+                    column_type: 'text',
+                },
+            ]
+
+            
             await createNewTable(table_name, columns);
             await appendRow({ table_name, rows: products });
             res.status(200).json({ success: true, message: "Products-A table created successfully." });
+        }
+        else { 
+            console.log("Failed to update products table.");
+            res.status(500).json({ success: false, message: "Failed to update products table." });
         }
 
     }
     catch(error) {
         console.error("(stcTestMap)(updateProductData) Error updating product data: ", error);
         res.status(500).json({ success: false, message: "Internal server error." });
+    }
+}
+
+const deleteOldTable = async (table_name) => {
+    try {
+        const isDeleted = await deleteTable(table_name);
+        return isDeleted.success;
+    }
+    catch(error) {
+        console.error("(stcTestMap)(deleteOldTable) Error deleting old table: ", error);
     }
 }
 
@@ -221,7 +238,7 @@ const buildProducts = async () => {
                     const ingredientList = sortedIngredients.map(item => item.name).join(', '); //Setup the ingredient list for the product formatted to be divided by commas.
                     const recipeCost = sortedIngredients.reduce((total, item) => total + item.cost, 0); //Calculate the total cost of the recipe.
                     const productDesc = `${categoryDesc} ${flavorDesc} ${scd_description} ${shapeDesc} ${sizeDesc}`;
-                    const productName = `${recipeIngredients.flavor.name} ${subCategoryName} ${categoryMapT[categoryID].categoryName}`;
+                    const productName = `${subCategoryName} ${recipeIngredients.flavor.name} ${categoryMapT[categoryID].categoryName}`;
 
                     products.push({ //Push the product data to the products array.
                         ProductSKU: String(sku),

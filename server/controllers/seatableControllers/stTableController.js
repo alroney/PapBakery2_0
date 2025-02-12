@@ -34,26 +34,27 @@ const createTable = async (tableData) => {
 
 
 
-const deleteTable = async (tableName, req, res) => {
+const deleteTable = async (table_name) => {
     const { baseToken, baseUUID } = await getBaseTokenAndUUID();
-    const url = `${urlBase}/${baseUUID}/tables/${tableName}/`;
+    const url = `${urlBase}/${baseUUID}/tables/`;
     const options = {
         method: 'DELETE',
         url: url,
         headers: {
             accept: 'application/json',
             authorization: `Token ${baseToken}`,
-        }
+        },
+        data: {table_name},
     };
 
     try {
         const response = await axios(options);
         console.log("Table deleted: ", response.data);
-        res.status(200).json({ success: true, message: "Table deleted successfully." });
+        return { success: true, message: "Table deleted successfully." };
     }
     catch(error) {
-        console.error("(seatableController)(deleteTable) Error deleting table: ", error);
-        res.status(500).json({ success: false, error: error.message });
+        console.error("(stTableController)(deleteTable) Error deleting table: ", error);
+        return { success: false, error: error.message };
     }
 }
 
