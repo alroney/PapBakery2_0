@@ -20,6 +20,9 @@ const testSTCMaps = async (req, res) => {
     }
 }
 
+
+
+//Function: Update the products table using a combination of the maps.
 const updateProductsTable = async (req, res) => {
     try {
         const table_name = 'Products-A';
@@ -78,6 +81,9 @@ const updateProductsTable = async (req, res) => {
     }
 }
 
+
+
+//Function: Delete a table by table name.
 const deleteOldTable = async (table_name) => {
     try {
         const isDeleted = await deleteTable(table_name);
@@ -88,6 +94,9 @@ const deleteOldTable = async (table_name) => {
     }
 }
 
+
+
+//Function: Create a new table with the given table name and columns.
 const createNewTable = async (table_name, columns) => {
     try {
         const tableData = {
@@ -105,14 +114,16 @@ const createNewTable = async (table_name, columns) => {
 }
 
 
+
+//Function: Find all possible combinations of ingredients for a given category and subcategory, then build the recipe for each combination.
 const buildRecipes = (categoryIngredientMapT, ingredientMapT, categoryID) => {
-    const ingredientsByCategory = Object.keys(categoryIngredientMapT).reduce((acc, categoryIngredientKey) => {
+    const ingredientsByCategory = Object.keys(categoryIngredientMapT).reduce((acc, categoryIngredientKey) => { //Reduce the categoryIngredientMapT to an object.
         const categoryIngredientData = categoryIngredientMapT[categoryIngredientKey];
         const { ingredientCategory, quantity, categoryID: catID } = categoryIngredientData;
-        if (catID !== categoryID) return acc; // Skip the current iteration if the categoryID does not match the categoryID.
+        if (catID !== categoryID) return acc; //Skip the current iteration if the categoryID does not match the categoryID.
 
-        if (!acc[ingredientCategory]) acc[ingredientCategory] = []; // Initialize the array for the ingredient category.
-        for (const ingredientKey in ingredientMapT) { // Iterate over the ingredientMapT to get the ingredient data.
+        if (!acc[ingredientCategory]) acc[ingredientCategory] = []; //Initialize the array for the ingredient category.
+        for (const ingredientKey in ingredientMapT) { //Iterate over the ingredientMapT to get the ingredient data.
             const ingredientData = ingredientMapT[ingredientKey];
             if (ingredientData.ingredientCategory === ingredientCategory) {
                 const { ingredientName, costPerUnit, unitType } = ingredientData;
@@ -124,6 +135,7 @@ const buildRecipes = (categoryIngredientMapT, ingredientMapT, categoryID) => {
     }, {});
 
     const allCombinations = [];
+    //Function: Generate all possible combinations of ingredients for a given category. Time complexity is O(n^m) where n is the number of categories and m is the number of ingredients in each category.
     const generateCombinations = (categories, index, currentCombination) => {
         if (index === categories.length) {
             allCombinations.push({ ...currentCombination });
@@ -131,20 +143,20 @@ const buildRecipes = (categoryIngredientMapT, ingredientMapT, categoryID) => {
         }
         categories[index].forEach(ingredient => {
             currentCombination[ingredient.name] = ingredient;
-            generateCombinations(categories, index + 1, currentCombination);
-            delete currentCombination[ingredient.name];
+            generateCombinations(categories, index + 1, currentCombination); //Recursively call the function to generate the next combination.
+            delete currentCombination[ingredient.name]; //Remove the ingredient from the current combination to prevent mutation.
         });
     };
-    generateCombinations(Object.values(ingredientsByCategory), 0, {});
+    generateCombinations(Object.values(ingredientsByCategory), 0, {}); //Generate all combinations of ingredients using the category.
 
     return allCombinations;
 };
 
 
 
-//Function: transform the map into a more usable format.
+//Function: Transform the map into a more usable format.
 const transformMap = (map, tableName, cache) => {
-    if (cache[tableName]) return cache[tableName];
+    if (cache[tableName]) return cache[tableName]; //Check if the transformed map is already in the cache.
     const transformed = map.reduce((acc, item) => { //Reduce the map to an object.
         const tableIdKey = `${tableName}ID`;
         const tableIdValue = item[tableIdKey];
@@ -155,6 +167,7 @@ const transformMap = (map, tableName, cache) => {
     cache[tableName] = transformed;
     return transformed;
 };
+
 
 
 //Function: Build the products from the maps.
@@ -259,7 +272,7 @@ const buildProducts = async () => {
 
 
 
-//Helper function to rename and update column type.
+//Function: Rename and update column type.
 const renameAndUpdateColumnType = async (table_name, column, new_column_name, new_column_type, column_data) => {
     try {
         // Rename the column
@@ -283,7 +296,7 @@ const renameAndUpdateColumnType = async (table_name, column, new_column_name, ne
 
 
 
-//Helper function to rearrange the data into proper formation for updating the rows.
+//Function: Rearrange the data into proper formation for updating the rows.
 const updateRowData = async (table_name, data) => {
     try {
         const obj = { //Object to store the updated row data.
@@ -424,6 +437,7 @@ const processForeignKeyConversion = (columnName, input) => {
         }
     }
 }
+
 
 
 module.exports = { testSTCMaps, updateProductsTable };
