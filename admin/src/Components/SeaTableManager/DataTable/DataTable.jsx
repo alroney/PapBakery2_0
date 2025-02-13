@@ -33,37 +33,14 @@ const DataTable = ({tableName}) => {
 
             }
         };
-        if(tableName !== 'none') {
-            fetchTableData();
+        if(tableName === 'none') {
+            setData([]);
+            return;
         }
         
+        fetchTableData();
+        
     }, [tableName]);
-
-
-    
-    const handleSQLChange = (e) => {
-        setSQL(e.target.value);
-    };
-
-
-
-    const runSQL = async () => {
-        try {
-            const response = await fetch(`${apiBase}/seatable/runsql`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ sql }),
-            });
-            const data = await response.json();
-            console.log("SQL Data: ", data);
-            setSQLResult(data);
-        }
-        catch(error) {
-            console.error("Error running SQL: ", error);
-        }
-    };
 
 
 
