@@ -6,36 +6,6 @@ const urlBase = "https://cloud.seatable.io"; //SeaTable server.
 
 
 
-//Function: Run SQL queries on the SeaTable base.
-const runSQL = async (req, res) => {
-    try {
-        const { baseToken, baseUUID } = await getBaseTokenAndUUID();
-        const { sql } = req.body;
-        const options = {
-            method: 'POST',
-            url: `${urlBase}/api-gateway/api/v2/dtables/${baseUUID}/sql`,
-            headers: {
-                accept: 'application/json',
-                'content-type': 'application/json',
-                authorization: `Bearer ${baseToken}`,
-            },
-            data: {
-                sql: sql,
-                convert_keys: true,
-            },
-        };
-
-        const response = await axios(options);
-        res.status(200).json(response.data.results);
-    }
-    catch(error) {
-        console.error("(seatableController)(runSQL) Error running SQL: ", error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-}
-
-
-
 //Function: Update the specified table's rows in the SeaTable base.
 const updateRows = async (req, res) => {
     try {
@@ -139,4 +109,4 @@ const calculate = async (req, res) => {
 
 
 
-module.exports = { runSQL, updateRows, calculate };
+module.exports = { updateRows, calculate };
