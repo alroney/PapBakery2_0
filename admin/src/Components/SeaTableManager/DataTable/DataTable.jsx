@@ -157,19 +157,6 @@ const DataTable = ({tableName}) => {
 
     return (
         <div>
-            <input type='text' placeholder='SQL' onChange={handleSQLChange}></input>
-            <button onClick={runSQL}>Run</button>
-            <div>
-                {sqlResult.length > 0 && sqlResult.map((row, index) => {
-                    return (
-                        <div key={index}>
-                            {Object.keys(row).map((key, index) => {
-                                return <span key={index}>{row[key]}</span>
-                            })}
-                        </div>
-                    )
-                })}
-            </div>
             <table border="1" style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                     <tr>

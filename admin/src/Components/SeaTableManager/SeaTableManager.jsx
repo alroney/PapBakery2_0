@@ -19,6 +19,8 @@ const seatableManager = () => {
 
 
     const fetchTables = async () => {
+      setLoading(true);
+      setSelectedTable('none');
       try {
           const response = await fetch(`${apiBase}/seatable/tables`);
           const data = await response.json();
@@ -26,6 +28,7 @@ const seatableManager = () => {
 
           if(data.success) {
               setTables(data.tables.sort());
+              setLoading(false);
           }
       }
       catch(error) {
@@ -53,6 +56,7 @@ const seatableManager = () => {
   }
 
   const updateProductsTable = async () => {
+    setSelectedTable('none');
     try {
       const response = await fetch(`${apiBase}/seatable/updateProductsTable`);
       const data = await response.json();
@@ -78,10 +82,14 @@ const seatableManager = () => {
                 })}
             </select>
         </div>
-        <div>
-            <button onClick={test}>Test Maps</button>
-            <button onClick={updateProductsTable}>Update Available Products</button>
-        </div>
+        {loading && <p>Loading...</p>}
+        {!loading && (
+          <div>
+              <button onClick={test}>Test Maps</button>
+              <button onClick={updateProductsTable}>Update Available Products</button>
+          </div>
+        )}
+        
         <DataTable tableName={selectedTable} />
     </div>
   )
