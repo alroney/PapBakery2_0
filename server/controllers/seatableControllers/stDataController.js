@@ -6,10 +6,7 @@ const path = require('path');
 
 let cachedBaseInfo = {};
 let cachedTables = [];
-let cachedTablesData = [{}]; //Array to store the data of the tables
-let tempDate = 0; //Temporary variable to compare another date with the current date.
-let tempBT = ""; //Temporary variable to store the base token.
-let tempUUID = ""; //Temporary variable to store the base UUID.
+
 
 
 //Function: Get the base info from SeaTable. Consists of tables with row/column data.
@@ -37,11 +34,15 @@ const getBaseInfo = async (req, res) => {
     }
 }
 
+
+
 //Test function to get the available tables for the Maps.
 const getCachedTablesData = () => {
-    const ctd = cachedTablesData;
+    const ctd = require('../../cache/cachedTables.json');
     return ctd;
 }
+
+
 
 //Function: Get the names of the available tables in the SeaTable base.
 const getAvailableTables = async (req, res) => {
@@ -58,14 +59,13 @@ const getAvailableTables = async (req, res) => {
                 temp.push(table.name);
             });
         }
-        
-        
+
         cachedTables = temp;
-        await cacheAllTablesData(baseInfoTables);
+        await cacheAllTablesData(baseInfoTables); //Cache the data of all tables available.
         res.status(200).json({ success: true, tables: cachedTables });
     }
     catch(error) {
-        console.error("(seatableController)(getAvailableTables) Error fetching tables: ", error);
+        console.error("(stDataController)(getAvailableTables) Error fetching tables: ", error);
         res.status(500).json({ success: false, error: error.message });
     }
 }
@@ -110,12 +110,13 @@ const assignTableData = async (tableName, bIT) => {
 
 //Function: Retrieve list of available tables and cache the data of each table, calling fetchTableData for each table.
 const cacheAllTablesData = async (baseInfoTables) => {
-    let ctd; //Cached tables data.
+    let cachedTablesData = []; //Cached tables data.
     let ct = cachedTables;
     const bIT = baseInfoTables;
+    const lastUpdated = new Date(); //Get the current date and time.
     try {
         cachedTablesData.length = 0; //Clear cachedTablesData to avoid duplicates.
-
+        cachedTablesData.push({ lastUpdated: lastUpdated }); //Store the last updated date.
         //Iterate over cachedTables and fetch data for each table.
         for(const tableName of ct) {
             try {
@@ -126,22 +127,22 @@ const cacheAllTablesData = async (baseInfoTables) => {
                 });
             }
             catch(error) {
-                console.error(`(seatableController)(loadTableData) Error fetching ${tableName} table data `);
+                console.error(`(seatableController)(loadTableData) Error fetching ${tableName} table data: `, error);
             }
             
         }
 
-        const filePath = path.join(__dirname, '../../toBeDELETED/cachedTables.json');
-        fs.writeFileSync(filePath, JSON.stringify(cachedTablesData, null, 2));
+
+        const filePath = path.join(__dirname, '../../cache/cachedTables.json');
+        fs.writeFileSync(filePath, JSON.stringify(cachedTablesData, null, 2)); //Write the cached tables data to a file. (The data to be converted to JSON string, no replacer function used, 2 spaces used for indentation).
 
         console.log("All tables cached successfully.");
-        ctd = cachedTablesData;
         //Clear all the temp variables.
         tempDate = 0;
         tempCount = 0;
         tempBT = "";
         tempUUID = "";
-        return ctd;
+        return cachedTablesData;
     }
     catch(error) {
         console.error("(seatableController)(loadTableData) Error loading table data: ", error);
@@ -153,6 +154,7 @@ const cacheAllTablesData = async (baseInfoTables) => {
 //Function: Get the data from a table specified by the table name in the SeaTable base, given by a select component in the frontend.
 const getTableData = async (req, res) => {
     try {
+        let cachedTablesData = getCachedTablesData();
         const { tableName } = req.params;
         if(cachedTablesData.length === 0) {
             await getAvailableTables();

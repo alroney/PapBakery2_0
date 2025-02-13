@@ -1,5 +1,5 @@
 const { getCachedTablesData } = require('../seatableControllers/stDataController'); //Import the getCachedTablesData function from the stDataController.js file.
-const cachedTables = require('../../toBeDELETED/cachedTables.json');
+
 
 
 
@@ -69,8 +69,7 @@ const mapSTCData = (ctd, mapNames) => {
 
 //Function: Get the maps from the SeaTableControllers cachedTablesData.
 const getMaps = (mapNames) => {
-    // const ctd = getCachedTablesData(); //Get the cachedTablesData.
-    const ctd = cachedTables; //TEMPORARY: Use the cachedTables.json file for testing.
+    const ctd = getCachedTablesData(); //Get the cachedTablesData.
     return mapSTCData(ctd, mapNames); //Return the mapping of the SeaTableControllers cachedTablesData.
 }
 
