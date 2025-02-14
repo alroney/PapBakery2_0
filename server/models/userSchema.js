@@ -36,7 +36,7 @@ const userSchema = new Mongoose.Schema({
     ],
 });
 
-//A pre hook named save
+//A pre hook named save.
 userSchema.pre("save", async function(next) {
     try {
         const user = this; //`this` refers to the current user document.

@@ -39,7 +39,7 @@ app.use(cors({
 
 //Set Cross-Origin-Resource-Policy to cross-origin during development and same-site during production.
 app.use((req,res,next) => {
-    res.setHeader('Cross-Origin-Resource-Policy', environment === 'sandbox' ? 'cross-origin' : 'same-site');
+    res.setHeader('Cross-Origin-Resource-Policy', environment === 'development' ? 'cross-origin' : 'same-site');
     next();
 })
 

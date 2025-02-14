@@ -2,7 +2,7 @@ require('dotenv').config({ path: __dirname + '/.env' }); //Allows access to envi
 const environment = process.env.ENVIRONMENT;
 const pp_client_id = process.env.PAYPAL_CLIENT_ID;
 const pp_client_secret = process.env.PAYPAL_CLIENT_SECRET;
-const paypal_endpoint_url = environment === 'sandbox' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
+const paypal_endpoint_url = environment === 'development' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
 
 const Products = require('../models/productSchema');
 const Users = require('../models/userSchema');

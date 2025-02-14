@@ -12,7 +12,15 @@ export const PayPalPayment = ({ guestData }) => {
     console.log("(PayPalPayment.jsx) Component Loaded.");
 
     const paypal_sdk_url = "https://www.paypal.com/sdk/js";
-    const client_id = process.env.REACT_APP_PAYPAL_CLIENT_ID;
+    const environment = process.env.REACT_APP_ENVIRONMENT;
+    const client_id = () => {
+        if(environment === "production") {
+            return process.env.REACT_APP_PAYPAL_CLIENT_ID_LIVE;
+        }
+        else {
+            return process.env.REACT_APP_PAYPAL_CLIENT_ID_SANDBOX;
+        }
+    }
     const currency = "USD";
     const intent = "capture";
     const orderAPIUrl = `${apiUrl}/order`;
