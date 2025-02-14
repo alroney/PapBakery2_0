@@ -1,15 +1,13 @@
 const axios = require('axios'); //Axios is a promise-based HTTP client for the browser and Node.js.
 const convertUnits = require('../utils/unitConversion'); //Converts units of measurement.
 const { fetchStoredToken, getBaseTokenAndUUID } = require('./seatableControllers/stTokenController'); //Import functions from tokenController.js.
-const { getCachedTablesData } = require('./seatableControllers/stDataController'); //Import the cached tables data from stDataController.js.
+const { getTablesData, updateTableData } = require('./seatableControllers/stDataController'); //Import the cached tables data from stDataController.js.
 const urlBase = "https://cloud.seatable.io"; //SeaTable server.
-
 
 
 //Function: Update the specified table's rows in the SeaTable base.
 const updateRows = async (req, res) => {
     try {
-        let cachedTablesData = getCachedTablesData();
         const { baseToken, baseUUID } = await getBaseTokenAndUUID();
         const { tableName, rows } = req.body;
         const options = {
@@ -26,20 +24,11 @@ const updateRows = async (req, res) => {
             },
         };
         const response = await axios(options);
-
-        //If the update is successful, update the cached data.
         if(response.data.success) {
-            const tableToUpdate = cachedTablesData.find(table => table.tableName === tableName);
-            if(tableToUpdate) { //If the table is found, update the rows.
-                rows.forEach(update => { //Iterate over the rows to update.
-                    const rowIndex = tableToUpdate.data.rows.findIndex(row => row._id === update.row_id); //Find the row by the row_id. The 'data' in this line is the data of the table and not from the API above.
-                    if (rowIndex !== -1) { //If the row is found, update the row.
-                        tableToUpdate.data.rows[rowIndex] = { ...tableToUpdate.data.rows[rowIndex], ...update.row };
-                    }
-                });
-            }
+            const result = await updateTableData(tableName, rows);
+            console.log(result)
         }
-
+        
         res.status(200).json(response.data);
     }
     catch(error) {
@@ -61,7 +50,7 @@ const calculateTypeIngredientCost = async (cT) => {
      */
 
     try{
-        let cachedTablesData = getCachedTablesData();
+        let cachedTablesData = getTablesData();
         const ingD = cachedTablesData.find(table => table.tableName === "Ingredient");
         const cTD = cachedTablesData.find(table => table.tableName === cT);
         const ingredients = ingD.data.rows; //Get the ingredients data

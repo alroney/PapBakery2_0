@@ -20,6 +20,19 @@ const testSTCMaps = async (req, res) => {
     }
 }
 
+const convertFKeys = async (req, res) => {
+    console.log("Converting F Keys...");
+    try {
+        const map = await getMaps([(req.body.tableName)+'Map']);
+        const updatedMap = await convertForeignKeys(map, false);
+        res.status(200).json({ success: true, result: updatedMap });
+    }
+    catch (error) {
+        console.error("(stcTestMap)(convertFKeys) Error converting foreign keys: ", error);
+        res.status(500).json({ success: false, message: "Internal server error." });
+    }
+}
+
 
 
 //Function: Update the products table using a combination of the maps.
@@ -225,7 +238,7 @@ const buildProducts = async () => {
 
                     const recipeIngredients = Object.entries(tempIngredients).reduce((acc, [name, data]) => {
                         if (data.ingCat && data.ingID) {
-                            const firstWord = data.ingCat.split(' ')[0].toLowerCase(); // Get the first word of the ingredient category.
+                            const firstWord = data.ingCat.split(' ')[0]; // Get the first word of the ingredient category.
                             const mapKey = `${firstWord}MapT`; //Get the map that is associated with the ingredient category.
                             if (transformedMaps[mapKey]) { //Check if the map exists in transformedMaps.
                                 const specialID = Object.keys(transformedMaps[mapKey]).find(key => transformedMaps[mapKey][key][`${firstWord}Name`] === ingredientMapT[data.ingID].ingredientName);
@@ -234,7 +247,7 @@ const buildProducts = async () => {
                                 acc[firstWord] = { id: '0', name: '' };
                             }
                         } else {
-                            acc[name.toLowerCase()] = { id: '0', name };
+                            acc[name] = { id: '0', name };
                         }
                         return acc;
                     }, {}); //Initialize the recipeIngredients object.
@@ -330,6 +343,7 @@ const updateRowData = async (table_name, data) => {
         if (!result.success) {
             console.log(`Failed to update rows.`);
         }
+        return result;
     }
     catch(error) {
         console.error("(stcTestMap.js)(updateRowData) Error updating row data: ", error);
@@ -342,7 +356,7 @@ const updateRowData = async (table_name, data) => {
 const convertForeignKeys = async (map, idToName) => {
     try {
         const mapName = Object.keys(map)[0]; //Get the map name.
-        const table_name = mapName.replace('Map', '').charAt(0).toUpperCase() + mapName.replace('Map', '').slice(1);
+        const table_name = mapName.replace('Map', ''); //Get the table name from the map name.
         const rows = map[Object.keys(map)]; //Get the rows from the map.
 
         console.log("mapName: ", mapName);
@@ -351,7 +365,7 @@ const convertForeignKeys = async (map, idToName) => {
         
         
         const columnStructure = Object.keys(rows[0]) //Get the column structure from the first row.
-            .filter(column => !column.toLowerCase().startsWith(table_name.toLowerCase()))
+            .filter(column => !column.startsWith(table_name)) //Filter out columns that start with the table name.
             .filter(column => idToName ? column.endsWith('ID') : column.endsWith('Name'));
 
         console.log("columnStructure: ", columnStructure);
@@ -359,7 +373,6 @@ const convertForeignKeys = async (map, idToName) => {
         
         //Rename and update column type for each identified column.
         columnStructure.forEach( async column => {
-            column = capitalize(column); //Capitalize the first letter of the column name.
             console.log(`Processing column ${column}.`);
             let newColumnName = '';
             let newColumnType = '';
@@ -393,7 +406,7 @@ const convertForeignKeys = async (map, idToName) => {
                 if (result) {
                     const { newColumnName, newValue } = result;
                     delete changes[row][column];
-                    changes[row][capitalize(newColumnName)] = newValue; //Assign the new value to the new column name. Capitalize the first letter of the new column name.
+                    changes[row][newColumnName] = newValue; //Assign the new value to the new column name.
                 }
             });
         });
@@ -407,7 +420,8 @@ const convertForeignKeys = async (map, idToName) => {
 
         
         await new Promise(resolve => setTimeout(resolve, 1000)); //Wait for 1 seconds before updating the rows. This is to ensure that the column changes are completed before updating the rows.
-        await updateRowData(table_name, rows); //Update the rows with the converted foreign keys.
+        const result = await updateRowData(table_name, rows); //Update the rows with the converted foreign keys.
+        return result;
     }
     catch(error) {
         console.error("(stcTestMap.js)(convertForeignKeys) Error converting foreign keys: ", error);
@@ -418,8 +432,8 @@ const convertForeignKeys = async (map, idToName) => {
 
 //Function: Process the foreign key conversion based on the column name and input value. 
 const processForeignKeyConversion = (columnName, input) => {
-    const camelColumnName = columnName.charAt(0).toLowerCase() + columnName.slice(1); //Convert columnName to camel case.
-    const mapName = camelColumnName.replace(/ID|Name/g, '') + 'Map'; //Remove 'ID' or 'Name' from the end and replace with 'Map'.
+    // const camelColumnName = columnName.charAt(0).toLowerCase() + columnName.slice(1); //Convert columnName to camel case.
+    const mapName = columnName.replace(/ID|Name/g, '') + 'Map'; //Remove 'ID' or 'Name' from the end and replace with 'Map'.
     const map = getMaps([mapName])[mapName];
 
     //Begin the iteration over the map values.
@@ -440,4 +454,4 @@ const processForeignKeyConversion = (columnName, input) => {
 
 
 
-module.exports = { testSTCMaps, updateProductsTable };
+module.exports = { testSTCMaps, updateProductsTable, convertFKeys };

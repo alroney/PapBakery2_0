@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2025-02-14T13:35:44.394Z",
+  "lastUpdated": "2025-02-14T18:12:53.260Z",
   "tableList": [
     "Recipe-A",
     "Ingredient",
@@ -2042,7 +2042,7 @@
             "SubCategoryIngredientID": "1",
             "SubCategoryID": 1,
             "IngredientID": 5,
-            "Quantity": 1
+            "Quantity": "1"
           }
         ]
       }

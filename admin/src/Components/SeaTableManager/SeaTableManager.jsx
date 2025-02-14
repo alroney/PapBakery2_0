@@ -40,15 +40,24 @@ const seatableManager = () => {
     setSelectedTable(e.target.value);
   }
 
-  const test = async () => {
+  const convertForeignValues = async () => {
+    setLoading(true);
     try {
-      const response = await fetch(`${apiBase}/seatable/test`);
+      const response = await fetch(`${apiBase}/seatable/convertFKeys`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ tableName: selectedTable })
+      });
       const data = await response.json();
-      console.log("Test Data: ", data);
+
       if(data.success) {
-        const updatedMap = data.updatedMap;
-        document.getElementById('category-map').innerHTML = JSON.stringify(updatedMap);
+        console.log("Foreign keys converted successfully.");
+        console.log("Result: ", data.result);
+        setLoading(false);
       }
+
     }
     catch(error) {
       console.error("Error testing: ", error);
@@ -85,7 +94,7 @@ const seatableManager = () => {
         {loading && <p>Loading...</p>}
         {!loading && (
           <div>
-              <button onClick={test}>Test Maps</button>
+              <button onClick={convertForeignValues}>Convert Foreign Values</button>
               <button onClick={updateProductsTable}>Update Available Products</button>
           </div>
         )}

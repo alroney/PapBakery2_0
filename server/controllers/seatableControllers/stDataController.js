@@ -68,6 +68,7 @@ const getTablesData = async () => {
             count++;
             console.log("(getTablesData) File: ", filePath," not found! Attempting to sync data. Attempt: ", count);
             await syncSeaTableData();
+            return getTablesData();
         }
         else {
             console.log("File found! ");
@@ -180,11 +181,13 @@ const syncTableData = async (tableName, bIT) => {
 const getTableData = async (req, res) => {
     try {
         const cachedTablesData = await getTablesData(); //Get the cached tables data. Using 'await' to ensure all data is received and does not return a promise.
-        const { tableName } = req.params;
+        let { tableName } = req.params;
+        console.log("Table Name: ", tableName);
         if(!cachedTablesData || cachedTablesData.length === 0) {
             await syncSeaTableData();
         }
-        const tableData = cachedTablesData.find(table => table.tableName === tableName); 
+        const tableData = cachedTablesData.find(table => table.tableName === tableName);
+        console.log("Table Data in getTableData: ", tableData);
         res.status(200).json(tableData.data);
     }
     catch(error) {
@@ -193,4 +196,41 @@ const getTableData = async (req, res) => {
     }
 }
 
-module.exports = { getTables, getTableData, getTablesData };
+
+//Function: Update the specified table's rows in the cached tables data.
+const updateTableData = async (tableName, rows) => {
+    try {
+        const filePath = path.join(__dirname, '../../cache/cachedTables.json');
+        if(!fs.existsSync(filePath)) {
+            throw new Error("Cached tables data not found.");
+        }
+        const cachedTablesData = require(filePath).tablesData;
+        const tableToUpdate = cachedTablesData.find(table => table.tableName === tableName);
+        if(tableToUpdate) {
+            rows.forEach(update => {
+                const rowIndex = tableToUpdate.data.rows.findIndex(row => row._id === update.row_id);
+                if (rowIndex !== -1) {
+                    tableToUpdate.data.rows[rowIndex] = { ...tableToUpdate.data.rows[rowIndex], ...update.row };
+                }
+            });
+        }
+        else {
+            throw new Error(`Table ${tableName} not found in cached tables data.`);
+        }
+
+        let storedData = {
+            lastUpdated: new Date(),
+            tableList: require(filePath).tableList,
+            tablesData: cachedTablesData,
+        };
+
+        fs.writeFileSync(filePath, JSON.stringify(storedData, null, 2));
+        return { success: true, message: "Table data updated successfully." };
+    }
+    catch(error) {
+        console.error("(stDataController)(updateTableData) Error updating table data: ", error);
+        return { success: false, error: error.message };
+    }
+}
+
+module.exports = { getTables, getTableData, getTablesData, updateTableData };
