@@ -17,7 +17,6 @@ const mapSTCData = (ctd, mapNames) => {
             const tableKey = tableName + "Table";
             tables[tableKey] = tableName; //tableKey is the key and tableName is the value.
             maps[mapName] = []; //Create an empty object inside the maps object.
-
             //Dynamically create map functions.
             mapFunctions[mapName] = (map, row) => {
                 const rowData = {}; //Create an object to store the row data.

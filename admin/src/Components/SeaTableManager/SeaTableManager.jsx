@@ -40,7 +40,7 @@ const seatableManager = () => {
     setSelectedTable(e.target.value);
   }
 
-  const convertForeignValues = async () => {
+  const convertForeignValues = async (isToName) => {
     setLoading(true);
     try {
       const response = await fetch(`${apiBase}/seatable/convertFKeys`, {
@@ -48,7 +48,7 @@ const seatableManager = () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ tableName: selectedTable })
+        body: JSON.stringify({ tableName: selectedTable, isToName })
       });
       const data = await response.json();
 
@@ -94,12 +94,13 @@ const seatableManager = () => {
         {loading && <p>Loading...</p>}
         {!loading && (
           <div>
-              <button onClick={convertForeignValues}>Convert Foreign Values</button>
+              <button onClick={() => convertForeignValues(true)}>Convert to Name</button>
+              <button onClick={() => convertForeignValues(false)}>Convert to ID</button>
               <button onClick={updateProductsTable}>Update Available Products</button>
           </div>
         )}
         
-        <DataTable tableName={selectedTable} />
+        <DataTable tableName={selectedTable} isLoading={loading} />
     </div>
   )
 }

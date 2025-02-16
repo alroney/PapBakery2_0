@@ -5,7 +5,7 @@ import save_icon from '../../../assets/img/icon/confirm_icon.svg';
 import cancel_icon from '../../../assets/img/icon/cancel_icon.svg';
 const apiBase = "http://localhost:4000/api";
 
-const DataTable = ({tableName}) => {
+const DataTable = ({tableName, isLoading}) => {
     const [data, setData] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
     const [editedData, setEditedData] = useState([]);
@@ -15,14 +15,13 @@ const DataTable = ({tableName}) => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        
         const fetchTableData = async () => {
             try {
+                console.log("Fetching table data...");
                 const response = await fetch(`${apiBase}/seatable/table/${tableName}`);
                 const data = await response.json();
                 console.log("Table Data: ", data);
                 setData(data.rows);
-
             }
             catch(error) {
                 console.error("Error fetching table data: ", error);
@@ -30,17 +29,19 @@ const DataTable = ({tableName}) => {
             finally {
                 setLoading(false);
                 setIsEditing(false);
-
             }
         };
+
         if(tableName === 'none') {
             setData([]);
             return;
         }
         
-        fetchTableData();
+        if (!isLoading) { //Fetch data only when loading has stopped.
+            fetchTableData();
+        }
         
-    }, [tableName]);
+    }, [tableName, isLoading]);
 
 
 

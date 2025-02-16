@@ -60,6 +60,7 @@ const getTables = async (req, res) => {
 }
 
 
+
 const getTablesData = async () => {
     try {
         const filePath = path.join(__dirname, '../../cache/cachedTables.json');
@@ -71,9 +72,9 @@ const getTablesData = async () => {
             return getTablesData();
         }
         else {
-            console.log("File found! ");
             count = 0;
-            const ctd = require(filePath).tablesData;
+            const fileContent = fs.readFileSync(filePath, 'utf8');
+            const ctd = JSON.parse(fileContent).tablesData;
             return ctd;
         }
     }
@@ -175,19 +176,51 @@ const syncTableData = async (tableName, bIT) => {
     }
 }
 
+const getTableDataDirectly = async (tableName) => {
+    // Create mock req and res objects
+    const req = {
+        params: {
+            tableName: tableName
+        }
+    };
+    
+    const res = {
+        status: (statusCode) => ({
+            json: (data) => {
+                if (statusCode === 200) {
+                    return data;
+                } else {
+                    throw new Error(data.error);
+                }
+            }
+        })
+    };
 
+    try {
+        let responseData;
+        await getTableData(req, {
+            status: () => ({
+                json: (data) => {
+                    responseData = data;
+                }
+            })
+        });
+        return responseData;
+    } catch (error) {
+        console.error("Error getting table data directly: ", error);
+        throw error;
+    }
+}
 
 //Function: Get the data from a table specified by the table name in the SeaTable base, given by a select component in the frontend.
 const getTableData = async (req, res) => {
     try {
         const cachedTablesData = await getTablesData(); //Get the cached tables data. Using 'await' to ensure all data is received and does not return a promise.
         let { tableName } = req.params;
-        console.log("Table Name: ", tableName);
         if(!cachedTablesData || cachedTablesData.length === 0) {
             await syncSeaTableData();
         }
         const tableData = cachedTablesData.find(table => table.tableName === tableName);
-        console.log("Table Data in getTableData: ", tableData);
         res.status(200).json(tableData.data);
     }
     catch(error) {
@@ -233,4 +266,4 @@ const updateTableData = async (tableName, rows) => {
     }
 }
 
-module.exports = { getTables, getTableData, getTablesData, updateTableData };
+module.exports = { getTables, getTableData, getTablesData, updateTableData, getTableDataDirectly };
