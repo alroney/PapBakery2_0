@@ -315,7 +315,7 @@ const renameAndUpdateColumnType = async (table_name, column, new_column_name, ne
 //Function: Rearrange the data into proper formation for updating the rows.
 const updateRowData = async (table_name, data) => {
     try {
-        const obj = { //Object to store the updated row data.
+        const updData = { //Object to store the updated row data.
             updates: [], //Array to store the objects used for updating each row.
             table_name, //The table name.
         };
@@ -337,12 +337,12 @@ const updateRowData = async (table_name, data) => {
             upd.push({ row, row_id });
         });
 
-        //Assign the collected updates to the updates property in obj.
-        obj.updates = upd;
+        //Assign the collected updates to the updates property in updData.
+        updData.updates = upd;
 
         //Update the rows.
-        console.log("Updating rows with data: ", obj);
-        const result = await updateRow(obj);
+        console.log("Updating rows with data: ", updData);
+        const result = await updateRow(updData);
         if (!result.success) {
             console.log(`Failed to update rows.`);
         }
@@ -376,31 +376,29 @@ const convertForeignKeys = async (map, idToName) => {
             .filter(column => !column.startsWith(table_name)) //Filter out columns that start with the table name.
             .filter(column => idToName ? column.endsWith('ID') : column.endsWith('Name'));
 
-        //Rename and update column type for each identified column.
-        columnStructure.forEach( async column => {
-            console.log(`Processing column ${column}.`);
-            let newColumnName = '';
-            let newColumnType = '';
-            const column_data = {};
-            if(column.endsWith('ID')) {
-                newColumnName = column.replace('ID', 'Name');
-                newColumnType = 'text';
-                column_data['format'] = 'text';
-            }
-            else if(column.endsWith('Name')) {
-                newColumnName = column.replace('Name', 'ID');
-                newColumnType = 'number';
-                column_data['format'] = 'number';
-            }
-
-            columnsRenamed[column] = newColumnName; //Store the renamed column in the columnsRenamed object.
-            const response = await renameAndUpdateColumnType(table_name, column, newColumnName, newColumnType, column_data)
-                .catch(error => console.error(`Error processing column ${column}: `, error));
+        // Process all columns in parallel using Promise.all
+        await Promise.all(columnStructure.map(async column => {
+            console.log(`Processing column ${column}`);
+            const isIdColumn = column.endsWith('ID');
+            const newColumnName = isIdColumn ? column.replace('ID', 'Name') : column.replace('Name', 'ID');
+            const newColumnType = isIdColumn ? 'text' : 'number';
             
-            if(!response.success) {
+            columnsRenamed[column] = newColumnName;
+
+            try {
+                const response = await renameAndUpdateColumnType(table_name, column, newColumnName, newColumnType, {
+                    format: newColumnType
+                });
+                
+                if (!response.success) {
+                    isAllOK = false;
+                    console.error(`Failed to process column ${column}`);
+                }
+            } catch (error) {
                 isAllOK = false;
+                console.error(`Error processing column ${column}:`, error);
             }
-        });
+        }));
 
         if(!isAllOK) {
             console.log("Failed to rename and update column type.");
@@ -409,26 +407,24 @@ const convertForeignKeys = async (map, idToName) => {
 
         if(isCacheFound) {
             const tableData = await getTableDataDirectly(table_name);
-            if (!tableData) {
+            if (!tableData?.rows?.length) {
                 console.error('Failed to get table data for:', table_name);
                 return;
             }
 
-            //Get original column order from first row
+            //Get column order once and create rename mapping.
             const originalOrder = Object.keys(tableData.rows[0]);
-            
-            //Update rows while preserving order
-            tableData.rows = tableData.rows.map(row => {
-                const orderedRow = {};
-                originalOrder.forEach(key => {
-                    if (columnsRenamed[key]) {
-                        orderedRow[columnsRenamed[key]] = row[key];
-                    } else {
-                        orderedRow[key] = row[key];
-                    }
-                });
-                return orderedRow;
-            });
+            const renameMap = new Map(Object.entries(columnsRenamed));
+
+            //Update rows in place.
+            tableData.rows = tableData.rows.map(row => 
+                Object.fromEntries(
+                    originalOrder.map(key => [
+                        renameMap.get(key) || key, 
+                        row[key]
+                    ])
+                )
+            );
 
 
             
@@ -441,12 +437,12 @@ const convertForeignKeys = async (map, idToName) => {
                 await Promise.all(columnStructure.map(async column => {
                     const value = columns[column];
                     const result = await processForeignKeyConversion(column, value);
-                    console.log("Result: ", result);
-                    if(result) {
+                    if(result.newValue === undefined) { //Skip columns that have no valid new value.
+                        return;
+                    }
+                    else {
                         const { newColumnName, newValue } = result;
-                        console.log(`Now deleting changes[${row}][${column}]`);
                         delete changes[row][column];
-                        console.log(`Now setting changes[${row}][${newColumnName}] to ${newValue}`);
                         changes[row][newColumnName] = newValue;
                     }
                 }));
@@ -456,6 +452,8 @@ const convertForeignKeys = async (map, idToName) => {
             Object.keys(changes).forEach(row => {
                 rows[row] = changes[row];
             });
+
+            console.log("Rows: ", rows);
         }
 
         
