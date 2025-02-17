@@ -36,10 +36,25 @@ const seatableManager = () => {
       }
   };
 
+
+
+  //Function: Fail safe for error handling.
+  const failSafe = (msg, error) => {
+    console.error(msg, error);
+    setSelectedTable('none');
+    setLoading(false);
+    setError(msg);
+  }
+
+
+  //Function: Handle table selection.
   const handleTableSelect = (e) => {
     setSelectedTable(e.target.value);
   }
 
+
+
+  //Function: Convert foreign values to name or ID.
   const convertForeignValues = async (isToName) => {
     setLoading(true);
     try {
@@ -52,15 +67,17 @@ const seatableManager = () => {
       });
       const data = await response.json();
 
-      if(data.success) {
-        console.log("Foreign keys converted successfully.");
-        console.log("Result: ", data.result);
-        setLoading(false);
+      if(!data.success) {
+        failSafe("Error converting foreign keys: ", "No data returned.");
+        return;
       }
 
+      console.log("Foreign keys converted successfully.");
+      console.log("Result: ", data.result);
+      setLoading(false);
     }
     catch(error) {
-      console.error("Error testing: ", error);
+      failSafe("Error converting foreign keys: ", error);
     }
   }
 
@@ -74,7 +91,7 @@ const seatableManager = () => {
       }
     }
     catch(error) {
-      console.error("Error updating products table: ", error);
+      failSafe("Error updating products table: ", error);
     }
   }
   
