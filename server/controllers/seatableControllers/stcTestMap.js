@@ -30,7 +30,7 @@ const convertFKeys = async (req, res) => {
         const updatedMap = await convertForeignKeys(map, req.body.isToName);
         res.status(200).json({ success: true, result: updatedMap });
     }
-    catch (error) {
+    catch(error) {
         console.error("(stcTestMap)(convertFKeys) Error converting foreign keys: ", error);
         res.status(500).json({ success: false, message: "Internal server error." });
     }
@@ -79,7 +79,6 @@ const updateProductsTable = async (req, res) => {
                     column_type: 'text',
                 },
             ]
-
             
             await createNewTable(table_name, columns);
             await appendRow({ table_name, rows: products });
@@ -281,7 +280,8 @@ const buildProducts = async () => {
         } //End of iteration over categoryShapeSizeMapT.
 
         return products;
-    } catch (error) {
+    } 
+    catch (error) {
         console.error("Error building products: ", error);
     }
 };
@@ -291,16 +291,14 @@ const buildProducts = async () => {
 //Function: Rename and update column type.
 const renameAndUpdateColumnType = async (table_name, column, new_column_name, new_column_type, column_data) => {
     try {
-
-        console.log(`(stcTestMap.js)(renameAndUpdateColumnType) table_name: ${table_name}, column: ${column}, new_column_name: ${new_column_name}, new_column_type: ${new_column_type}, column_data: `, column_data);
         // Rename the column
-        // const renamed = await columnOperations.renameColumn(table_name, column, new_column_name);
+        const renamed = await columnOperations.renameColumn(table_name, column, new_column_name);
 
-        // // Update the column type
-        // console.log("(stcTestMap.js)(renameAndUpdateColumnType) new_column_type: ", new_column_type);
-        // const retyped = await columnOperations.updateColumnType(table_name, new_column_name, new_column_type, column_data);
-        // renamed;
-        // retyped;
+        // Update the column type
+        console.log("(stcTestMap.js)(renameAndUpdateColumnType) new_column_type: ", new_column_type);
+        const retyped = await columnOperations.updateColumnType(table_name, new_column_name, new_column_type, column_data);
+        renamed;
+        retyped;
 
         
 
@@ -429,6 +427,7 @@ const convertForeignKeys = async (map, idToName) => {
                 rows[row] = changes[row];
             });
             
+            let columnUpdated = {};
 
             await Promise.all(
                 Object.entries(columnsRenamed)
@@ -436,7 +435,7 @@ const convertForeignKeys = async (map, idToName) => {
                     .map(async ([oldColumn, {newColumnName, newColumnType}]) => { //After filtering, commence the renaming and retyping of the columns
                         console.log(`Processing column rename: ${oldColumn} -> ${newColumnName} (${newColumnType})`);
                         try {
-                            return await renameAndUpdateColumnType(
+                            columnUpdated = await renameAndUpdateColumnType(
                                 table_name,
                                 oldColumn,
                                 newColumnName,
@@ -449,17 +448,19 @@ const convertForeignKeys = async (map, idToName) => {
                     })
             );
 
-            console.log('Finished processing column updates');
-
+            if(columnUpdated.success) {
+                console.log(columnUpdated.message);
+                await new Promise(resolve => setTimeout(resolve, 1000)); //Wait for 1 seconds before updating the rows. This is to ensure that the column changes are completed before updating the rows.
+                const result = await updateRowData(table_name, rows); //Update the rows with the converted foreign keys.
+                console.log("Result: ", result);
+                return result;
+            }
         }
 
         
 
         
-        await new Promise(resolve => setTimeout(resolve, 1000)); //Wait for 1 seconds before updating the rows. This is to ensure that the column changes are completed before updating the rows.
-        // const result = await updateRowData(table_name, rows); //Update the rows with the converted foreign keys.
-        // console.log("Result: ", result);
-        // return result;
+        
     }
     catch(error) {
         console.error("(stcTestMap.js)(convertForeignKeys) Error converting foreign keys: ", error);
