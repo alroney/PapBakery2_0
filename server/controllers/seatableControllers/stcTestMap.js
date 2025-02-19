@@ -322,27 +322,23 @@ const updateRowData = async (table_name, data) => {
 
         const upd = []; //Array to store all updates.
         
-        //Function to clean the row data. This function removes the _id from the row data and returns the cleaned row data.
+        //Function: Cleans the row by removing the _id from the row data and returns the cleaned row data. (Used to avoid overwriting the _id in the row data).
         const cleanRowData = (rowData) => {
-            const { _id, ...rest } = rowData;
+            const { _id, ...rest } = rowData; //Destructure the _id from the row data (`rest` or rest of rowData).
             return { row: rest, row_id: _id };
         };
 
-
-        //First collect all updates.
+        //Iterate over each row in the data.
         Object.keys(data).forEach(rowKey => {
-            
             const { row, row_id } = cleanRowData(data[rowKey]);
             console.log("row: ", row);
-            upd.push({ row, row_id });
+            upd.push({ row, row_id }); //`row` contains { column_name: value } pairs and `row_id` contains the _id of the row.
         });
 
-        //Assign the collected updates to the updates property in updData.
-        updData.updates = upd;
+        updData.updates = upd; //Assign the collected updates to the updates property in updData.
 
-        //Update the rows.
-        console.log("Updating rows with data: ", updData);
-        const result = await updateRow(updData);
+        const result = await updateRow(updData); //Update the rows.
+
         if (!result.success) {
             console.log(`Failed to update rows.`);
         }
@@ -408,6 +404,7 @@ const convertForeignKeys = async (map, idToName) => {
                 const columns = rows[row];
                 changes[row] = {_id: columns._id}; //Store the _id in the changes object. 
                 
+                //Proccess the foreign key conversion for each column in the column structure.
                 await Promise.all(columnStructure.map(async column => {
                     const value = columns[column];
                     const result = await processForeignKeyConversion(column, value);

@@ -15,8 +15,8 @@ const createTable = async (tableData) => {
             authorization: `Token ${baseToken}`,
         },
         data: tableData,
-            // columns:    tableData.columns, //Array of column objects with column_name. e.g., [{ "column_name": "Name" }, { "column_name": "Age" }]
-            // table_name: tableData.tableName, //Name of the table to be created.
+            //columns:    tableData.columns, //Array of column objects with column_name. e.g., [{ "column_name": "Name" }, { "column_name": "Age" }].
+            //table_name: tableData.tableName, //Name of the table to be created.
             
     };
 

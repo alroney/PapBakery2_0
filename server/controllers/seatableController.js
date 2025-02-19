@@ -25,7 +25,7 @@ const updateRows = async (req, res) => {
         };
         const response = await axios(options);
         if(response.data.success) {
-            const result = await updateTableData(tableName, rows);
+            const result = await updateTableData(tableName, rows, null);
             console.log(result)
         }
         

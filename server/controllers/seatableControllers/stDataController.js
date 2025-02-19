@@ -231,7 +231,7 @@ const getTableData = async (req, res) => {
 
 
 //Function: Update the specified table's rows in the cached tables data.
-const updateTableData = async (tableName, rows) => {
+const updateTableData = async (tableName, rows, columns) => {
     try {
         const filePath = path.join(__dirname, '../../cache/cachedTables.json');
         if(!fs.existsSync(filePath)) {
@@ -240,6 +240,11 @@ const updateTableData = async (tableName, rows) => {
         const cachedTablesData = require(filePath).tablesData;
         const tableToUpdate = cachedTablesData.find(table => table.tableName === tableName);
         if(tableToUpdate) {
+
+            if(columns && columns.length > 0) {
+                
+            }
+
             rows.forEach(update => {
                 const rowIndex = tableToUpdate.data.rows.findIndex(row => row._id === update.row_id);
                 if (rowIndex !== -1) {
