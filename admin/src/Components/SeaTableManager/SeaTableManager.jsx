@@ -54,6 +54,24 @@ const seatableManager = () => {
 
 
 
+  //Function: Synchronize tables.
+  const syncTables = async () => {
+    setLoading(true);
+    try {
+        const response = await fetch(`${apiBase}/seatable/fullSync`);
+        const data = await response.json();
+        if(data.success) {
+            console.log("Tables synchronized successfully.");
+            fetchTables();
+        }
+    }
+    catch(error) {
+        failSafe("Error synchronizing tables: ", error);
+    }
+  }
+
+
+
   //Function: Convert foreign values to name or ID.
   const convertForeignValues = async (isToName) => {
     setLoading(true);
@@ -99,6 +117,7 @@ const seatableManager = () => {
   return (
     <div className='seatable-manager'>
         <h1>SeaTable</h1>
+        <button onClick={syncTables}>Synchronize</button>
         <button onClick={fetchTables}>Update Available Tables</button>
         <div className='table-selection'>
             <select className='table-select' onChange={handleTableSelect} value={selectedTable}>

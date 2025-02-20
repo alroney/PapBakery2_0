@@ -155,14 +155,15 @@ const syncTableData = async (tableName, bIT) => {
         const processedRows = table.rows.map(row => {
             const newRow = {};
             Object.entries(row).forEach(([key, value]) => {
-                    const column = table.columns.find(col => col.key === key);
-                    if (column) {
-                        newRow[column.name] = value;
-                    }
-                    else{
-                        newRow[key] = value;
-                    }
-                
+            if (key === '_id' || !key.startsWith('_')) { //Filter out unwanted keys (columns). This would reduce the size of the data by half.
+                const column = table.columns.find(col => col.key === key);
+                if (column) {
+                    newRow[column.name] = value;
+                }
+                else {
+                    newRow[key] = value;
+                }
+            }
             });
             return newRow;
         });
@@ -233,16 +234,29 @@ const getTableData = async (req, res) => {
 //Function: Update the specified table's rows in the cached tables data.
 const updateTableData = async (tableName, rows, columns) => {
     try {
+        console.log("(updateTableData) Columns: ", columns);
         const filePath = path.join(__dirname, '../../cache/cachedTables.json');
         if(!fs.existsSync(filePath)) {
             throw new Error("Cached tables data not found.");
         }
         const cachedTablesData = require(filePath).tablesData;
         const tableToUpdate = cachedTablesData.find(table => table.tableName === tableName);
-        if(tableToUpdate) {
 
-            if(columns && columns.length > 0) {
-                
+        if(tableToUpdate) {
+            const columnRenameMap = new Map(Object.entries(columns));
+            let rows = tableToUpdate.data.rows;
+            const originalOrder = Object.keys(rows[0]);
+            console.log("(updateTableData) Original Order: ", originalOrder);
+            if(columns) {
+                rows = rows.map(row => 
+                    Object.fromEntries(
+                        originalOrder.map(key => [
+                            columnRenameMap.has(key) ? columnRenameMap.get(key) : key, 
+                            row[key]
+                        ])
+                    )
+                )
+                console.log("(updateTableData) Rows: ", rows);
             }
 
             rows.forEach(update => {
@@ -271,4 +285,4 @@ const updateTableData = async (tableName, rows, columns) => {
     }
 }
 
-module.exports = { getTables, getTableData, getTablesData, updateTableData, getTableDataDirectly };
+module.exports = { getTables, getTableData, getTablesData, updateTableData, getTableDataDirectly, syncSeaTableData };

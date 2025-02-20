@@ -4,7 +4,7 @@ const columnOperations  = require('./stColumnController');
 const { updateRow, appendRow } = require('./stRowController');
 const { createTable, deleteTable } = require('./stTableController');
 const { convertUnit, convertPricePerUnit } = require('../../utils/unitConversion');
-const { getTableDataDirectly } = require('./stDataController');
+const { getTableDataDirectly, updateTableData, syncSeaTableData } = require('./stDataController');
 const fs = require('fs');
 const path = require('path');
 
@@ -24,7 +24,6 @@ const testSTCMaps = async (req, res) => {
 }
 
 const convertFKeys = async (req, res) => {
-    console.log("Converting F Keys...");
     try {
         const map = await getMaps([(req.body.tableName)+'Map']);
         const updatedMap = await convertForeignKeys(map, req.body.isToName);
@@ -36,6 +35,17 @@ const convertFKeys = async (req, res) => {
     }
 }
 
+
+const fullSync = async (req, res) => {
+    try {
+        syncSeaTableData();
+        res.status(200).json({ success: true, message: "Syncing data..." });
+    }
+    catch(error) {
+        console.error("(stcTestMap)(fullSync) Error syncing data: ", error);
+        res.status(500).json({ success: false, message: "Internal server error." });
+    }
+}
 
 
 //Function: Update the products table using a combination of the maps.
@@ -295,12 +305,9 @@ const renameAndUpdateColumnType = async (table_name, column, new_column_name, ne
         const renamed = await columnOperations.renameColumn(table_name, column, new_column_name);
 
         // Update the column type
-        console.log("(stcTestMap.js)(renameAndUpdateColumnType) new_column_type: ", new_column_type);
         const retyped = await columnOperations.updateColumnType(table_name, new_column_name, new_column_type, column_data);
         renamed;
         retyped;
-
-        
 
         return { success: true, message: "Column renamed and updated successfully." };
     }
@@ -337,12 +344,12 @@ const updateRowData = async (table_name, data) => {
 
         updData.updates = upd; //Assign the collected updates to the updates property in updData.
 
-        const result = await updateRow(updData); //Update the rows.
+        const result = await updateRow(updData); //Update the rows in SeaTable.
 
         if (!result.success) {
             console.log(`Failed to update rows.`);
         }
-        return result;
+        return result.success;
     }
     catch(error) {
         console.error("(stcTestMap.js)(updateRowData) Error updating row data: ", error);
@@ -378,6 +385,7 @@ const convertForeignKeys = async (map, idToName) => {
             columnsRenamed[column] = { newColumnName, newColumnType }; //Store the newColumnName (value) with the column being replaced (key) in columnsRenamed.
         });
 
+        //Proceed if the cache is found.
         if(isCacheFound) {
             const tableData = await getTableDataDirectly(table_name);
             if (!tableData?.rows?.length) {
@@ -385,14 +393,14 @@ const convertForeignKeys = async (map, idToName) => {
                 return;
             }
 
+            const columnRenameMap = new Map(Object.entries(columnsRenamed)); //Create a map of the columns to rename.
             const originalOrder = Object.keys(tableData.rows[0]); //Get the original order of the columns.
-            const renameMap = new Map(Object.entries(columnsRenamed)); //Create a map of the columns to rename.
 
-            //Update rows in place.
+            //Update rows without altering position.
             tableData.rows = tableData.rows.map(row => 
                 Object.fromEntries(
                     originalOrder.map(key => [
-                        renameMap.get(key) || key, //Get the new column name or the original column name.
+                        columnRenameMap.get(key) || key, //Get the new column name or the original column name.
                         row[key]
                     ])
                 )
@@ -424,13 +432,17 @@ const convertForeignKeys = async (map, idToName) => {
                 rows[row] = changes[row];
             });
             
-            let columnUpdated = {};
+            let columnUpdated = {}; //Object to store the column update result.
+            const columnsUpdating = Object.entries(columnsRenamed)
+                .filter(([_, {newColumnName}]) => newColumnName !== '_id' && Object.keys(rows[0]).includes(newColumnName))
+                .reduce((acc, [oldColumn, {newColumnName, newColumnType}]) => {
+                    acc[oldColumn] = {newColumnName, newColumnType};
+                    return acc;
+                }, {});
 
             await Promise.all(
-                Object.entries(columnsRenamed)
-                    .filter(([_, {newColumnName}]) =>newColumnName !== '_id' && Object.keys(rows[0]).includes(newColumnName)) //Ignoring the `_id` column, filter (destructure) out columns in columneRenamed where the new column is not used in the updated rows.
-                    .map(async ([oldColumn, {newColumnName, newColumnType}]) => { //After filtering, commence the renaming and retyping of the columns
-                        console.log(`Processing column rename: ${oldColumn} -> ${newColumnName} (${newColumnType})`);
+                Object.entries(columnsUpdating)
+                    .map(async ([oldColumn, {newColumnName, newColumnType}]) => {
                         try {
                             columnUpdated = await renameAndUpdateColumnType(
                                 table_name,
@@ -445,13 +457,16 @@ const convertForeignKeys = async (map, idToName) => {
                     })
             );
 
-            if(columnUpdated.success) {
-                console.log(columnUpdated.message);
-                await new Promise(resolve => setTimeout(resolve, 1000)); //Wait for 1 seconds before updating the rows. This is to ensure that the column changes are completed before updating the rows.
-                const result = await updateRowData(table_name, rows); //Update the rows with the converted foreign keys.
-                console.log("Result: ", result);
-                return result;
-            }
+            if(!columnUpdated.success) return { success: false, message: "(stcTestMaps.js)(convertForeignKeys) Failed to complete foreign key conversion: seatable column did not update." };
+
+            console.log(columnUpdated.message);
+            await new Promise(resolve => setTimeout(resolve, 1000)); //Wait for 1 seconds before updating the rows. This is to ensure that the column changes are completed before updating the rows.
+            const rowUpdated = await updateRowData(table_name, rows); //Update the rows with the converted foreign keys.
+
+            if(!rowUpdated) return { success: false, message: "(stcTestMaps.js)(convertForeignKeys) Failed to complete foreign key conversion: seatable row did not update." };
+
+            //Once both the columns and rows are updated in SeaTable, we can update them in the cache.
+            await updateTableData(table_name, rows, columnsUpdating);
         }
 
         
@@ -491,4 +506,4 @@ const processForeignKeyConversion = async (columnName, input) => {
 
 
 
-module.exports = { testSTCMaps, updateProductsTable, convertFKeys };
+module.exports = { testSTCMaps, updateProductsTable, convertFKeys, fullSync };
