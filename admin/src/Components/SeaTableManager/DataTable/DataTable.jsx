@@ -44,7 +44,7 @@ const DataTable = ({tableName, isLoading}) => {
         }
         
     }, [tableName, isLoading]);
-
+ 
 
     const determineColumnTypes = (rows) => {
         if(rows.length === 0) return {};
