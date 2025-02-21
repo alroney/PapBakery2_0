@@ -144,49 +144,54 @@ const DataTable = ({tableName, isLoading}) => {
 
     return (
         <div>
-            <table border="1" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                    <tr>
-                        {headers.length > 0 && headers.map((header, index) => {
-                            return <th key={index}>{header}</th>
-                        })}
-                    </tr>
-                </thead>
-                <tbody>
-                    {(isEditing ? editedData : data).map((row, rowIndex) => (
-                        <tr key={rowIndex}>
-                            {headers.map((header) => (
-                                <td key={header}>
-                                    {isEditing ? (
-                                        <input type='text' value={row[header]} onChange={(e) => handleCellChange(rowIndex, header, e.target.value)} />
-                                    ) : (
-                                        row[header]
-                                    )}
-                                </td>
+            {loading && <p>Loading...</p>}
+            {!loading && (
+                <div>
+                    <table border="1" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                            <tr>
+                                {headers.length > 0 && headers.map((header, index) => {
+                                    return <th key={index}>{header}</th>
+                                })}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {(isEditing ? editedData : data).map((row, rowIndex) => (
+                                <tr key={rowIndex}>
+                                    {headers.map((header) => (
+                                        <td key={header}>
+                                            {isEditing ? (
+                                                <input type='text' value={row[header]} onChange={(e) => handleCellChange(rowIndex, header, e.target.value)} />
+                                            ) : (
+                                                row[header]
+                                            )}
+                                        </td>
+                                    ))}
+                                </tr>
                             ))}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-            {isEditing && tableName !== 'none' ? (
-                <div>
-                    {(tableName === 'CategoryIngredient' || tableName === 'FlavorIngredient') && (
-                        <button onClick={recalculate} className="recalculate-button">
-                            Recalculate
-                        </button>
-                    )}
-                    <img onClick={saveEdit} src={save_icon} alt="Save" className="save-icon"/>
-                    <img onClick={cancelEdit} src={cancel_icon} alt="Cancel" className="cancel-icon"/>
+                        </tbody>
+                    </table>
+                    {isEditing && tableName !== 'none' ? (
+                        <div>
+                            {(tableName === 'CategoryIngredient' || tableName === 'FlavorIngredient') && (
+                                <button onClick={recalculate} className="recalculate-button">
+                                    Recalculate
+                                </button>
+                            )}
+                            <img onClick={saveEdit} src={save_icon} alt="Save" className="save-icon"/>
+                            <img onClick={cancelEdit} src={cancel_icon} alt="Cancel" className="cancel-icon"/>
+                        </div>
+                        ) : (
+                        <div>
+                            {data.length > 0 && (
+                                <img onClick={() => {startEdit()}} src={edit_icon} alt='Edit' className="edit-icon"/>
+                            )}
+                            
+                        </div>
+                        )    
+                    }
                 </div>
-                ) : (
-                <div>
-                    {data.length > 0 && (
-                        <img onClick={() => {startEdit()}} src={edit_icon} alt='Edit' className="edit-icon"/>
-                    )}
-                    
-                </div>
-                )    
-            }
+            )}
         </div>
     );
 };
