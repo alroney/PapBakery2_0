@@ -21,11 +21,11 @@ const mapSTCData = (ctd, mapNames) => {
             mapFunctions[mapName] = (map, row) => {
                 const rowData = {}; //Create an object to store the row data.
                 Object.keys(row).forEach(column => { //Iterate over the columns in the row.
-                    if(!column.startsWith('_')) { //Exclude columns that start with '_'.
-                        rowData[column] = row[column]; //Add the column data to the rowData object with lowercase first letter
-                    }
                     if(column === '_id') {
                         rowData._id = row[column]; //Add the _id to the rowData object.
+                    }
+                    if(!column.startsWith('_')) { //Exclude columns that start with '_'.
+                        rowData[column] = row[column]; //Add the column data to the rowData object with lowercase first letter
                     }
                 });
                 map.push(rowData); //Add the row data to the map object.

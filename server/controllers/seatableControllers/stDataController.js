@@ -232,39 +232,48 @@ const getTableData = async (req, res) => {
 
 
 //Function: Update the specified table's rows in the cached tables data.
-const updateTableData = async (tableName, rows, columns) => {
+const updateTableData = async (tableName, newRows, columns) => {
     try {
-        console.log("(updateTableData) Columns: ", columns);
         const filePath = path.join(__dirname, '../../cache/cachedTables.json');
         if(!fs.existsSync(filePath)) {
             throw new Error("Cached tables data not found.");
         }
+
         const cachedTablesData = require(filePath).tablesData;
         const tableToUpdate = cachedTablesData.find(table => table.tableName === tableName);
 
         if(tableToUpdate) {
-            const columnRenameMap = new Map(Object.entries(columns));
-            let rows = tableToUpdate.data.rows;
-            const originalOrder = Object.keys(rows[0]);
-            console.log("(updateTableData) Original Order: ", originalOrder);
+            let currentRows = tableToUpdate.data.rows;
+            let originalOrder = Object.keys(currentRows[0]); //Get the original order of the columns.
+
             if(columns) {
-                rows = rows.map(row => 
-                    Object.fromEntries(
-                        originalOrder.map(key => [
-                            columnRenameMap.has(key) ? columnRenameMap.get(key) : key, 
-                            row[key]
-                        ])
-                    )
-                )
-                console.log("(updateTableData) Rows: ", rows);
+                currentRows = currentRows.map(row => {
+                    const updatedRow = {};
+                    Object.keys(row).forEach(col => {
+                        const newColumnName = columns[col]?.newColumnName; //Get the new column name from the columns object. The '?' is used to prevent an error if the columns object is undefined.
+                        updatedRow[newColumnName || col] = row[col]; //Update the column name if it exists in the columns object.
+                    });
+                    return updatedRow;
+                });
+
+                console.log("(updateTableData) Current Rows (after column update): ", currentRows);
+                originalOrder = Object.keys(currentRows[0]); //Update the order of the columns after the column renaming.
             }
 
-            rows.forEach(update => {
-                const rowIndex = tableToUpdate.data.rows.findIndex(row => row._id === update.row_id);
-                if (rowIndex !== -1) {
-                    tableToUpdate.data.rows[rowIndex] = { ...tableToUpdate.data.rows[rowIndex], ...update.row };
+            const updatedRows = newRows.map(newRow => {
+                const existingRow = currentRows.find(row => row._id === newRow._id);
+                if(existingRow) {
+                    const updatedRow = {};
+                    originalOrder.forEach(key => {
+                        console.log(`key: ${key}, newRow[key]: ${newRow[key]} \nexistingRow[key]: ${existingRow[key]}`);
+                        updatedRow[key] = newRow[key] !== undefined ? newRow[key] : existingRow[key];
+                    });
+                    return updatedRow;
                 }
             });
+            
+            console.log("(updateTableData) Updated Rows: ", updatedRows);
+            tableToUpdate.data.rows = updatedRows;
         }
         else {
             throw new Error(`Table ${tableName} not found in cached tables data.`);

@@ -32,7 +32,7 @@ const seatableManager = () => {
           }
       }
       catch(error) {
-          console.error("Error fetching tables: ", error);
+          failSafe("Error fetching tables: ", error);
       }
   };
 

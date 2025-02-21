@@ -4,7 +4,7 @@ const urlBase = "https://cloud.seatable.io/api-gateway/api/v2/dtables"; //SeaTab
 
 //Function: Execute the column operation on the SeaTable base.
 const updateColumn = async (data) => {
-    console.log("(UpdateColumn) Data: ", data);
+    // console.log("(UpdateColumn) Data: ", data);
     const { baseToken, baseUUID } = await getBaseTokenAndUUID();
     const url = `${urlBase}/${baseUUID}/columns/`;
     const options = {
