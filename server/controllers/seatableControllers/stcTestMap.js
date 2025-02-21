@@ -338,7 +338,6 @@ const updateRowData = async (table_name, data) => {
         //Iterate over each row in the data.
         Object.keys(data).forEach(rowKey => {
             const { row, row_id } = cleanRowData(data[rowKey]);
-            console.log("row: ", row);
             upd.push({ row, row_id }); //`row` contains { column_name: value } pairs and `row_id` contains the _id of the row.
         });
 
@@ -360,6 +359,7 @@ const updateRowData = async (table_name, data) => {
 
 //Function: Convert the foreign keys in the given map.
 const convertForeignKeys = async (map, idToName) => {
+    console.log("(stcTestMap.js)(convertForeignKeys) Converting foreign keys...");
     try {
         let isCacheFound = false;
         const filePath = path.join(__dirname, '../../cache/cachedTables.json');
@@ -415,7 +415,7 @@ const convertForeignKeys = async (map, idToName) => {
                 //Proccess the foreign key conversion for each column in the column structure.
                 await Promise.all(columnStructure.map(async column => {
                     const value = columns[column];
-                    const result = await processForeignKeyConversion(column, value);
+                    const result = await processForeignKeyConversion(table_name, column, value);
                     if(result.newValue === undefined) { //Skip columns that have no valid new value.
                         return;
                     }
@@ -482,10 +482,14 @@ const convertForeignKeys = async (map, idToName) => {
 
 
 //Function: Process the foreign key conversion based on the column name and input value. 
-const processForeignKeyConversion = async (columnName, input) => {
+const processForeignKeyConversion = async (tableName, columnName, input) => {
     try {
-        // const camelColumnName = columnName.charAt(0).toLowerCase() + columnName.slice(1); //Convert columnName to camel case.
-        const mapName = columnName.replace(/ID|Name/g, '') + 'Map'; //Remove 'ID' or 'Name' from the end and replace with 'Map'.
+        //Skip conversion if table ends with '-A' and column starts with table name (without '-A').
+        if (tableName.endsWith('-A') && columnName.startsWith(tableName.replace('-A', ''))) {
+            return { columnName, input };
+        }
+        
+        const mapName = columnName.replace(/ID|Name/g, '') + 'Map'; //Get the map of the foreign column by removing 'ID' or 'Name' from the end and replace with 'Map'.
         const map = await getMaps([mapName]);
 
         const matchingRow = map[mapName].find(row => row[columnName] === input); //Find the row that matches the input value for the specific column.

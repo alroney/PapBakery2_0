@@ -178,8 +178,8 @@ const DataTable = ({tableName, isLoading}) => {
 
     return (
         <div>
-            {loading && <p>Loading...</p>}
-            {!loading && (
+            {isLoading && <p></p>}
+            {!isLoading && (
                 <div>
                     <table border="1" style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>

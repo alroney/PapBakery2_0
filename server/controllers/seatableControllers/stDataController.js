@@ -233,8 +233,8 @@ const getTableData = async (req, res) => {
 
 //Function: Update the specified table's rows in the cached tables data.
 const updateTableData = async (tableName, newRows, columns) => {
+    console.log(`(stDataController)(updateTableData) Updating table "${tableName}"...`);
     try {
-        console.log("(updateTableData) New Rows: ", newRows);
         const filePath = path.join(__dirname, '../../cache/cachedTables.json');
         if(!fs.existsSync(filePath)) {
             throw new Error("Cached tables data not found.");
@@ -257,7 +257,6 @@ const updateTableData = async (tableName, newRows, columns) => {
                     return updatedRow;
                 });
 
-                console.log("(updateTableData) Current Rows (after column update): ", currentRows);
                 originalOrder = Object.keys(currentRows[0]); //Update the order of the columns after the column renaming.
             }
 
@@ -275,8 +274,6 @@ const updateTableData = async (tableName, newRows, columns) => {
                     return updatedRow;
                 }, {});
             });
-            
-            console.log("(updateTableData) Updated Rows: ", updatedRows);
             tableToUpdate.data.rows = updatedRows;
         }
         else {
@@ -290,6 +287,7 @@ const updateTableData = async (tableName, newRows, columns) => {
         };
 
         fs.writeFileSync(filePath, JSON.stringify(storedData, null, 2));
+        console.log(`(stDataController)(updateTableData) Table "${tableName}" updated successfully.`);
         return { success: true, message: "Table data updated successfully." };
     }
     catch(error) {

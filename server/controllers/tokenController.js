@@ -3,7 +3,7 @@ const Token = require("../models/tokenSchema");
 //Function: Fetch Stored Token from Mongo.
 const fetchStoredToken = async (source, keyName) => {
     try {
-        // console.log("Fetching token: ", source, keyName);
+        console.log("Fetching token: ", source, keyName);
         const token = await Token.findOne({ source: source, keyName: keyName });
         let keyValue = null;
         let needsRefresh = true;
