@@ -234,6 +234,7 @@ const getTableData = async (req, res) => {
 //Function: Update the specified table's rows in the cached tables data.
 const updateTableData = async (tableName, newRows, columns) => {
     try {
+        console.log("(updateTableData) New Rows: ", newRows);
         const filePath = path.join(__dirname, '../../cache/cachedTables.json');
         if(!fs.existsSync(filePath)) {
             throw new Error("Cached tables data not found.");
@@ -260,16 +261,19 @@ const updateTableData = async (tableName, newRows, columns) => {
                 originalOrder = Object.keys(currentRows[0]); //Update the order of the columns after the column renaming.
             }
 
-            const updatedRows = newRows.map(newRow => {
-                const existingRow = currentRows.find(row => row._id === newRow._id);
-                if(existingRow) {
-                    const updatedRow = {};
-                    originalOrder.forEach(key => {
-                        console.log(`key: ${key}, newRow[key]: ${newRow[key]} \nexistingRow[key]: ${existingRow[key]}`);
-                        updatedRow[key] = newRow[key] !== undefined ? newRow[key] : existingRow[key];
-                    });
+            const updatedRows = currentRows.map(existingRow => {
+                const newRowData = newRows.find(newRow => 
+                    (newRow._id === existingRow._id) || (newRow.row_id === existingRow._id)
+                );
+                if(!newRowData) return existingRow;
+
+                // Handle both formats: direct object or {row, row_id} format
+                const newRow = newRowData.row || newRowData;
+
+                return originalOrder.reduce((updatedRow, key) => {
+                    updatedRow[key] = newRow[key] ?? existingRow[key];
                     return updatedRow;
-                }
+                }, {});
             });
             
             console.log("(updateTableData) Updated Rows: ", updatedRows);

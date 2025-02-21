@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2025-02-21T13:19:56.719Z",
+  "lastUpdated": "2025-02-21T15:40:23.597Z",
   "tableList": [
     "Recipe-A",
     "Ingredient",
@@ -1542,7 +1542,13 @@
       "tableName": "SubCategoryIngredient",
       "data": {
         "rows": [
-          null
+          {
+            "_id": "D1oWVojLTfurgHrlHUJ1Xg",
+            "SubCategoryIngredientID": "1",
+            "SubCategoryName": "SunnySide",
+            "IngredientName": "Egg",
+            "Quantity": 1
+          }
         ]
       }
     },
