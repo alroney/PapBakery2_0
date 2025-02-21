@@ -3,19 +3,20 @@ import './DataTable.css'
 import edit_icon from '../../../assets/img/icon/edit_icon.svg';
 import save_icon from '../../../assets/img/icon/confirm_icon.svg';
 import cancel_icon from '../../../assets/img/icon/cancel_icon.svg';
+import useFailSafe from '../../../hooks/useFailSafe';
 const apiBase = "http://localhost:4000/api";
 
 const DataTable = ({tableName, isLoading}) => {
+    const { failSafe, loading, setLoading, error, setError } = useFailSafe();
     const [data, setData] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
     const [editedData, setEditedData] = useState([]);
     const [sql, setSQL] = useState('');
     const [sqlResult, setSQLResult] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchTableData = async () => {
+            setLoading(true);
             try {
                 console.log("Fetching table data...");
                 const response = await fetch(`${apiBase}/seatable/table/${tableName}`);
@@ -24,7 +25,7 @@ const DataTable = ({tableName, isLoading}) => {
                 setData(data.rows);
             }
             catch(error) {
-                console.error("Error fetching table data: ", error);
+                failSafe("Error fetching table data: ", error);
             }
             finally {
                 setLoading(false);
@@ -61,7 +62,6 @@ const DataTable = ({tableName, isLoading}) => {
                 updatedData[rowIndex]['CostPerUnit'] = '0.00'; //Set to 0 if values are invalid.
             }
         }
-
         setEditedData(updatedData);
     };
 
@@ -75,6 +75,7 @@ const DataTable = ({tableName, isLoading}) => {
 
 
     const recalculate = async () => {
+        setLoading(true);
         try {
             const response = await fetch(`${apiBase}/seatable/calculate`, {
                 method: 'POST',
@@ -87,9 +88,10 @@ const DataTable = ({tableName, isLoading}) => {
 
             const data = await response.json();
             setEditedData(data);
+            setLoading(false);
         }
         catch(error) {
-            console.error("Error recalculating: ", error);
+            failSafe("Error recalculating: ", error);
         }
     }
 
@@ -129,9 +131,16 @@ const DataTable = ({tableName, isLoading}) => {
     };
 
 
-    const headers = Array.isArray(data) && data.length > 0 
-        ? Object.keys(data[0]).filter(key => !key.startsWith('_')) //Filter out keys that start with '_'.
-        : [];
+    const headers = React.useMemo(() => {
+        try {
+            if (data.length === 0) return [];
+            return Object.keys(data[0]).filter(key => !key.startsWith('_'));
+        }
+        catch(error) {
+            failSafe("Error getting headers: ", error);
+            return [];
+        }
+    }, [data]);
 
     return (
         <div>

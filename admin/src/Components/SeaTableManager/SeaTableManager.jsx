@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import './SeaTableManager.css';
 import DataTable from './DataTable/DataTable';
+import useFailSafe from '../../hooks/useFailSafe';
 const apiBase = "http://localhost:4000/api";
 
 
 const seatableManager = () => {
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const { failSafe, loading, setLoading, error, setError } = useFailSafe();
     const [tables, setTables] = useState([]);
     const [selectedTable, setSelectedTable] = useState('none');
 
@@ -24,7 +24,6 @@ const seatableManager = () => {
       try {
           const response = await fetch(`${apiBase}/seatable/tables`);
           const data = await response.json();
-          console.log("Tables: ", data);
 
           if(data.success) {
               setTables(data.tables.sort());
@@ -38,13 +37,6 @@ const seatableManager = () => {
 
 
 
-  //Function: Fail safe for error handling.
-  const failSafe = (msg, error) => {
-    console.error(msg, error);
-    setSelectedTable('none');
-    setLoading(false);
-    setError(msg);
-  }
 
 
   //Function: Handle table selection.
@@ -89,9 +81,7 @@ const seatableManager = () => {
         failSafe("Error converting foreign keys: ", "No data returned.");
         return;
       }
-
-      console.log("Foreign keys converted successfully.");
-      console.log("Result: ", data.result);
+      
       setLoading(false);
     }
     catch(error) {
