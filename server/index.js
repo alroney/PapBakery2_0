@@ -29,13 +29,8 @@ const Users = require('./models/userSchema');
 
 app.use(helmet());
 app.use(express.json()); //Automatically parse incoming requests as JSON.
-app.use(express.urlencoded({
-    extended: true
-})); 
-
-app.use(cors({
-    
-})); //Allow React app to connect to the Express app.
+app.use(express.urlencoded({extended: true})); 
+app.use(cors()); //Allows client (React) to access the backend.
 
 //Set Cross-Origin-Resource-Policy to cross-origin during development and same-site during production.
 app.use((req,res,next) => {
@@ -43,11 +38,8 @@ app.use((req,res,next) => {
     next();
 })
 
-
 //Database credentials and connection string.
 let uri = process.env.MONGO_URI;
-
-
 
 //Database connection with MongoDB
 mongoose.connect(uri)
