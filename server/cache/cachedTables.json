@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2025-02-24T14:18:14.434Z",
+  "lastUpdated": "2025-02-24T15:28:07.919Z",
   "tableList": [
     "Recipe-A",
     "Ingredient",
@@ -1518,7 +1518,7 @@
             "_id": "TJoI5uUQSMG1UZ6MStFItA",
             "SubCategoryID": 1,
             "SubCategoryName": "SunnySide",
-            "Description": "Containing Eggs.",
+            "Description": "With a crack of an egg.",
             "CategoryID": 1
           },
           {

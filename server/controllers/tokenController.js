@@ -4,18 +4,15 @@ const redisClient = require('../redisClient');
 //Function: Fetch Stored Token from Mongo or Cache.
 const fetchStoredToken = async (source, keyName) => {
     try {
-        console.log("redisClient disconnect status: ", redisClient.disconnect);
         await redisClient.connect();
-        console.log("status after connect: ", redisClient.disconnect);
         const cacheKey = `${source}:${keyName}`; //Key name for finding the token in the Redis cache.
 
         if(!redisClient.disconnect) {
-            const cachedToken = await redisClient.get(cacheKey);
-
+            const cachedToken = await redisClient.get(cacheKey); //Get token from cache.
+        
             if(cachedToken) {
                 console.log("Token fetched from cache:", source, keyName);
-                
-                await redisClient.quit();
+                await redisClient.quit(); //Close the connection to Redis.
                 return JSON.parse(cachedToken);
             }
         }
