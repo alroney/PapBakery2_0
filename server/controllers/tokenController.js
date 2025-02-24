@@ -1,22 +1,39 @@
 const Token = require("../models/tokenSchema");
 const redisClient = require('../redisClient');
 
+let useRedis = true;
+
+
+const connectToRedis = async () => {
+    try {
+        if(!redisClient.disconnect) return; //If the client is already connected, return immediately.
+
+        console.log("(tokenController)(isRedisWorking) Connecting to Redis...");
+        await redisClient.connect();
+    } 
+    catch(error) {
+        console.error("(tokenController)(isRedisWorking) Redis is not able to be connected");
+        useRedis = false;
+        return;
+    }
+}
+
+
 //Function: Fetch Stored Token from Mongo or Cache.
 const fetchStoredToken = async (source, keyName) => {
     try {
-        await redisClient.connect();
-        const cacheKey = `${source}:${keyName}`; //Key name for finding the token in the Redis cache.
-
-        if(!redisClient.disconnect) {
+        if(useRedis) await connectToRedis();
+        
+        if(useRedis && !redisClient.disconnect) {
+            const cacheKey = `${source}:${keyName}`; //Key name for finding the token in the Redis cache.
             const cachedToken = await redisClient.get(cacheKey); //Get token from cache.
         
             if(cachedToken) {
-                console.log("Token fetched from cache:", source, keyName);
+                console.log("Token fetched from Redis:", source, keyName);
                 await redisClient.quit(); //Close the connection to Redis.
                 return JSON.parse(cachedToken);
             }
         }
-
 
         const token = await Token.findOne({ source: source, keyName: keyName });
         let keyValue = null;
@@ -83,10 +100,7 @@ const storeNewToken = async (keyPairs, source) => {
                 await Token.bulkWrite(operations);
                 console.log("New tokens stored successfully in mongoDB");
 
-                if(redisClient.disconnect) {
-                    console.log("(storeNewToken) Connecting to Redis...");
-                    await redisClient.connect();
-                }
+                if(useRedis) await connectToRedis(); 
                 // Cache the new tokens
                 if(!redisClient.disconnect) {
                     keyPairs.forEach(async pair => {

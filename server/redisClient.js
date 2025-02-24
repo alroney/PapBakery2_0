@@ -6,7 +6,8 @@ const client = createClient({
     // password: process.env.REDIS_PASSWORD, //ACL password
     socket: {
         reconnectStrategy: function(retries) {
-            if(retries > 10) {
+            return false; //Do not reconnect.
+            if(retries > 2) {
                 console.log("Too many attempts to reconnect. Redis connection terminated.");
                 return new Error("Too many retries.");
             }
@@ -20,7 +21,7 @@ const client = createClient({
 
 client.disconnect = true;
 
-client.on('error', error => console.log('Redis client error: ', error));
+// client.on('error', error => console.log('Redis client error: ', error));
 
 client.on('connect', () => {
     console.log('Connected to Redis');
