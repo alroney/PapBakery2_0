@@ -4,7 +4,9 @@ const redisClient = require('../redisClient');
 //Function: Fetch Stored Token from Mongo or Cache.
 const fetchStoredToken = async (source, keyName) => {
     try {
+        console.log("redisClient disconnect status: ", redisClient.disconnect);
         await redisClient.connect();
+        console.log("status after connect: ", redisClient.disconnect);
         const cacheKey = `${source}:${keyName}`; //Key name for finding the token in the Redis cache.
 
         if(!redisClient.disconnect) {
@@ -12,6 +14,8 @@ const fetchStoredToken = async (source, keyName) => {
 
             if(cachedToken) {
                 console.log("Token fetched from cache:", source, keyName);
+                
+                await redisClient.quit();
                 return JSON.parse(cachedToken);
             }
         }
@@ -50,7 +54,6 @@ const fetchStoredToken = async (source, keyName) => {
             message = `(tokenController)(fetchStoredToken) ${source} ${keyName} not found.`;
         }
 
-        redisClient.quit();
         return { keyValue, needsRefresh, message };
     } 
     catch(error) {
@@ -83,7 +86,10 @@ const storeNewToken = async (keyPairs, source) => {
                 await Token.bulkWrite(operations);
                 console.log("New tokens stored successfully in mongoDB");
 
-                if(redisClient.disconnect) await redisClient.connect();
+                if(redisClient.disconnect) {
+                    console.log("(storeNewToken) Connecting to Redis...");
+                    await redisClient.connect();
+                }
                 // Cache the new tokens
                 if(!redisClient.disconnect) {
                     keyPairs.forEach(async pair => {
