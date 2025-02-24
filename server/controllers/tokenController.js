@@ -22,20 +22,28 @@ const connectToRedis = async () => {
 //Function: Fetch Stored Token from Mongo or Cache.
 const fetchStoredToken = async (source, keyName) => {
     try {
-        if(useRedis) await connectToRedis();
-        
-        if(useRedis && !redisClient.disconnect) {
+        let token;
+        if(useRedis) await connectToRedis(); //Attempt to connect to Redis, if flagged to use it.
+
+        if(!useRedis) { //If Redis is not being used, fetch the token from MongoDB.
+            token = await Token.findOne({ source: source, keyName: keyName });
+            console.log("Using token from MongoDB")
+        }
+        else {
             const cacheKey = `${source}:${keyName}`; //Key name for finding the token in the Redis cache.
-            const cachedToken = await redisClient.get(cacheKey); //Get token from cache.
+            token = await redisClient.get(cacheKey); //Get token from cache.
         
-            if(cachedToken) {
+            if(token) {
                 console.log("Token fetched from Redis:", source, keyName);
                 await redisClient.quit(); //Close the connection to Redis.
-                return JSON.parse(cachedToken);
             }
+            else{
+                console.log("Token not found in Redis. Fetching from MongoDB.");
+                token = await Token.findOne({ source: source, keyName: keyName });
+            }
+
         }
 
-        const token = await Token.findOne({ source: source, keyName: keyName });
         let keyValue = null;
         let needsRefresh = true;
         let message = "";
@@ -49,9 +57,10 @@ const fetchStoredToken = async (source, keyName) => {
             else {
                 const currentTime = new Date();
 
-                if (currentTime > token.expiresAt) { //If the token is expired.
+                if(currentTime > token.expiresAt) { //If the token is expired.
                     message = `${source} ${keyName} found but expired.`;
-                } else {
+                } 
+                else {
                     message = `${source} ${keyName} with expiration found and not expired.`;
                     keyValue = token.keyValue;
                     needsRefresh = false; //No need to refresh the token if it's valid.
@@ -59,11 +68,11 @@ const fetchStoredToken = async (source, keyName) => {
             }
 
             // Cache the token
-            if(!redisClient.disconnect){
+            if(useRedis){
                 console.log("Caching token:", source, keyName, " to Redis.");
                 await redisClient.set(cacheKey, JSON.stringify({ keyValue, needsRefresh, message }), 'EX', 3600); // Cache for 1 hour
             }
-        } 
+        }
         else {
             message = `(tokenController)(fetchStoredToken) ${source} ${keyName} not found.`;
         }
@@ -100,14 +109,17 @@ const storeNewToken = async (keyPairs, source) => {
                 await Token.bulkWrite(operations);
                 console.log("New tokens stored successfully in mongoDB");
 
-                if(useRedis) await connectToRedis(); 
-                // Cache the new tokens
-                if(!redisClient.disconnect) {
+                //Now store the tokens in Redis.
+                if(useRedis) await connectToRedis();
+                if(useRedis) {
                     keyPairs.forEach(async pair => {
                         const cacheKey = `${source}:${pair.keyName}`;
-                        await redisClient.set(cacheKey, JSON.stringify({ keyValue: pair.keyValue, needsRefresh: false, message: `${source} ${pair.keyName} stored.` }), 'EX', 3600); // Cache for 1 hour
+                        await redisClient.set(cacheKey, JSON.stringify({ keyValue: pair.keyValue, needsRefresh: false, message: `${source} ${pair.keyName} stored.`, expiresAt: pair.expiresAt }), 'EX', 3600); // Cache for 1 hour
                     });
                     console.log("New tokens stored successfully in Redis");
+                }
+                else {
+                    console.log("Tokens not stored in Redis.");
                 }
             } 
             catch (error) {
