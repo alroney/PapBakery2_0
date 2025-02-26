@@ -9,6 +9,10 @@ const seatableManager = () => {
     const { failSafe, loading, setLoading, error, setError } = useFailSafe();
     const [tables, setTables] = useState([]);
     const [selectedTable, setSelectedTable] = useState('none');
+    const [stMetaData, setStMetaData] = useState({
+        lastUpdated: null,
+        retrievedFrom: '',
+    })
 
 
     useEffect(() => {
@@ -16,6 +20,30 @@ const seatableManager = () => {
         console.log(`Selected table: ${selectedTable}`);
       }
     }, [selectedTable]);
+
+
+    const formatDate = (dateString) => {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      return date.toLocaleString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    };
+
+    useEffect(() => {
+      if (stMetaData.lastUpdated) {
+        setStMetaData(prev => ({
+          ...prev,
+          lastUpdated: formatDate(prev.lastUpdated)
+        }));
+      }
+    }, [stMetaData.lastUpdated]);
+
 
 
     const fetchTables = async () => {
@@ -27,6 +55,10 @@ const seatableManager = () => {
 
           if(data.success) {
               setTables(data.tables.sort());
+              setStMetaData({
+                  lastUpdated: data.lastUpdated,
+                  retrievedFrom: data.retrievedFrom,
+              });
               setLoading(false);
           }
       }
@@ -34,8 +66,6 @@ const seatableManager = () => {
           failSafe("Error fetching tables: ", error);
       }
   };
-
-
 
 
 
@@ -49,8 +79,10 @@ const seatableManager = () => {
   //Function: Synchronize tables.
   const syncTables = async () => {
     setLoading(true);
+    setSelectedTable('none');
+    setTables([]);
     try {
-        const response = await fetch(`${apiBase}/seatable/fullSync`);
+        const response = await fetch(`${apiBase}/seatable/syncSeaTable`);
         const data = await response.json();
         if(data.success) {
             console.log("Tables synchronized successfully.");
@@ -109,6 +141,13 @@ const seatableManager = () => {
         <h1>SeaTable</h1>
         <button onClick={syncTables}>Synchronize</button>
         <button onClick={fetchTables}>Update Available Tables</button>
+        
+            {tables.length > 0 && (
+              <div className='meta-data'>
+                <p>Tables last updated: {stMetaData.lastUpdated}</p>
+                <p>Retrieved from: {stMetaData.retrievedFrom}</p>
+              </div>
+            )}
         <div className='table-selection'>
             <select className='table-select' onChange={handleTableSelect} value={selectedTable}>
                 <option value='none'>Select a table</option>
@@ -118,7 +157,7 @@ const seatableManager = () => {
             </select>
         </div>
         {loading && <p>Loading...</p>}
-        {!loading && (
+        {!loading && selectedTable !== 'none' && (
           <div>
               <button onClick={() => convertForeignValues(true)}>Convert to Name</button>
               <button onClick={() => convertForeignValues(false)}>Convert to ID</button>

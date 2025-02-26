@@ -40,6 +40,7 @@ const getBaseInfo = async (req, res) => {
 const getTables = async (req, res) => {
     try {
         const filePath = path.join(__dirname, '../../cache/cachedTables.json');
+        let retrievedFrom = "Cache";
         if(!fs.existsSync(filePath) && count < 3) {
             count++;
             console.log("(getTables) File: ", filePath," not found! Attempting to sync data. Attempt: ", count);
@@ -47,10 +48,13 @@ const getTables = async (req, res) => {
             return getTables(req, res);
         }
         else {
+            if(count > 0) retrievedFrom = "SeaTable";
             count = 0;
-            const ct = require(filePath).tableList;
-            res.status(200).json({ success: true, message: "Data synced successfully.", tables: ct });
-            return ct;
+            const fileContent = fs.readFileSync(filePath, 'utf8'); //Read the file content directly ensuring the latest data is retrieved.
+            const { tableList, lastUpdated } = JSON.parse(fileContent);
+            console.log("(stDataController)(getTables) lastUpdated: ", lastUpdated);
+            res.status(200).json({ success: true, message: "Data synced successfully.", tables: tableList, lastUpdated, retrievedFrom });
+            return tableList;
         }
     }
     catch(error) {
@@ -74,8 +78,8 @@ const getTablesData = async () => {
         else {
             count = 0;
             const fileContent = fs.readFileSync(filePath, 'utf8');
-            const ctd = JSON.parse(fileContent).tablesData;
-            return ctd;
+            const tablesData = JSON.parse(fileContent).tablesData;
+            return tablesData;
         }
     }
     catch(error) {
@@ -85,8 +89,8 @@ const getTablesData = async () => {
 
 
 
-
-const syncSeaTableData = async () => {
+//Function: Synchronize the data of all tables from the SeaTable base.
+const syncSeaTableData = async (req, res) => {
     try {
         const baseInfo = await getBaseInfo();
         const baseInfoTables = baseInfo.tables;
@@ -133,10 +137,11 @@ const syncSeaTableData = async () => {
         fs.writeFileSync(filePath, JSON.stringify(storedData, null, 2));
 
         console.log("All tables cached successfully.");
-        return;
+        res.status(200).json({ success: true, message: "Data synced successfully." });
     }
     catch(error) {
         console.error("(stDataController)(syncSeaTableData) Error loading table data: ", error);
+        res.status(500).json({ success: false, error: error });
     }
 }
 

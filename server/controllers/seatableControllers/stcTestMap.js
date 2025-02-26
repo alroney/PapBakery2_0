@@ -36,16 +36,16 @@ const convertFKeys = async (req, res) => {
 }
 
 
-const fullSync = async (req, res) => {
-    try {
-        syncSeaTableData();
-        res.status(200).json({ success: true, message: "Syncing data..." });
-    }
-    catch(error) {
-        console.error("(stcTestMap)(fullSync) Error syncing data: ", error);
-        res.status(500).json({ success: false, message: "Internal server error." });
-    }
-}
+// const fullSync = async (req, res) => {
+//     try {
+//         await syncSeaTableData();
+//         res.status(200).json({ success: true, message: "Data sync successful." });
+//     }
+//     catch(error) {
+//         console.error("(stcTestMap)(fullSync) Error syncing data: ", error);
+//         res.status(500).json({ success: false, message: "Internal server error." });
+//     }
+// }
 
 
 //Function: Update the products table using a combination of the maps.
@@ -510,4 +510,4 @@ const processForeignKeyConversion = async (tableName, columnName, input) => {
 
 
 
-module.exports = { testSTCMaps, updateProductsTable, convertFKeys, fullSync };
+module.exports = { testSTCMaps, updateProductsTable, convertFKeys};
