@@ -146,9 +146,9 @@ const buildRecipes = (categoryIngredientMapT, ingredientMapT, categoryID) => {
             for (const ingredientKey in ingredientMapT) { //Iterate over the ingredientMapT to get the ingredient data.
                 const ingredientData = ingredientMapT[ingredientKey];
                 if (ingredientData.IngredientCategory === ingredientCategory) {
-                    const { IngredientName: ingredientName, CostPerUnit: costPerUnit, UnitType: unitType } = ingredientData;
+                    const { IngredientName: ingredientName, CostPerUnit: costPerUnit, UnitType: unitType, IngredientAvailable: ingAvail} = ingredientData;
                     const cost = quantity * convertPricePerUnit(costPerUnit, unitType, 'g'); //Calculate the cost of the ingredient.
-                    acc[ingredientCategory].push({ name: ingredientName, quantity, cost, ingID: ingredientKey, ingCat: ingredientCategory });
+                    acc[ingredientCategory].push({ name: ingredientName, quantity, cost, ingID: ingredientKey, ingCat: ingredientCategory, ingAvail });
                 }
             }
             return acc;
@@ -183,7 +183,7 @@ const buildRecipes = (categoryIngredientMapT, ingredientMapT, categoryID) => {
 const transformMap = (map, tableName, cache) => {
     if (cache[tableName]) return cache[tableName]; //Check if the transformed map is already in the cache.
     const transformed = map.reduce((acc, item) => { //Reduce the map to an object.
-        const tableIdKey = `${tableName}ID`;
+        const tableIdKey = `${tableName}ID`; //Set the key to the value of the tableNames' primary key value.
         const tableIdValue = item[tableIdKey];
         const { _id, [tableIdKey]: idToRemove, ...rest } = item;
         acc[tableIdValue] = rest;
@@ -206,7 +206,7 @@ const buildProducts = async () => {
             'shapeMap', 'sizeMap', 'ingredientMap', 'categoryIngredientMap', 'categoryShapeMap', 'categoryShapeSizeMap'
         ]);
 
-        console.log("maps.SubCategoryIngredientMap: ", maps.SubCategoryIngredientMap);
+        console.log("SubCatIng map:  ", maps.SubCategoryIngredientMap);
 
         const cache = {};
         const transformedMaps = Object.keys(maps).reduce((acc, key) => {
@@ -215,11 +215,13 @@ const buildProducts = async () => {
             return acc;
         }, {});
 
+        
         let { 
             categoryMapT, subCategoryMapT, subCategoryIngredientMapT, flavorMapT, flourMapT, 
             shapeMapT, sizeMapT, ingredientMapT, categoryIngredientMapT, categoryShapeMapT, categoryShapeSizeMapT 
         } = transformedMaps;
 
+        console.log("SubCatIng map transformed:  ", subCategoryIngredientMapT);
         
         let restartLoop = false;
         let restartCount = 0;
@@ -237,6 +239,7 @@ const buildProducts = async () => {
                 const allCombinations = buildRecipes(categoryIngredientMapT, ingredientMapT, categoryID); //Build all possible combinations of ingredients for the category.
 
                 for (const combination of allCombinations) {
+                    productAvailable = true; //Reset availability status for each combination iteration.
                     // console.log("In Combination Loop");
                     for (const subCategoryKey in subCategoryMapT) { //Iterate over the subCategoryMapT to get the subCategory data.
                         const tempIngredients = { ...combination }; //Copy the combination to prevent mutation. This will be used to store the ingredients for the current product.
@@ -250,6 +253,7 @@ const buildProducts = async () => {
 
                             const { SubCategoryID: subCategoryID, IngredientID: ingredientID, Quantity: quantity } = subCategoryIngredientMapT[subCategoryIngredientKey];
                             
+                            //Fix the columns of the map if it is not in ID format.
                             if((subCategoryID === undefined || ingredientID === undefined) && restartCount < 1) {
                                 console.log("A table may be in the wrong conversion state. Converting foreign keys... ");
                                 await convertForeignKeys({SubCategoryIngredientMap: maps.SubCategoryIngredientMap}, false);
@@ -279,7 +283,10 @@ const buildProducts = async () => {
                                 firstWord = capitalize(firstWord.toLowerCase()); // Capitalize the first word.
                                 const mapKey = `${decapitalize(firstWord)}MapT`; //Get the map that is associated with the ingredient category.
                                 if (transformedMaps[mapKey]) { //Check if the map exists in transformedMaps.
+                                    if(!data.ingAvail) productAvailable = false; //Set the product availability to false if the ingredient is not available.
+                                    
                                     const specialID = Object.keys(transformedMaps[mapKey]).find(key => {
+                                        
                                         if (transformedMaps[mapKey][key][`${firstWord}Name`] === ingredientMapT[data.ingID].IngredientName) {
                                             return key;
                                         }
@@ -307,7 +314,7 @@ const buildProducts = async () => {
                         const ingredientList = sortedIngredients.map(item => item.name).join(', '); //Setup the ingredient list for the product formatted to be divided by commas.
                         const recipeCost = sortedIngredients.reduce((total, item) => total + item.cost, 0); //Calculate the total cost of the recipe.
                         const productDesc = `${categoryDesc} ${flavorDesc} ${scd_description} ${shapeDesc} ${sizeDesc}`;
-                        const productName = `${subCategoryName} ${recipeIngredients.flavor.name} ${categoryMapT[categoryID].CategoryName}`;
+                        const productName = `${sizeMapT[sizeID].SizeName} ${subCategoryName} ${recipeIngredients.flavor.name} ${categoryMapT[categoryID].CategoryName}`;
                         
                         products.push({ //Push the product data to the products array.
                             ProductSKU: String(sku),
