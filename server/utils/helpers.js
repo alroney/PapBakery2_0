@@ -154,4 +154,8 @@ const capitalize = (str) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-module.exports = { sendConfirmationEmail, generateCartSummary, getCartData, rateLimiter, isValidJSON, getStateTaxRates, capitalize };
+const decapitalize = (str) => {
+    return str.charAt(0).toLowerCase() + str.slice(1);
+}
+
+module.exports = { sendConfirmationEmail, generateCartSummary, getCartData, rateLimiter, isValidJSON, getStateTaxRates, capitalize, decapitalize };

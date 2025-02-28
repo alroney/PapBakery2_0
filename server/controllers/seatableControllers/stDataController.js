@@ -114,6 +114,8 @@ const syncSeaTableData = async (req, res) => {
             }
         }
 
+        console.log("(stDataController)(syncSeaTableData) cachedTables: ", cachedTables);
+
         const filePath = path.join(__dirname, '../../cache/cachedTables.json');
         let storedData = {
             lastUpdated: new Date(),
@@ -126,13 +128,17 @@ const syncSeaTableData = async (req, res) => {
             const dirPath = path.dirname(filePath);
             fs.mkdirSync(dirPath, { recursive: true });
             fs.writeFileSync(filePath, JSON.stringify(storedData, null, 2));
-            return;
+            // res.status(200).json({ success: true, message: "Data synced successfully." });
         }
 
-        const existing = JSON.parse(fs.readFileSync(filePath));
-        existing.tablesData = storedData.tablesData;
-        existing.lastUpdated = storedData.lastUpdated;
-        storedData = existing;
+        if (fs.existsSync(filePath)) {
+            // Just overwrite with new data - no merging needed since we want complete replacement
+            storedData = {
+            lastUpdated: new Date(),
+            tableList: cachedTables, 
+            tablesData: tablesData
+            };
+        }
 
         fs.writeFileSync(filePath, JSON.stringify(storedData, null, 2));
 

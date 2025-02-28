@@ -1,3 +1,4 @@
+const { capitalize } = require('../../utils/helpers');
 const { getTablesData } = require('../seatableControllers/stDataController'); //Import the getTablesData function from the stDataController.js file.
 
 
@@ -49,16 +50,18 @@ const mapSTCData = (ctd, mapNames) => {
     const selectedMaps = {};
     //Iterate over the mapNames array.
     mapNames.forEach(mapName => {
-        if(maps.hasOwnProperty(mapName)) { //Check if the mapName exists in the maps object.
-            const tableName = tables[`${mapName.replace('Map', 'Table')}`];
-            const table = findTable(tableName);
-            selectedMaps[mapName] = mapData(table, maps[mapName], mapFunctions[mapName])
+        const tableName = maps.hasOwnProperty(mapName) ? mapName :
+                         maps.hasOwnProperty(capitalize(mapName)) ? 
+                         capitalize(mapName) : null;
+        
+        if (tableName) {
+            const baseTableName = tableName.replace('Map', 'Table');
+            const table = findTable(tables[baseTableName]);
+            selectedMaps[tableName] = mapData(table, maps[tableName], mapFunctions[tableName]);
+        } else {
+            console.log(`Map ${mapName} not found, even with capitalization.`);
         }
-        else {
-            console.log(`Map ${mapName} not found.`);
-            selectedMaps[mapName] = {};
-        }
-    })
+    });
 
     return selectedMaps;
 };

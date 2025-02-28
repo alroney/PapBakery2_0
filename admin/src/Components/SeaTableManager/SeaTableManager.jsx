@@ -141,7 +141,7 @@ const seatableManager = () => {
         <h1>SeaTable</h1>
         <button onClick={syncTables}>Synchronize</button>
         <button onClick={fetchTables}>Update Available Tables</button>
-        
+        <button onClick={updateProductsTable}>Update Available Products</button>
             {tables.length > 0 && (
               <div className='meta-data'>
                 <p>Tables last updated: {stMetaData.lastUpdated}</p>
@@ -161,7 +161,6 @@ const seatableManager = () => {
           <div>
               <button onClick={() => convertForeignValues(true)}>Convert to Name</button>
               <button onClick={() => convertForeignValues(false)}>Convert to ID</button>
-              <button onClick={updateProductsTable}>Update Available Products</button>
           </div>
         )}
         

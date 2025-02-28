@@ -1,4 +1,4 @@
-const { capitalize } = require('../../utils/helpers');
+const { capitalize, decapitalize } = require('../../utils/helpers');
 const { getMaps } = require('./stcMaps');
 const columnOperations  = require('./stColumnController');
 const { updateRow, appendRow } = require('./stRowController');
@@ -36,28 +36,19 @@ const convertFKeys = async (req, res) => {
 }
 
 
-// const fullSync = async (req, res) => {
-//     try {
-//         await syncSeaTableData();
-//         res.status(200).json({ success: true, message: "Data sync successful." });
-//     }
-//     catch(error) {
-//         console.error("(stcTestMap)(fullSync) Error syncing data: ", error);
-//         res.status(500).json({ success: false, message: "Internal server error." });
-//     }
-// }
-
 
 //Function: Update the products table using a combination of the maps.
 const updateProductsTable = async (req, res) => {
     try {
         const table_name = 'Products-A';
-        const clearedToContinue = true;
-        const existingMaps = getMaps(['products-AMap']);
+        let clearedToContinue = true;
+        const existingMaps = await getMaps(['products-AMap']);
 
-        if (existingMaps['products-AMap'].length > 0) {
+        console.log("(stcTestMap)(updateProductData) exisitingMaps: ", existingMaps);
+
+        if (existingMaps['Products-AMap']) {
             console.log("Deleting old table...");
-            deleteOldTable(table_name);
+            clearedToContinue = await deleteOldTable(table_name);
         }
 
         if(clearedToContinue) {
@@ -116,6 +107,7 @@ const deleteOldTable = async (table_name) => {
     }
     catch(error) {
         console.error("(stcTestMap)(deleteOldTable) Error deleting old table: ", error);
+        return false;
     }
 }
 
@@ -142,39 +134,46 @@ const createNewTable = async (table_name, columns) => {
 
 //Function: Find all possible combinations of ingredients for a given category and subcategory, then build the recipe for each combination.
 const buildRecipes = (categoryIngredientMapT, ingredientMapT, categoryID) => {
-    const ingredientsByCategory = Object.keys(categoryIngredientMapT).reduce((acc, categoryIngredientKey) => { //Reduce the categoryIngredientMapT to an object.
-        const categoryIngredientData = categoryIngredientMapT[categoryIngredientKey];
-        const { ingredientCategory, quantity, categoryID: catID } = categoryIngredientData;
-        if (catID !== categoryID) return acc; //Skip the current iteration if the categoryID does not match the categoryID.
+    try {
+        const ingredientsByCategory = Object.keys(categoryIngredientMapT).reduce((acc, categoryIngredientKey) => { //Reduce the categoryIngredientMapT to an object.
+            const { IngredientCategory: ingredientCategory, Quantity: quantity, CategoryID: catID } = categoryIngredientMapT[categoryIngredientKey];
+            
 
-        if (!acc[ingredientCategory]) acc[ingredientCategory] = []; //Initialize the array for the ingredient category.
-        for (const ingredientKey in ingredientMapT) { //Iterate over the ingredientMapT to get the ingredient data.
-            const ingredientData = ingredientMapT[ingredientKey];
-            if (ingredientData.ingredientCategory === ingredientCategory) {
-                const { ingredientName, costPerUnit, unitType } = ingredientData;
-                const cost = quantity * convertPricePerUnit(costPerUnit, unitType, 'g');
-                acc[ingredientCategory].push({ name: ingredientName, quantity, cost, ingID: ingredientKey, ingCat: ingredientCategory });
+            if (catID !== categoryID) return acc; //Skip the current iteration if the categoryID does not match the categoryID.
+
+            if (!acc[ingredientCategory]) acc[ingredientCategory] = []; //Initialize the array for the ingredient category.
+            for (const ingredientKey in ingredientMapT) { //Iterate over the ingredientMapT to get the ingredient data.
+                const ingredientData = ingredientMapT[ingredientKey];
+                if (ingredientData.IngredientCategory === ingredientCategory) {
+                    const { IngredientName: ingredientName, CostPerUnit: costPerUnit, UnitType: unitType } = ingredientData;
+                    const cost = quantity * convertPricePerUnit(costPerUnit, unitType, 'g'); //Calculate the cost of the ingredient.
+                    acc[ingredientCategory].push({ name: ingredientName, quantity, cost, ingID: ingredientKey, ingCat: ingredientCategory });
+                }
             }
-        }
-        return acc;
-    }, {});
+            return acc;
+        }, {});
 
-    const allCombinations = [];
-    //Function: Generate all possible combinations of ingredients for a given category. Time complexity is O(n^m) where n is the number of categories and m is the number of ingredients in each category.
-    const generateCombinations = (categories, index, currentCombination) => {
-        if (index === categories.length) {
-            allCombinations.push({ ...currentCombination });
-            return;
-        }
-        categories[index].forEach(ingredient => {
-            currentCombination[ingredient.name] = ingredient;
-            generateCombinations(categories, index + 1, currentCombination); //Recursively call the function to generate the next combination.
-            delete currentCombination[ingredient.name]; //Remove the ingredient from the current combination to prevent mutation.
-        });
-    };
-    generateCombinations(Object.values(ingredientsByCategory), 0, {}); //Generate all combinations of ingredients using the category.
+        const allCombinations = [];
+        //Function: Generate all possible combinations of ingredients for a given category. Time complexity is O(n^m) where n is the number of categories and m is the number of ingredients in each category.
+        const generateCombinations = (categories, index, currentCombination) => {
+            if (index === categories.length) {
+                allCombinations.push({ ...currentCombination });
+                return;
+            }
+            categories[index].forEach(ingredient => {
+                currentCombination[ingredient.name] = ingredient;
+                generateCombinations(categories, index + 1, currentCombination); //Recursively call the function to generate the next combination.
+                delete currentCombination[ingredient.name]; //Remove the ingredient from the current combination to prevent mutation.
+            });
+        };
+        generateCombinations(Object.values(ingredientsByCategory), 0, {}); //Generate all combinations of ingredients using the category.
 
-    return allCombinations;
+        return allCombinations;
+    }
+    catch (error) {
+        console.error("Error building recipes: ", error);
+        console.log("Check for an conversions that may be causing the error.");
+    }
 };
 
 
@@ -197,8 +196,9 @@ const transformMap = (map, tableName, cache) => {
 
 //Function: Build the products from the maps.
 const buildProducts = async () => {
+    console.log("Building products...");
     try {
-        const maps = getMaps([
+        const maps = await getMaps([
             'categoryMap', 'subCategoryMap', 'subCategoryIngredientMap', 'flavorMap', 'flourMap', 
             'shapeMap', 'sizeMap', 'ingredientMap', 'categoryIngredientMap', 'categoryShapeMap', 'categoryShapeSizeMap'
         ]);
@@ -206,7 +206,7 @@ const buildProducts = async () => {
         const cache = {};
         const transformedMaps = Object.keys(maps).reduce((acc, key) => {
             const tableName = key.replace('Map', '');
-            acc[(key)+'T'] = transformMap(maps[key], tableName, cache); //Transform the map and store it in transformedMaps.
+            acc[decapitalize(key) +'T'] = transformMap(maps[key], tableName, cache); //Transform the map and store it in transformedMaps.
             return acc;
         }, {});
 
@@ -218,45 +218,55 @@ const buildProducts = async () => {
         const products = [];
 
         for (const key in categoryShapeSizeMapT) { //Iterate over the categoryShapeSizeMapT to get the categoryShapeSize data.
-            const { categoryShapeID, sizeID, batchSize } = categoryShapeSizeMapT[key];
-            const { categoryID, shapeID } = categoryShapeMapT[categoryShapeID];
-            const categoryDesc = categoryMapT[categoryID].description;
-            const sizeDesc = sizeMapT[sizeID].description;
-            const shapeDesc = shapeMapT[shapeID].description;
+            const { CategoryShapeID: categoryShapeID, SizeID: sizeID, BatchSize: batchSize } = categoryShapeSizeMapT[key];
+            const { CategoryID: categoryID, ShapeID: shapeID } = categoryShapeMapT[categoryShapeID];
+            
+            const categoryDesc = categoryMapT[categoryID].Description;
+            const sizeDesc = sizeMapT[sizeID].Description;
+            const shapeDesc = shapeMapT[shapeID].Description;
 
-            const allCombinations = buildRecipes(categoryIngredientMapT, ingredientMapT, categoryID);
+            const allCombinations = buildRecipes(categoryIngredientMapT, ingredientMapT, categoryID); //Build all possible combinations of ingredients for the category.
 
             for (const combination of allCombinations) {
                 for (const subCategoryKey in subCategoryMapT) { //Iterate over the subCategoryMapT to get the subCategory data.
                     const tempIngredients = { ...combination }; //Copy the combination to prevent mutation. This will be used to store the ingredients for the current product.
-                    const subCategoryData = subCategoryMapT[subCategoryKey];
-                    const { subCategoryName, categoryID: scd_categoryID, description: scd_description } = subCategoryData;
+                    const { SubCategoryName: subCategoryName, CategoryID: scd_categoryID, Description: scd_description } = subCategoryMapT[subCategoryKey];
                     if (scd_categoryID !== categoryID) continue;
 
                     for (const subCategoryIngredientKey in subCategoryIngredientMapT) { //Iterate over the subCategoryIngredientMapT to get the subCategoryIngredient data.
-                        const subCategoryIngredientData = subCategoryIngredientMapT[subCategoryIngredientKey];
-                        const { subCategoryID, ingredientID, quantity } = subCategoryIngredientData;
+                        const { SubCategoryID: subCategoryID, IngredientID: ingredientID, Quantity: quantity } = subCategoryIngredientMapT[subCategoryIngredientKey];
+                        
                         if (subCategoryID !== Number(subCategoryKey)) continue;
 
                         for (const ingredientKey in ingredientMapT) { //Iterate over the ingredientMapT to get the ingredient data.
                             const ingredientData = ingredientMapT[ingredientKey];
                             if (ingredientID === Number(ingredientKey)) {
-                                const { ingredientName, costPerUnit, unitType } = ingredientData;
+                                const { IngredientName: ingredientName, CostPerUnit: costPerUnit, UnitType: unitType } = ingredientData;
                                 const cost = quantity * convertPricePerUnit(costPerUnit, unitType, 'g');
-                                tempIngredients[ingredientName] = { quantity, cost, ingCat: ingredientData.ingredientCategory, ingID: ingredientKey };
+                                tempIngredients[ingredientName] = { quantity, cost, ingCat: ingredientData.IngredientCategory, ingID: ingredientKey };
                             }
                         }
                     }
-
                     const recipeIngredients = Object.entries(tempIngredients).reduce((acc, [name, data]) => {
+                        
                         if (data.ingCat && data.ingID) {
-                            const firstWord = data.ingCat.split(' ')[0]; // Get the first word of the ingredient category.
-                            const mapKey = `${firstWord}MapT`; //Get the map that is associated with the ingredient category.
+                            let firstWord = data.ingCat.split(' ')[0]; // Get the first word of the ingredient category.
+                            firstWord = capitalize(firstWord.toLowerCase()); // Capitalize the first word.
+                            const mapKey = `${decapitalize(firstWord)}MapT`; //Get the map that is associated with the ingredient category.
                             if (transformedMaps[mapKey]) { //Check if the map exists in transformedMaps.
-                                const specialID = Object.keys(transformedMaps[mapKey]).find(key => transformedMaps[mapKey][key][`${firstWord}Name`] === ingredientMapT[data.ingID].ingredientName);
-                                acc[firstWord] = { id: specialID, name: specialID ? transformedMaps[mapKey][specialID][`${firstWord}Name`] : '' };
+                                const specialID = Object.keys(transformedMaps[mapKey]).find(key => {
+                                    console.log(`transformedMaps[${mapKey}][${key}][${firstWord}Name]`, transformedMaps[mapKey][key][`${firstWord}Name`]);
+                                    console.log("IngredientMapT[data.ingID].IngredientName: ", ingredientMapT[data.ingID].IngredientName);
+                                    if (transformedMaps[mapKey][key][`${firstWord}Name`] === ingredientMapT[data.ingID].IngredientName) {
+                                        console.log("MATCH FOUND!")
+                                        return key;
+                                    }
+                                    
+                                });
+                                console.log("SpecialID: ", specialID);
+                                acc[decapitalize(firstWord)] = { id: specialID, name: specialID ? transformedMaps[mapKey][specialID][`${firstWord}Name`] : '' };
                             } else { //The map does not exist therefore no specialID is necessary for the ingredient.
-                                acc[firstWord] = { id: '0', name: '' };
+                                acc[decapitalize(firstWord)] = { id: '0', name: '' };
                             }
                         } else {
                             acc[name] = { id: '0', name };
@@ -276,7 +286,7 @@ const buildProducts = async () => {
                     const ingredientList = sortedIngredients.map(item => item.name).join(', '); //Setup the ingredient list for the product formatted to be divided by commas.
                     const recipeCost = sortedIngredients.reduce((total, item) => total + item.cost, 0); //Calculate the total cost of the recipe.
                     const productDesc = `${categoryDesc} ${flavorDesc} ${scd_description} ${shapeDesc} ${sizeDesc}`;
-                    const productName = `${subCategoryName} ${recipeIngredients.flavor.name} ${categoryMapT[categoryID].categoryName}`;
+                    const productName = `${subCategoryName} ${recipeIngredients.flavor.name} ${categoryMapT[categoryID].CategoryName}`;
 
                     products.push({ //Push the product data to the products array.
                         ProductSKU: String(sku),
@@ -301,6 +311,7 @@ const buildProducts = async () => {
 //Function: Rename and update column type.
 const renameAndUpdateColumnType = async (table_name, column, new_column_name, new_column_type, column_data) => {
     try {
+        console.log(`(stcTestMap.js)(renameAndUpdateColumnType) Renaming and updating column type for ${column} to ${new_column_name} with type ${new_column_type}.`);
         // Rename the column
         const renamed = await columnOperations.renameColumn(table_name, column, new_column_name);
 
@@ -365,6 +376,7 @@ const convertForeignKeys = async (map, idToName) => {
         const filePath = path.join(__dirname, '../../cache/cachedTables.json');
         if(fs.existsSync(filePath)) {
             isCacheFound = true;
+            console.log("(stcTestMap.js)(convertForeignKeys) Cache found!");
         }
 
         const mapName = Object.keys(map)[0]; //Get the map name.
@@ -451,6 +463,7 @@ const convertForeignKeys = async (map, idToName) => {
                                 newColumnType,
                                 { format: newColumnType }
                             );
+                            console.log("Column updated:", columnUpdated.message);
                         } catch (err) {
                             return console.error(`Failed to process column ${oldColumn}:`, err);
                         }
