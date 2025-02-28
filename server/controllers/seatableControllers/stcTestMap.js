@@ -44,8 +44,6 @@ const updateProductsTable = async (req, res) => {
         let clearedToContinue = true;
         const existingMaps = await getMaps(['products-AMap']);
 
-        console.log("(stcTestMap)(updateProductData) exisitingMaps: ", existingMaps);
-
         if (existingMaps['Products-AMap']) {
             console.log("Deleting old table...");
             clearedToContinue = await deleteOldTable(table_name);
@@ -62,6 +60,10 @@ const updateProductsTable = async (req, res) => {
                 {
                     column_name: 'ProductSKU',
                     column_type: 'text',
+                },
+                {
+                    column_name: 'ProductAvailable',
+                    column_type: 'checkbox',
                 },
                 {
                     column_name: 'ProductName',
@@ -116,13 +118,12 @@ const deleteOldTable = async (table_name) => {
 //Function: Create a new table with the given table name and columns.
 const createNewTable = async (table_name, columns) => {
     try {
+        console.log("Creating new table...");
         const tableData = {
             table_name,
             columns,
 
         };
-
-        console.log("tableData: ", tableData);
         await createTable(tableData);
     }
     catch(error) {
@@ -192,7 +193,9 @@ const transformMap = (map, tableName, cache) => {
     return transformed;
 };
 
+const fixMapFormat = (map) => {
 
+}
 
 //Function: Build the products from the maps.
 const buildProducts = async () => {
@@ -203,6 +206,8 @@ const buildProducts = async () => {
             'shapeMap', 'sizeMap', 'ingredientMap', 'categoryIngredientMap', 'categoryShapeMap', 'categoryShapeSizeMap'
         ]);
 
+        console.log("maps.SubCategoryIngredientMap: ", maps.SubCategoryIngredientMap);
+
         const cache = {};
         const transformedMaps = Object.keys(maps).reduce((acc, key) => {
             const tableName = key.replace('Map', '');
@@ -210,98 +215,121 @@ const buildProducts = async () => {
             return acc;
         }, {});
 
-        const { 
+        let { 
             categoryMapT, subCategoryMapT, subCategoryIngredientMapT, flavorMapT, flourMapT, 
             shapeMapT, sizeMapT, ingredientMapT, categoryIngredientMapT, categoryShapeMapT, categoryShapeSizeMapT 
         } = transformedMaps;
 
-        const products = [];
+        
+        let restartLoop = false;
+        let restartCount = 0;
+        const generateProducts = async () => {
+            const products = [];
+            for (const key in categoryShapeSizeMapT) { //Iterate over the categoryShapeSizeMapT to get the categoryShapeSize data.
+                let productAvailable = true;
+                const { CategoryShapeID: categoryShapeID, SizeID: sizeID, BatchSize: batchSize } = categoryShapeSizeMapT[key];
+                const { CategoryID: categoryID, ShapeID: shapeID } = categoryShapeMapT[categoryShapeID];
+                
+                const categoryDesc = categoryMapT[categoryID].Description;
+                const sizeDesc = sizeMapT[sizeID].Description;
+                const shapeDesc = shapeMapT[shapeID].Description;
 
-        for (const key in categoryShapeSizeMapT) { //Iterate over the categoryShapeSizeMapT to get the categoryShapeSize data.
-            const { CategoryShapeID: categoryShapeID, SizeID: sizeID, BatchSize: batchSize } = categoryShapeSizeMapT[key];
-            const { CategoryID: categoryID, ShapeID: shapeID } = categoryShapeMapT[categoryShapeID];
-            
-            const categoryDesc = categoryMapT[categoryID].Description;
-            const sizeDesc = sizeMapT[sizeID].Description;
-            const shapeDesc = shapeMapT[shapeID].Description;
+                const allCombinations = buildRecipes(categoryIngredientMapT, ingredientMapT, categoryID); //Build all possible combinations of ingredients for the category.
 
-            const allCombinations = buildRecipes(categoryIngredientMapT, ingredientMapT, categoryID); //Build all possible combinations of ingredients for the category.
+                for (const combination of allCombinations) {
+                    // console.log("In Combination Loop");
+                    for (const subCategoryKey in subCategoryMapT) { //Iterate over the subCategoryMapT to get the subCategory data.
+                        const tempIngredients = { ...combination }; //Copy the combination to prevent mutation. This will be used to store the ingredients for the current product.
+                        const { SubCategoryName: subCategoryName, CategoryID: scd_categoryID, Description: scd_description } = subCategoryMapT[subCategoryKey];
+                        if (scd_categoryID !== categoryID) continue;
 
-            for (const combination of allCombinations) {
-                for (const subCategoryKey in subCategoryMapT) { //Iterate over the subCategoryMapT to get the subCategory data.
-                    const tempIngredients = { ...combination }; //Copy the combination to prevent mutation. This will be used to store the ingredients for the current product.
-                    const { SubCategoryName: subCategoryName, CategoryID: scd_categoryID, Description: scd_description } = subCategoryMapT[subCategoryKey];
-                    if (scd_categoryID !== categoryID) continue;
+                        for (const subCategoryIngredientKey in subCategoryIngredientMapT) { //Iterate over the subCategoryIngredientMapT to get the subCategoryIngredient data.
+                            // console.log("In SubCategoryIngredient Loop");
+                            // console.log("SubCategoryIngredientKey: ", subCategoryIngredientKey);
+                            // console.log("The SCIMT map: ", subCategoryIngredientMapT[subCategoryIngredientKey]);
 
-                    for (const subCategoryIngredientKey in subCategoryIngredientMapT) { //Iterate over the subCategoryIngredientMapT to get the subCategoryIngredient data.
-                        const { SubCategoryID: subCategoryID, IngredientID: ingredientID, Quantity: quantity } = subCategoryIngredientMapT[subCategoryIngredientKey];
-                        
-                        if (subCategoryID !== Number(subCategoryKey)) continue;
+                            const { SubCategoryID: subCategoryID, IngredientID: ingredientID, Quantity: quantity } = subCategoryIngredientMapT[subCategoryIngredientKey];
+                            
+                            if((subCategoryID === undefined || ingredientID === undefined) && restartCount < 1) {
+                                console.log("A table may be in the wrong conversion state. Converting foreign keys... ");
+                                await convertForeignKeys({SubCategoryIngredientMap: maps.SubCategoryIngredientMap}, false);
+                                subCategoryMapT = await transformMap( getMaps(['subCategoryIngredientMap']), 'SubCategoryIngredient', cache);
+                                restartLoop = true;
+                                restartCount++;
+                                return;
+                            }
 
-                        for (const ingredientKey in ingredientMapT) { //Iterate over the ingredientMapT to get the ingredient data.
-                            const ingredientData = ingredientMapT[ingredientKey];
-                            if (ingredientID === Number(ingredientKey)) {
-                                const { IngredientName: ingredientName, CostPerUnit: costPerUnit, UnitType: unitType } = ingredientData;
-                                const cost = quantity * convertPricePerUnit(costPerUnit, unitType, 'g');
-                                tempIngredients[ingredientName] = { quantity, cost, ingCat: ingredientData.IngredientCategory, ingID: ingredientKey };
+                            if (subCategoryID !== Number(subCategoryKey)) continue;
+
+                            for (const ingredientKey in ingredientMapT) { //Iterate over the ingredientMapT to get the ingredient data.
+                                const { IngredientName: ingredientName, CostPerUnit: costPerUnit, UnitType: unitType, IngredientAvailable: ingAvail, IngredientCategory: ingCat } = ingredientMapT[ingredientKey];
+                                
+                                if (ingredientID === Number(ingredientKey)) {
+                                    const cost = quantity * convertPricePerUnit(costPerUnit, unitType, 'g');
+                                    tempIngredients[ingredientName] = { quantity, cost, ingCat, ingID: ingredientKey };
+                                }
+
+                                
                             }
                         }
-                    }
-                    const recipeIngredients = Object.entries(tempIngredients).reduce((acc, [name, data]) => {
-                        
-                        if (data.ingCat && data.ingID) {
-                            let firstWord = data.ingCat.split(' ')[0]; // Get the first word of the ingredient category.
-                            firstWord = capitalize(firstWord.toLowerCase()); // Capitalize the first word.
-                            const mapKey = `${decapitalize(firstWord)}MapT`; //Get the map that is associated with the ingredient category.
-                            if (transformedMaps[mapKey]) { //Check if the map exists in transformedMaps.
-                                const specialID = Object.keys(transformedMaps[mapKey]).find(key => {
-                                    console.log(`transformedMaps[${mapKey}][${key}][${firstWord}Name]`, transformedMaps[mapKey][key][`${firstWord}Name`]);
-                                    console.log("IngredientMapT[data.ingID].IngredientName: ", ingredientMapT[data.ingID].IngredientName);
-                                    if (transformedMaps[mapKey][key][`${firstWord}Name`] === ingredientMapT[data.ingID].IngredientName) {
-                                        console.log("MATCH FOUND!")
-                                        return key;
-                                    }
-                                    
-                                });
-                                console.log("SpecialID: ", specialID);
-                                acc[decapitalize(firstWord)] = { id: specialID, name: specialID ? transformedMaps[mapKey][specialID][`${firstWord}Name`] : '' };
-                            } else { //The map does not exist therefore no specialID is necessary for the ingredient.
-                                acc[decapitalize(firstWord)] = { id: '0', name: '' };
+                        const recipeIngredients = Object.entries(tempIngredients).reduce((acc, [name, data]) => {
+                            
+                            if (data.ingCat && data.ingID) {
+                                let firstWord = data.ingCat.split(' ')[0]; // Get the first word of the ingredient category.
+                                firstWord = capitalize(firstWord.toLowerCase()); // Capitalize the first word.
+                                const mapKey = `${decapitalize(firstWord)}MapT`; //Get the map that is associated with the ingredient category.
+                                if (transformedMaps[mapKey]) { //Check if the map exists in transformedMaps.
+                                    const specialID = Object.keys(transformedMaps[mapKey]).find(key => {
+                                        if (transformedMaps[mapKey][key][`${firstWord}Name`] === ingredientMapT[data.ingID].IngredientName) {
+                                            return key;
+                                        }
+                                        
+                                    });
+                                    acc[decapitalize(firstWord)] = { id: specialID, name: specialID ? transformedMaps[mapKey][specialID][`${firstWord}Name`] : '' };
+                                } else { //The map does not exist therefore no specialID is necessary for the ingredient.
+                                    acc[decapitalize(firstWord)] = { id: '0', name: '' };
+                                }
+                            } else {
+                                acc[name] = { id: '0', name };
                             }
-                        } else {
-                            acc[name] = { id: '0', name };
-                        }
-                        return acc;
-                    }, {}); //Initialize the recipeIngredients object.
+                            return acc;
+                        }, {}); //Initialize the recipeIngredients object.
 
-                    const flavorDesc = recipeIngredients.flavor ? flavorMapT[recipeIngredients.flavor.id].description : 'No Description for Flavor';
-                    const sku = `${subCategoryKey}${recipeIngredients.flavor.id}${shapeID}-${sizeID}${recipeIngredients.flour.id}`;
-                    const sortedIngredients = Object.entries(tempIngredients).map(([name, data]) => ({ // Sort the ingredients by amount used in the recipe.
-                        name,
-                        quantity: name === 'Egg' ? data.quantity * 48 : data.quantity,
-                        cost: data.cost,
-                        ...(data.specialID && { specialID: data.specialID })
-                    })).sort((a, b) => b.quantity - a.quantity);
+                        const flavorDesc = recipeIngredients.flavor ? flavorMapT[recipeIngredients.flavor.id].Description : 'No Description for Flavor';
+                        const sku = `${subCategoryKey}${recipeIngredients.flavor.id}${shapeID}-${sizeID}${recipeIngredients.flour.id}`;
+                        const sortedIngredients = Object.entries(tempIngredients).map(([name, data]) => ({ // Sort the ingredients by amount used in the recipe.
+                            name,
+                            quantity: name === 'Egg' ? data.quantity * 48 : data.quantity,
+                            cost: data.cost,
+                            ...(data.specialID && { specialID: data.specialID })
+                        })).sort((a, b) => b.quantity - a.quantity);
 
-                    const ingredientList = sortedIngredients.map(item => item.name).join(', '); //Setup the ingredient list for the product formatted to be divided by commas.
-                    const recipeCost = sortedIngredients.reduce((total, item) => total + item.cost, 0); //Calculate the total cost of the recipe.
-                    const productDesc = `${categoryDesc} ${flavorDesc} ${scd_description} ${shapeDesc} ${sizeDesc}`;
-                    const productName = `${subCategoryName} ${recipeIngredients.flavor.name} ${categoryMapT[categoryID].CategoryName}`;
+                        const ingredientList = sortedIngredients.map(item => item.name).join(', '); //Setup the ingredient list for the product formatted to be divided by commas.
+                        const recipeCost = sortedIngredients.reduce((total, item) => total + item.cost, 0); //Calculate the total cost of the recipe.
+                        const productDesc = `${categoryDesc} ${flavorDesc} ${scd_description} ${shapeDesc} ${sizeDesc}`;
+                        const productName = `${subCategoryName} ${recipeIngredients.flavor.name} ${categoryMapT[categoryID].CategoryName}`;
+                        
+                        products.push({ //Push the product data to the products array.
+                            ProductSKU: String(sku),
+                            ProductAvailable: productAvailable,
+                            ProductName: productName,
+                            RecipeCost: Number(recipeCost.toFixed(4)),
+                            Description: productDesc,
+                            Ingredients: ingredientList,
+                        });
+                    } //End of iteration over subCategoryMapT.
+                } //End of iteration over allCombinations.
+            } //End of iteration over categoryShapeSizeMapT.
+            return products;
+        }
+        let allProducts = [];
+        do {
+            allProducts = generateProducts();
+        } while (restartLoop && restartCount < 1);
 
-                    products.push({ //Push the product data to the products array.
-                        ProductSKU: String(sku),
-                        ProductName: productName,
-                        RecipeCost: Number(recipeCost.toFixed(4)),
-                        Description: productDesc,
-                        Ingredients: ingredientList,
-                    });
-                }
-            }
-        } //End of iteration over categoryShapeSizeMapT.
-
-        return products;
+        return allProducts;
     } 
-    catch (error) {
+    catch(error) {
         console.error("Error building products: ", error);
     }
 };
@@ -311,7 +339,6 @@ const buildProducts = async () => {
 //Function: Rename and update column type.
 const renameAndUpdateColumnType = async (table_name, column, new_column_name, new_column_type, column_data) => {
     try {
-        console.log(`(stcTestMap.js)(renameAndUpdateColumnType) Renaming and updating column type for ${column} to ${new_column_name} with type ${new_column_type}.`);
         // Rename the column
         const renamed = await columnOperations.renameColumn(table_name, column, new_column_name);
 
@@ -379,6 +406,7 @@ const convertForeignKeys = async (map, idToName) => {
             console.log("(stcTestMap.js)(convertForeignKeys) Cache found!");
         }
 
+        console.log("Map: ", map);
         const mapName = Object.keys(map)[0]; //Get the map name.
         const table_name = mapName.replace('Map', ''); //Get the table name from the map name.
         const rows = map[Object.keys(map)]; //Get the rows from the map.
@@ -463,7 +491,6 @@ const convertForeignKeys = async (map, idToName) => {
                                 newColumnType,
                                 { format: newColumnType }
                             );
-                            console.log("Column updated:", columnUpdated.message);
                         } catch (err) {
                             return console.error(`Failed to process column ${oldColumn}:`, err);
                         }
@@ -502,14 +529,19 @@ const processForeignKeyConversion = async (tableName, columnName, input) => {
             return { columnName, input };
         }
         
+        const isToName = columnName.endsWith('ID'); //Check if the original column name ends with 'ID'.
         const mapName = columnName.replace(/ID|Name/g, '') + 'Map'; //Get the map of the foreign column by removing 'ID' or 'Name' from the end and replace with 'Map'.
         const map = await getMaps([mapName]);
 
-        const matchingRow = map[mapName].find(row => row[columnName] === input); //Find the row that matches the input value for the specific column.
+        const matchingRow = map[mapName].find(row => {
+            const rowValue = isToName ? Number(row[columnName]) : String(row[columnName]);
+            const inputValue = isToName ? Number(input) : String(input);
+            return rowValue === inputValue;
+        });
         
         if(matchingRow) {
-            const newColumnName = columnName.endsWith('ID') ? columnName.replace('ID', 'Name') : columnName.replace('Name', 'ID'); //Get the new column name.
-            const newValue = matchingRow[newColumnName]; //Get the new value from the matching row.
+            const newColumnName = isToName ? columnName.replace('ID', 'Name') : columnName.replace('Name', 'ID'); //Get the new column name.
+            let newValue = isToName ? String(matchingRow[newColumnName]) : Number(matchingRow[newColumnName]); //Get the new value from the matching row. Convert typeOf to match the new value.
             return { newColumnName, newValue }; //Return the new column name and new value.
         }
 

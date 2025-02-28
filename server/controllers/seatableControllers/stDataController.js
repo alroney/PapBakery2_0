@@ -114,8 +114,6 @@ const syncSeaTableData = async (req, res) => {
             }
         }
 
-        console.log("(stDataController)(syncSeaTableData) cachedTables: ", cachedTables);
-
         const filePath = path.join(__dirname, '../../cache/cachedTables.json');
         let storedData = {
             lastUpdated: new Date(),

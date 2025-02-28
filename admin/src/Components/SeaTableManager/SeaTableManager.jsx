@@ -159,6 +159,7 @@ const seatableManager = () => {
         {loading && <p>Loading...</p>}
         {!loading && selectedTable !== 'none' && (
           <div>
+           {/* TODO: possibly add a temp conversion allowing for easy data editing, then reconvert back to then save it. */}
               <button onClick={() => convertForeignValues(true)}>Convert to Name</button>
               <button onClick={() => convertForeignValues(false)}>Convert to ID</button>
           </div>
