@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2025-02-28T11:51:04.548Z",
+  "lastUpdated": "2025-02-28T12:49:13.911Z",
   "tableList": [
     "Recipe-A",
     "Ingredient",
@@ -310,311 +310,339 @@
         "rows": [
           {
             "_id": "UUwu-hJvRxG0pSoCBiOmMA",
-            "IngredientID": 1,
+            "IngredientID": "1",
             "FullName": "King Arthur's All Purpose Flour",
             "IngredientName": "All Purpose Flour",
             "UnitType": "Ounces",
             "UnitSize": 80,
             "PurchaseCost": 6.59,
             "CostPerUnit": 0.0824,
-            "IngredientCategory": "FLOUR"
+            "IngredientCategory": "FLOUR",
+            "IngredientAvailable": true
           },
           {
             "_id": "SGnCpmHwRreejrAo74yd_w",
-            "IngredientID": 2,
+            "IngredientID": "2",
             "FullName": "King Arthur's Whole Wheat Flour",
             "IngredientName": "Whole Wheat Flour",
             "UnitType": "Ounces",
             "UnitSize": 80,
             "PurchaseCost": 3.47,
             "CostPerUnit": 0.043375,
-            "IngredientCategory": "FLOUR"
+            "IngredientCategory": "FLOUR",
+            "IngredientAvailable": true
           },
           {
             "_id": "L7WVBcuBQueCulQ0h0K00w",
-            "IngredientID": 3,
+            "IngredientID": "3",
             "FullName": "Quaker Whole Grain Oat Flour",
             "IngredientName": "Oat Flour",
             "UnitType": "Ounces",
             "UnitSize": 20,
             "PurchaseCost": 3.99,
             "CostPerUnit": 0.1995,
-            "IngredientCategory": "FLOUR"
+            "IngredientCategory": "FLOUR",
+            "IngredientAvailable": true
           },
           {
             "_id": "KYmIcvMLT_qz0rF6SICreg",
-            "IngredientID": 4,
+            "IngredientID": "4",
             "FullName": "Unsalted Butter",
             "IngredientName": "Butter",
             "UnitType": "Ounces",
             "UnitSize": 64,
             "PurchaseCost": 12.58,
             "CostPerUnit": 0.1965625,
-            "IngredientCategory": "DAIRY"
+            "IngredientCategory": "DAIRY",
+            "IngredientAvailable": true
           },
           {
             "_id": "fFyyrO47RaaaoSxjZZo2GA",
-            "IngredientID": 5,
+            "IngredientID": "5",
             "FullName": "Large Egg",
             "IngredientName": "Egg",
             "UnitType": "Count",
             "UnitSize": 12,
             "PurchaseCost": 2.16,
             "CostPerUnit": 0.18,
-            "IngredientCategory": "DAIRY"
+            "IngredientCategory": "DAIRY",
+            "IngredientAvailable": true
           },
           {
             "_id": "LVZJd9INQb6xhCJjQf6YCg",
-            "IngredientID": 6,
+            "IngredientID": "6",
             "FullName": "Whole Milk",
             "IngredientName": "Milk",
             "UnitType": "Fluid Ounces",
             "UnitSize": 32,
             "PurchaseCost": 1.59,
             "CostPerUnit": 0.0496875,
-            "IngredientCategory": "DAIRY"
+            "IngredientCategory": "DAIRY",
+            "IngredientAvailable": true
           },
           {
             "_id": "UTc5aay3T1qtGQASnVVpMQ",
-            "IngredientID": 7,
+            "IngredientID": "7",
             "FullName": "Nature's Promise Unsweetened Applesauce",
             "IngredientName": "Applesauce",
             "UnitType": "Ounces",
             "UnitSize": 46,
             "PurchaseCost": 3.12,
             "CostPerUnit": 0.06782608696,
-            "IngredientCategory": "FLAVOR AGENT"
+            "IngredientCategory": "FLAVOR AGENT",
+            "IngredientAvailable": true
           },
           {
             "_id": "SmC12F9fTKuTYh973wHOLA",
-            "IngredientID": 8,
+            "IngredientID": "8",
             "FullName": "Peanut Butter",
             "IngredientName": "Peanut Butter",
             "UnitType": "Ounces",
             "UnitSize": 40,
             "PurchaseCost": 6.28,
             "CostPerUnit": 0.157,
-            "IngredientCategory": "FLAVOR AGENT"
+            "IngredientCategory": "FLAVOR AGENT",
+            "IngredientAvailable": true
           },
           {
             "_id": "P4_13CEtRiufG7ZttLbk3A",
-            "IngredientID": 9,
+            "IngredientID": "9",
             "FullName": "Pure Pumpkin",
             "IngredientName": "Pumpkin",
             "UnitType": "Ounces",
             "UnitSize": 15,
             "PurchaseCost": 1.47,
             "CostPerUnit": 0.098,
-            "IngredientCategory": "FLAVOR AGENT"
+            "IngredientCategory": "FLAVOR AGENT",
+            "IngredientAvailable": true
           },
           {
             "_id": "WJv2s9YWQpiTj6ID0rAQpg",
-            "IngredientID": 10,
+            "IngredientID": "10",
             "FullName": "Banana",
             "IngredientName": "Banana",
             "UnitType": "Ounces",
             "UnitSize": 4.16,
             "PurchaseCost": 0.15,
             "CostPerUnit": 0.03605769231,
-            "IngredientCategory": "FLAVOR AGENT"
+            "IngredientCategory": "FLAVOR AGENT",
+            "IngredientAvailable": true
           },
           {
             "_id": "Kv70-ZmnQoqRw7djocmZeA",
-            "IngredientID": 11,
+            "IngredientID": "11",
             "FullName": "Blueberry",
             "IngredientName": "Blueberry",
             "UnitType": "Ounces",
             "UnitSize": 16,
             "PurchaseCost": 3,
             "CostPerUnit": 0.1875,
-            "IngredientCategory": "FLAVOR AGENT"
+            "IngredientCategory": "FLAVOR AGENT",
+            "IngredientAvailable": true
           },
           {
             "_id": "R-5x7QSQSFegF4Jr-ZlKJg",
-            "IngredientID": 12,
+            "IngredientID": "12",
             "FullName": "Ground All Spice",
             "IngredientName": "All Spice",
             "UnitType": "Ounces",
             "UnitSize": 1.8,
             "PurchaseCost": 8.58,
             "CostPerUnit": 4.766666667,
-            "IngredientCategory": "SPICE"
+            "IngredientCategory": "SPICE",
+            "IngredientAvailable": true
           },
           {
             "_id": "Dgl_rwgpSwyZ0BDsqls4sw",
-            "IngredientID": 13,
+            "IngredientID": "13",
             "FullName": "Ground Cinnamon",
             "IngredientName": "Cinnamon",
             "UnitType": "Ounces",
             "UnitSize": 2.37,
             "PurchaseCost": 1.99,
             "CostPerUnit": 0.8396624473,
-            "IngredientCategory": "SPICE"
+            "IngredientCategory": "SPICE",
+            "IngredientAvailable": true
           },
           {
             "_id": "IUJJmOltSFK83UNg9fXWiw",
-            "IngredientID": 14,
+            "IngredientID": "14",
             "FullName": "Ground Cumin",
             "IngredientName": "Cumin",
             "UnitType": "Ounces",
             "UnitSize": 1.5,
             "PurchaseCost": 2.99,
             "CostPerUnit": 1.993333333,
-            "IngredientCategory": "SPICE"
+            "IngredientCategory": "SPICE",
+            "IngredientAvailable": true
           },
           {
             "_id": "KpNGvKcySd6COGfWmOcjXw",
-            "IngredientID": 15,
+            "IngredientID": "15",
             "FullName": "Ground Nutmeg",
             "IngredientName": "Nutmeg",
             "UnitType": "Ounces",
             "UnitSize": 1.1,
             "PurchaseCost": 5.29,
             "CostPerUnit": 4.809090909,
-            "IngredientCategory": "SPICE"
+            "IngredientCategory": "SPICE",
+            "IngredientAvailable": true
           },
           {
             "_id": "Swh8QxOiSG2ABXPK6-Hszg",
-            "IngredientID": 16,
+            "IngredientID": "16",
             "FullName": "Pumpkin Pie Spice",
             "IngredientName": "Pumpkin Spice",
             "UnitType": "Ounces",
             "UnitSize": 1.12,
             "PurchaseCost": 5.99,
             "CostPerUnit": 5.348214286,
-            "IngredientCategory": "SPICE"
+            "IngredientCategory": "SPICE",
+            "IngredientAvailable": true
           },
           {
             "_id": "WVa8-bc3SsONO2K-j1B0yw",
-            "IngredientID": 17,
+            "IngredientID": "17",
             "FullName": "Brown Sugar",
             "IngredientName": "Brown Sugar",
             "UnitType": "Ounces",
             "UnitSize": 32,
             "PurchaseCost": 3,
             "CostPerUnit": 0.09375,
-            "IngredientCategory": "SWEET"
+            "IngredientCategory": "SWEET",
+            "IngredientAvailable": true
           },
           {
             "_id": "cVl9CjsYSZam3w8WC05wmw",
-            "IngredientID": 18,
+            "IngredientID": "18",
             "FullName": "Chocolate Chips",
             "IngredientName": "Chocolate Chips",
             "UnitType": "Ounces",
             "UnitSize": 16,
             "PurchaseCost": 2.86,
             "CostPerUnit": 0.17875,
-            "IngredientCategory": "SWEET"
+            "IngredientCategory": "SWEET",
+            "IngredientAvailable": true
           },
           {
             "_id": "NLIeqNZaTHO5j08uH2ablQ",
-            "IngredientID": 19,
+            "IngredientID": "19",
             "FullName": "Granulated Sugar",
             "IngredientName": "Sugar",
             "UnitType": "Ounces",
             "UnitSize": 160,
             "PurchaseCost": 8.79,
             "CostPerUnit": 0.0549375,
-            "IngredientCategory": "SWEET"
+            "IngredientCategory": "SWEET",
+            "IngredientAvailable": true
           },
           {
             "_id": "BWG_9thQSj2j3zfervtRag",
-            "IngredientID": 20,
+            "IngredientID": "20",
             "FullName": "Honey",
             "IngredientName": "Honey",
             "UnitType": "Fluid Ounces",
             "UnitSize": 24,
             "PurchaseCost": 10.99,
             "CostPerUnit": 0.4579166667,
-            "IngredientCategory": "SWEET"
+            "IngredientCategory": "SWEET",
+            "IngredientAvailable": true
           },
           {
             "_id": "d4U0928ZRP6O1TbLqp3Srw",
-            "IngredientID": 21,
+            "IngredientID": "21",
             "FullName": "Maple Syrup",
             "IngredientName": "Maple Syrup",
             "UnitType": "Fluid Ounces",
             "UnitSize": 46.07,
             "PurchaseCost": 10.49,
             "CostPerUnit": 0.2276969829,
-            "IngredientCategory": "SWEET"
+            "IngredientCategory": "SWEET",
+            "IngredientAvailable": true
           },
           {
             "_id": "JXGT9n3AShqMUOlVOGkpYA",
-            "IngredientID": 22,
+            "IngredientID": "22",
             "FullName": "Molasses",
             "IngredientName": "Molasses",
             "UnitType": "Fluid Ounces",
             "UnitSize": 12,
             "PurchaseCost": 4.19,
             "CostPerUnit": 0.3491666667,
-            "IngredientCategory": "SWEET"
+            "IngredientCategory": "SWEET",
+            "IngredientAvailable": true
           },
           {
             "_id": "AQpP2WEYSMKOc72e1J6enA",
-            "IngredientID": 23,
+            "IngredientID": "23",
             "FullName": "Pure Vanilla Extract",
             "IngredientName": "Vanilla Extract",
             "UnitType": "Fluid Ounces",
             "UnitSize": 8,
             "PurchaseCost": 23.99,
             "CostPerUnit": 2.99875,
-            "IngredientCategory": "SWEET"
+            "IngredientCategory": "SWEET",
+            "IngredientAvailable": true
           },
           {
             "_id": "WujNbqv9RnG30v7nNrv-aQ",
-            "IngredientID": 24,
+            "IngredientID": "24",
             "FullName": "Baking Powder",
             "IngredientName": "Baking Powder",
             "UnitType": "Ounces",
             "UnitSize": 8.1,
             "PurchaseCost": 2.29,
             "CostPerUnit": 0.2827160494,
-            "IngredientCategory": "BAKING AGENT"
+            "IngredientCategory": "BAKING AGENT",
+            "IngredientAvailable": true
           },
           {
             "_id": "Zx9dY5FDQ42U8nYyRiVuLA",
-            "IngredientID": 25,
+            "IngredientID": "25",
             "FullName": "Baking Soda",
             "IngredientName": "Baking Soda",
             "UnitType": "Ounces",
             "UnitSize": 16,
             "PurchaseCost": 1.29,
             "CostPerUnit": 0.080625,
-            "IngredientCategory": "BAKING AGENT"
+            "IngredientCategory": "BAKING AGENT",
+            "IngredientAvailable": true
           },
           {
             "_id": "JfqkE0_CSVqoOI7mfSkyVA",
-            "IngredientID": 26,
+            "IngredientID": "26",
             "FullName": "Cream of Tartar",
             "IngredientName": "Cream of Tartar",
             "UnitType": "Ounces",
             "UnitSize": 1.5,
             "PurchaseCost": 4.29,
             "CostPerUnit": 2.86,
-            "IngredientCategory": "BAKING AGENT"
+            "IngredientCategory": "BAKING AGENT",
+            "IngredientAvailable": true
           },
           {
             "_id": "BgYq_A-vTueo_AbTML3oqQ",
-            "IngredientID": 27,
+            "IngredientID": "27",
             "FullName": "Salt",
             "IngredientName": "Salt",
             "UnitType": "Ounces",
             "UnitSize": 26,
             "PurchaseCost": 1.69,
             "CostPerUnit": 0.065,
-            "IngredientCategory": "BAKING AGENT"
+            "IngredientCategory": "BAKING AGENT",
+            "IngredientAvailable": true
           },
           {
             "_id": "A4ySwSiERZGCdlyp7en35g",
-            "IngredientID": 28,
+            "IngredientID": "28",
             "FullName": "Water",
             "IngredientName": "Water",
             "UnitType": "Fluid Ounces",
             "UnitSize": 128000,
             "PurchaseCost": 15.57,
             "CostPerUnit": 0.0001,
-            "IngredientCategory": "WATER"
+            "IngredientCategory": "WATER",
+            "IngredientAvailable": true
           }
         ]
       }

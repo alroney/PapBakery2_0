@@ -54,6 +54,7 @@ const DataTable = ({tableName, isLoading}) => {
                 columnTypes[key] = typeof rows[0][key];
             }
         });
+        console.log("Column Types: ", columnTypes);
         return columnTypes;
     }
 
@@ -191,18 +192,42 @@ const DataTable = ({tableName, isLoading}) => {
                         </thead>
                         <tbody>
                             {(isEditing ? editedData : data).map((row, rowIndex) => (
-                                <tr key={rowIndex}>
+                                <tr key={rowIndex} style={{ backgroundColor: rowIndex % 2 === 0 ? '#f2f2f2' : 'white' }}>
                                     {headers.map((header) => (
                                         <td key={header}>
                                             {isEditing ? (
                                                 <div>
-                                                    <input type='text' value={row[header]} onChange={(e) => handleCellChange(rowIndex, header, e.target.value)} />
+                                                    {header.startsWith(tableName) && header.endsWith('ID') ? (
+                                                        row[header] // Display value without editing for autonumber
+                                                    ) : columnTypes[header] === 'boolean' ? (
+                                                        <input 
+                                                            type="checkbox"
+                                                            checked={row[header]}
+                                                            onChange={(e) => handleCellChange(rowIndex, header, e.target.checked)}
+                                                            style={{ backgroundColor: row[header] ? '#90EE90' : '#FFB6C1' }}
+                                                        />
+                                                    ) : (
+                                                        <input 
+                                                            type={columnTypes[header] === 'number' ? 'number' : 'text'}
+                                                            value={row[header]}
+                                                            onChange={(e) => handleCellChange(rowIndex, header, e.target.value)}
+                                                            step={columnTypes[header] === 'number' ? '0.0001' : undefined}
+                                                        />
+                                                    )}
                                                     {validationErrors[`${rowIndex}-${header}`] && (
                                                         <small style={{ color: 'red' }}>{validationErrors[`${rowIndex}-${header}`]}</small>
                                                     )}
                                                 </div>
                                             ) : (
-                                                row[header]
+                                                <div style={{ 
+                                                    backgroundColor: columnTypes[header] === 'boolean' 
+                                                        ? (row[header] ? '#90EE90' : '#FFB6C1') 
+                                                        : 'transparent' 
+                                                }}>
+                                                    {columnTypes[header] === 'boolean' ? 
+                                                        (row[header] ? '✓' : '✗') : 
+                                                        row[header]}
+                                                </div>
                                             )}
                                         </td>
                                     ))}
