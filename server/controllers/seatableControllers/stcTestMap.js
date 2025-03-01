@@ -23,6 +23,7 @@ const testSTCMaps = async (req, res) => {
     }
 }
 
+
 const convertFKeys = async (req, res) => {
     try {
         const map = await getMaps([(req.body.tableName)+'Map']);
@@ -193,9 +194,7 @@ const transformMap = (map, tableName, cache) => {
     return transformed;
 };
 
-const fixMapFormat = (map) => {
 
-}
 
 //Function: Build the products from the maps.
 const buildProducts = async () => {
@@ -206,8 +205,6 @@ const buildProducts = async () => {
             'shapeMap', 'sizeMap', 'ingredientMap', 'categoryIngredientMap', 'categoryShapeMap', 'categoryShapeSizeMap'
         ]);
 
-        console.log("SubCatIng map:  ", maps.SubCategoryIngredientMap);
-
         const cache = {};
         const transformedMaps = Object.keys(maps).reduce((acc, key) => {
             const tableName = key.replace('Map', '');
@@ -215,16 +212,15 @@ const buildProducts = async () => {
             return acc;
         }, {});
 
-        
         let { 
             categoryMapT, subCategoryMapT, subCategoryIngredientMapT, flavorMapT, flourMapT, 
             shapeMapT, sizeMapT, ingredientMapT, categoryIngredientMapT, categoryShapeMapT, categoryShapeSizeMapT 
         } = transformedMaps;
 
-        console.log("SubCatIng map transformed:  ", subCategoryIngredientMapT);
-        
         let restartLoop = false;
         let restartCount = 0;
+
+        //Function: Generate the products from the maps.
         const generateProducts = async () => {
             const products = [];
             for (const key in categoryShapeSizeMapT) { //Iterate over the categoryShapeSizeMapT to get the categoryShapeSize data.
