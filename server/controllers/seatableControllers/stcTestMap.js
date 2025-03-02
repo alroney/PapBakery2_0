@@ -300,7 +300,7 @@ const buildProducts = async () => {
 
                         const flavorDesc = recipeIngredients.flavor ? flavorMapT[recipeIngredients.flavor.id].Description : 'No Description for Flavor';
                         const sku = `${subCategoryKey}${recipeIngredients.flavor.id}${shapeID}-${sizeID}${recipeIngredients.flour.id}`;
-                        const sortedIngredients = Object.entries(tempIngredients).map(([name, data]) => ({ // Sort the ingredients by amount used in the recipe.
+                        const sortedIngredients = Object.entries(tempIngredients).map(([name, data]) => ({ //Sort the ingredients by amount used in the recipe.
                             name,
                             quantity: name === 'Egg' ? data.quantity * 48 : data.quantity,
                             cost: data.cost,
@@ -311,8 +311,10 @@ const buildProducts = async () => {
                         const recipeCost = sortedIngredients.reduce((total, item) => total + item.cost, 0); //Calculate the total cost of the recipe.
                         const productDesc = `${categoryDesc} ${flavorDesc} ${scd_description} ${shapeDesc} ${sizeDesc}`;
                         const productName = `${sizeMapT[sizeID].SizeName} ${subCategoryName} ${recipeIngredients.flavor.name} ${categoryMapT[categoryID].CategoryName}`;
-                        
+                        const productID = 0; //This is used to ensure ProductID is in the correct location in the table.
+
                         products.push({ //Push the product data to the products array.
+                            ProductID: productID, //ProductID should be the first column in the table.
                             ProductSKU: String(sku),
                             ProductAvailable: productAvailable,
                             ProductName: productName,

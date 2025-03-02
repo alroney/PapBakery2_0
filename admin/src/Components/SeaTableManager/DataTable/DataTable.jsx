@@ -103,26 +103,26 @@ const DataTable = ({tableName, isLoading}) => {
 
 
 
-    const recalculate = async () => {
-        setLoading(true);
-        try {
-            const response = await fetch(`${apiBase}/seatable/calculate`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({tableName}),
-            }
-            );
+    // const recalculate = async () => {
+    //     setLoading(true);
+    //     try {
+    //         const response = await fetch(`${apiBase}/seatable/calculate`, {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //             },
+    //             body: JSON.stringify({tableName}),
+    //         }
+    //         );
 
-            const data = await response.json();
-            setEditedData(data);
-            setLoading(false);
-        }
-        catch(error) {
-            failSafe("Error recalculating: ", error);
-        }
-    }
+    //         const data = await response.json();
+    //         setEditedData(data);
+    //         setLoading(false);
+    //     }
+    //     catch(error) {
+    //         failSafe("Error recalculating: ", error);
+    //     }
+    // }
 
 
 
@@ -237,11 +237,6 @@ const DataTable = ({tableName, isLoading}) => {
                     </table>
                     {isEditing && tableName !== 'none' ? (
                         <div>
-                            {(tableName === 'CategoryIngredient' || tableName === 'FlavorIngredient') && (
-                                <button onClick={recalculate} className="recalculate-button">
-                                    Recalculate
-                                </button>
-                            )}
                             <img onClick={saveEdit} src={save_icon} alt="Save" className="save-icon"/>
                             <img onClick={cancelEdit} src={cancel_icon} alt="Cancel" className="cancel-icon"/>
                         </div>
