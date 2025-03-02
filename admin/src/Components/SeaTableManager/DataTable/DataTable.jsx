@@ -167,12 +167,29 @@ const DataTable = ({tableName, isLoading}) => {
             {isLoading && <p></p>}
             {!isLoading && (
                 <div>
+                    {/* Simple Search Feature */}
                     <input
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search"
                     />
+                    {/* Edit Buttons */}
+                    {isEditing && tableName !== 'none' ? (
+                        <div>
+                            <img onClick={saveEdit} src={save_icon} alt="Save" title="Save" className="save-icon"/>
+                            <img onClick={cancelEdit} src={cancel_icon} alt="Cancel" title="Cancel" className="cancel-icon"/>
+                        </div>
+                        ) : (
+                        <div>
+                            {data.length > 0 && (
+                                <img onClick={() => {startEdit()}} src={edit_icon} alt='Edit' title="Edit" className="edit-icon"/>
+                            )}
+                            
+                        </div>
+                        )    
+                    }
+                    {/* Table */}
                     <table border="1" style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr>
@@ -226,20 +243,7 @@ const DataTable = ({tableName, isLoading}) => {
                             ))}
                         </tbody>
                     </table>
-                    {isEditing && tableName !== 'none' ? (
-                        <div>
-                            <img onClick={saveEdit} src={save_icon} alt="Save" className="save-icon"/>
-                            <img onClick={cancelEdit} src={cancel_icon} alt="Cancel" className="cancel-icon"/>
-                        </div>
-                        ) : (
-                        <div>
-                            {data.length > 0 && (
-                                <img onClick={() => {startEdit()}} src={edit_icon} alt='Edit' className="edit-icon"/>
-                            )}
-                            
-                        </div>
-                        )    
-                    }
+                    
                 </div>
             )}
         </div>
