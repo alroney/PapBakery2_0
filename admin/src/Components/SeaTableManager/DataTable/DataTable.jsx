@@ -13,6 +13,7 @@ const DataTable = ({tableName, isLoading}) => {
     const [editedData, setEditedData] = useState([]);
     const [columnTypes, setColumnTypes] = useState({});
     const [validationErrors, setValidationErrors] = useState({});
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         const fetchTableData = async () => {
@@ -103,29 +104,6 @@ const DataTable = ({tableName, isLoading}) => {
 
 
 
-    // const recalculate = async () => {
-    //     setLoading(true);
-    //     try {
-    //         const response = await fetch(`${apiBase}/seatable/calculate`, {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //             },
-    //             body: JSON.stringify({tableName}),
-    //         }
-    //         );
-
-    //         const data = await response.json();
-    //         setEditedData(data);
-    //         setLoading(false);
-    //     }
-    //     catch(error) {
-    //         failSafe("Error recalculating: ", error);
-    //     }
-    // }
-
-
-
     const saveEdit = async () => {
         if(Object.keys(validationErrors).length > 0) {
             console.error("Validation errors: ", validationErrors);
@@ -177,11 +155,24 @@ const DataTable = ({tableName, isLoading}) => {
         }
     }, [data]);
 
+
+    const filteredData = data.filter(row =>
+        headers.some(header => 
+            row[header].toString().toLowerCase().includes(searchQuery.toLowerCase())
+        )
+    );
+
     return (
         <div>
             {isLoading && <p></p>}
             {!isLoading && (
                 <div>
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search"
+                    />
                     <table border="1" style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr>
@@ -191,7 +182,7 @@ const DataTable = ({tableName, isLoading}) => {
                             </tr>
                         </thead>
                         <tbody>
-                            {(isEditing ? editedData : data).map((row, rowIndex) => (
+                            {(isEditing ? editedData : filteredData).map((row, rowIndex) => (
                                 <tr key={rowIndex} style={{ backgroundColor: rowIndex % 2 === 0 ? '#f2f2f2' : 'white' }}>
                                     {headers.map((header) => (
                                         <td key={header}>

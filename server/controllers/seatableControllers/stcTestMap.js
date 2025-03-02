@@ -406,12 +406,12 @@ const convertForeignKeys = async (map, idToName) => {
     try {
         let isCacheFound = false;
         const filePath = path.join(__dirname, '../../cache/cachedTables.json');
+        
         if(fs.existsSync(filePath)) {
             isCacheFound = true;
             console.log("(stcTestMap.js)(convertForeignKeys) Cache found!");
         }
 
-        console.log("Map: ", map);
         const mapName = Object.keys(map)[0]; //Get the map name.
         const table_name = mapName.replace('Map', ''); //Get the table name from the map name.
         const rows = map[Object.keys(map)]; //Get the rows from the map.
