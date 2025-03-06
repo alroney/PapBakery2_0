@@ -136,12 +136,49 @@ const seatableManager = () => {
   }
   
 
+  const getNutritionFact = async () => {
+    setSelectedTable('none');
+    try {
+      const response = await fetch(`${apiBase}/seatable/testFacts`);
+      const data = await response.json();
+      if(data.success) {
+        console.log("Nutrition facts retrieved successfully.");
+        document.getElementById("nutrition-facts").innerHTML = JSON.stringify(data.result, null, 2).replace(/\n/g, '<br>').replace(/ /g, '&nbsp;');
+        
+      }
+    }
+    catch(error) {
+      failSafe("Error retrieving nutrition facts: ", error);
+    }
+  }
+
+
+  const buildRecipes = async () => {
+    setSelectedTable('none');
+    try {
+      const response = await fetch(`${apiBase}/seatable/buildRecipes`);
+      const data = await response.json();
+      if(data.success) {
+        console.log("Recipes built successfully.");
+        document.getElementById("recipes").innerHTML = JSON.stringify(data.result, null, 2).replace(/\n/g, '<br>').replace(/ /g, '&nbsp;');
+      }
+      else {
+        document.getElementById("recipes").innerHTML = "No recipes built.";
+      }
+    }
+    catch(error) {
+      failSafe("Error building recipes: ", error);
+    }
+  }
+
   return (
     <div className='seatable-manager'>
         <h1>SeaTable</h1>
         <button onClick={syncTables}>Synchronize</button>
         <button onClick={fetchTables}>Update Available Tables</button>
         <button onClick={updateProductsTable}>Update Available Products</button>
+        <button onClick={buildRecipes}>Build Recipes</button>
+        <p id="recipes"> </p>
             {tables.length > 0 && (
               <div className='meta-data'>
                 <p>Tables last updated: {stMetaData.lastUpdated}</p>
@@ -162,10 +199,11 @@ const seatableManager = () => {
            {/* TODO: possibly add a temp conversion allowing for easy data editing, then reconvert back to then save it. */}
               <button onClick={() => convertForeignValues(true)}>Convert to Name</button>
               <button onClick={() => convertForeignValues(false)}>Convert to ID</button>
+              <DataTable tableName={selectedTable} isLoading={loading} />
           </div>
         )}
         
-        <DataTable tableName={selectedTable} isLoading={loading} />
+        
     </div>
   )
 }
