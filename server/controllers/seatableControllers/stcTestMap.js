@@ -52,37 +52,9 @@ const getNutritionFact = async (req, res) => {
 
 const generateRecipeNutritionFact = async () => {
     try {
-        const maps = await getMaps([
-            'categoryMap', 'ingredientMap', 'categoryIngredientMap', 'subCategoryMap', 'subCategoryIngredientMap'
-        ]);
-
-        console.log("Map: ", maps.CategoryMap);
-
-        const transformedMaps = Object.keys(maps).reduce((acc, key) => {
-            const tableName = key.replace('Map', '');
-
-            acc[decapitalize(key) +'T'] = transformMap(maps[key], tableName, {}); //Transform the map and store it in transformedMaps.
-            return acc;
-        }, {});
-
-        let { 
-            categoryMapT, ingredientMapT, categoryIngredientMapT, subCategoryMapT, subCategoryIngredientMapT
-        } = transformedMaps;
-
-        let allCombinations = [];
-
-        // for(categoryID in categoryMapT) {
-        //     const combination = buildRecipes(categoryIngredientMapT, ingredientMapT, Number(categoryID));
-        //     allCombinations.push(combination);
-        // }
-
-        // return allCombinations;
-
-        return buildRecipes2(categoryMapT, categoryIngredientMapT, subCategoryMapT, subCategoryIngredientMapT, ingredientMapT);
     }
     catch(error) {
-        console.error("(stcTestMap)(getNutritionFact) Error getting nutrition fact: ", error);
-        res.status(500).json({ success: false, message: "Internal server error." });
+        console.error("(stcTestMap)(generateRecipeNutritionFact) Error generating recipe nutrition fact: ", error);
     }
 }
 
@@ -262,7 +234,7 @@ const buildRecipes2 = (categoryMapT, categoryIngredientMapT, subCategoryMapT, su
 
 
 //Function: Find all possible combinations of ingredients for a given category and subcategory, then build the recipe for each combination.
-const buildRecipes = async (req, res) => {
+const buildRecipes = async () => {
     try {
         console.log("Building recipes...");
 
@@ -276,6 +248,7 @@ const buildRecipes = async (req, res) => {
         //Process each category one at a time.
         for (const { CategoryID: categoryID, CategoryName: categoryName } of maps.CategoryMap) {
             console.log("\nProcessing Category:", categoryID);
+            const { Description: catDesc } = maps.CategoryMap.find(cat => cat.CategoryID === categoryID);
 
             //#region - Step 1: Get base category ingredients.
             const categoryIngredients = Object.entries(categoryIngredientMap)
@@ -385,11 +358,9 @@ const buildRecipes = async (req, res) => {
                     const ingredientCatIDs = baseCombination.RecipeMeta.ingCatIDs;
                     const flvName = ingredientCatIDs.flavorID ? maps.FlavorMap.find(fl => fl.FlavorID === ingredientCatIDs.flavorID).FlavorName : 'No Flavor Name';
                     const flvDesc = ingredientCatIDs.flavorID ? maps.FlavorMap.find(fl => fl.FlavorID === ingredientCatIDs.flavorID).Description : 'No Description for Flavor';
-                    // flrName = ingredientCatIDs.flourID ? maps.FlourMap.find(fl => fl.FlourID === ingredientCatIDs.flourID).FlourName : 'No Flour Name';
-                    // flrDesc = ingredientCatIDs.flourID ? maps.FlourMap.find(fl => fl.FlourID === ingredientCatIDs.flourID).Description : 'No Description for Flour';
 
                     const recipeName = `${flvName} ${subCatName} ${categoryName}`
-                    console.log("Recipe Name: ", recipeName);
+
                     //Calculate total recipe cost.
                     const totalCost = Object.entries(newCombination)
                         .filter(([key]) => key !== 'RecipeMeta')
@@ -415,6 +386,7 @@ const buildRecipes = async (req, res) => {
                         ingredientList: sortedIngredients.map(item => item.name).join(', '),
                         recipeWeight: totalWeight,
                         recipeName,
+                        recipeDesc: `${catDesc} ${flvDesc} ${subCatDesc}`,
                         recipeAvail: sortedIngredients.every(item => item.ingAvail)
                     };
 
@@ -424,7 +396,6 @@ const buildRecipes = async (req, res) => {
             //#endregion - End of Step 3.
         }
 
-        res.status(200).json({ success: true, result: allCombinations });
         console.log("Recipes built successfully.");
         return allCombinations;
     } catch (error) {
@@ -435,24 +406,8 @@ const buildRecipes = async (req, res) => {
 
 
 
-//Function: Transform the map into a more usable format.
-const transformMap = (map, tableName, cache) => {
-    if (cache[tableName]) return cache[tableName]; //Check if the transformed map is already in the cache.
-    const transformed = map.reduce((acc, item) => { //Reduce the map to an object.
-        const tableIdKey = `${tableName}ID`; //Set the key to the value of the tableNames' primary key value.
-        const tableIdValue = item[tableIdKey];
-        const { _id, [tableIdKey]: idToRemove, ...rest } = item;
-        acc[tableIdValue] = rest;
-        return acc;
-    }, {});
-    cache[tableName] = transformed;
-    return transformed;
-};
-
-
-
 //Function: Build the products from the maps.
-const buildProducts = async () => {
+const buildProducts = async (req, res) => {
     console.log("Building products...");
     try {
         const maps = await getMaps([
@@ -460,18 +415,62 @@ const buildProducts = async () => {
             'shapeMap', 'sizeMap', 'ingredientMap', 'categoryIngredientMap', 'categoryShapeMap', 'categoryShapeSizeMap'
         ]);
 
-        // Function: Generate the products from the maps.
+        const allRecipes = await buildRecipes(); //Build the recipes.
+
+        //Function: Generate the products from the maps.
         const generateProducts = async () => {
             const products = [];
-            const allCombinations = buildRecipes(); // Build all possible combinations of ingredients for the category.
+
+            for (const categoryShapeSize of maps.CategoryShapeSizeMap) { // Iterate over the CategoryShapeSizeMap to get the categoryShapeSize data.
+                let productAvailable = true;
+                const { CategoryShapeID: categoryShapeID, SizeID: sizeID, BatchSize: batchSize } = categoryShapeSize;
+                const categoryShape = maps.CategoryShapeMap.find(cs => cs.CategoryShapeID === categoryShapeID);
+                const { CategoryID: cs_categoryID, ShapeID: shapeID } = categoryShape;
+
+                const category = maps.CategoryMap.find(cat => cat.CategoryID === cs_categoryID);
+                const size = maps.SizeMap.find(sz => sz.SizeID === sizeID);
+                const shape = maps.ShapeMap.find(sh => sh.ShapeID === shapeID);
+
+                allRecipes.forEach(recipe => {
+                    productAvailable = true;
+                    //Destructure all the way to RecipeMeta.
+                    const { RecipeMeta, ...ingredients } = recipe;
+                    const { categoryID: rMeta_catID, subCategoryID, ingCatIDs, recipeCost, ingredientList, recipeName, recipeDesc, recipeAvail } = RecipeMeta;
+                    const { flavorID, flourID } = ingCatIDs;
+
+                    if(cs_categoryID !== rMeta_catID) return;
+                    if(!recipeAvail) productAvailable = false;
+
+                    const productID = 0;
+                    const sku = `${subCategoryID}${flavorID}${shapeID}-${sizeID}${flourID}`;
+                    const productName = `${size.SizeName} ${shape.ShapeName} ${recipeName}`;
+                    const productDesc = `${recipeDesc} ${shape.Description} ${size.Description}`
+
+                    products.push({
+                        ProductID: productID,
+                        ProductSKU: String(sku),
+                        ProductAvailable: productAvailable,
+                        ProductName: productName,
+                        RecipeCost: Number(recipeCost),
+                        Description: productDesc,
+                        Ingredients: ingredientList
+                    })
+                });
+            }
+
             //Product object keys in order: ProductID, ProductSKU, ProductAvailable, ProductName, RecipeCost, Description, Ingredients.
             return products;
         }
 
         let allProducts = await generateProducts();
+
+        console.log("Product Count: ", allProducts.length);
+        // res.status(200).json({ success: true, message: "Products built successfully." });
         return allProducts;
-    } catch (error) {
+    } 
+    catch(error) {
         console.error("Error building products: ", error);
+        res.status(500).json({ success: false, message: "Internal server error." });
     }
 };
 
@@ -709,4 +708,4 @@ const processForeignKeyConversion = async (tableName, columnName, input) => {
 
 
 
-module.exports = { testSTCMaps, updateProductsTable, convertFKeys, getNutritionFact, buildRecipes};
+module.exports = { testSTCMaps, updateProductsTable, convertFKeys, getNutritionFact, buildRecipes, buildProducts};
