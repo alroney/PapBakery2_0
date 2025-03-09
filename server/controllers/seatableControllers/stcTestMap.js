@@ -267,96 +267,124 @@ const buildRecipes = async (req, res) => {
         console.log("Building recipes...");
         const { CategoryIngredientMap: categoryIngredientMap, IngredientMap: ingredientMap, ...maps } = await getMaps(['categoryMap', 'categoryIngredientMap', 'ingredientMap', 'subCategoryMap', 'subCategoryIngredientMap', 'flourMap', 'flavorMap']);
         let allCombinations = [];
-
-        // Process each category
-        Object.values(maps.CategoryMap).forEach(({CategoryID: categoryID}) => {
-            // Group ingredients by category more efficiently
-            const ingredientsByCategory = Object.entries(categoryIngredientMap)
-                .filter(([_, {CategoryID: catID}]) => catID === categoryID)
-                .reduce((acc, [_, {IngredientCategory: category, Quantity: quantity}]) => {
-                    if (!acc[category]) acc[category] = [];
-                    
-                    // Find matching ingredients and calculate costs in one pass
-                    acc[category].push(...Object.entries(ingredientMap)
-                        .filter(([_, ing]) => ing.IngredientCategory === category)
-                        .map(([id, ing]) => ({
-                            name: ing.IngredientName,
-                            quantity,
-                            cost: quantity * convertPricePerUnit(ing.CostPerUnit, ing.UnitType, 'g'),
-                            ingID: parseInt(id) + 1,
-                            ingCat: category,
-                            ingAvail: ing.IngredientAvailable
-                        }))
-                    );
-                    return acc;
-                }, {});
-
-            // More efficient recursive combination generator
-            const generateCombinations = (categories, index = 0, combo = {}) => {
-                if (index === categories.length) {
-                    allCombinations.push({...combo});
-                    return;
-                }
-
-                for (const ingredient of categories[index]) {
-                    combo[ingredient.name] = {
-                        quantity: ingredient.quantity,
-                        cost: ingredient.cost,
-                        ingID: ingredient.ingID,
-                        ingCat: ingredient.ingCat,
-                        ingAvail: ingredient.ingAvail
-                    };
-                    generateCombinations(categories, index + 1, combo);
-                    delete combo[ingredient.name];
-                }
-            };
-
-            // Generate combinations
-            generateCombinations(Object.values(ingredientsByCategory));
-
-            let tempIngredients = {};
-            const categorySubcategories = [];
-            for(const combination of allCombinations) {
-                const subcategoriesForCategory = maps.SubCategoryMap.filter(sc => sc.CategoryID === categoryID);
+        let recipeMeta = {}; //May contain the following keys: categoryID, subCategoryID, recipeCost, recipeWeight, 
+        
+        // Process each category one at a time
+        for (const { CategoryID: categoryID } of maps.CategoryMap) {
+            console.log("\nProcessing Category:", categoryID);
+            
+            // 1. First get base category ingredients
+            const categoryIngredients = Object.entries(categoryIngredientMap)
+            .filter(([_, { CategoryID: catID }]) => catID === categoryID)
+            .reduce((acc, [_, { IngredientCategory: category, Quantity: quantity }]) => {
+                if (!acc[category]) acc[category] = [];
                 
-                for (const { SubCategoryID, SubCategoryName, Description: sc_description } of subcategoriesForCategory) {
-                    tempIngredients = { ...combination };
+                const matchingIngredients = Object.entries(ingredientMap)
+                .filter(([_, ing]) => ing.IngredientCategory === category)
+                .map(([id, ing]) => ({
+                    name: ing.IngredientName,
+                    quantity,
+                    cost: quantity * convertPricePerUnit(ing.CostPerUnit, ing.UnitType, 'g'),
+                    ingID: parseInt(id) + 1,
+                    ingCat: category,
+                    ingAvail: ing.IngredientAvailable
+                }));
+                
+                acc[category].push(...matchingIngredients);
+                return acc;
+            }, {});
 
-                    // Get all ingredients for this subcategory in one filter pass
-                    const subCatIngredients = maps.SubCategoryIngredientMap
-                        .filter(sci => parseInt(sci.SubCategoryID) === parseInt(SubCategoryID))
-                        .map(({ IngredientID, Quantity }) => {
-                            const ingredient = ingredientMap.find(ing => parseInt(ing.IngredientID) === parseInt(IngredientID));
-                            const cost = Quantity * convertPricePerUnit(
-                                ingredient.CostPerUnit, 
-                                ingredient.UnitType, 
-                                'g'
-                            );
-
-                            return [
-                                ingredient.IngredientName,
-                                {
-                                    quantity: Quantity,
-                                    cost,
-                                    ingCat: ingredient.IngredientCategory,
-                                    ingID: IngredientID,
-                                    ingAvail: ingredient.IngredientAvailable
-                                }
-                            ];
-                        });
-
-                    // Merge subcategory ingredients with base combination
-                    Object.assign(tempIngredients, Object.fromEntries(subCatIngredients));
-                    
-                    categorySubcategories.push(tempIngredients);
-                }
-
-                // Replace allCombinations with the new expanded set
-                allCombinations = categorySubcategories;
+            // 2. Generate base combinations for category
+            const baseCombinations = [];
+            const generateBaseCombinations = (categories, index = 0, combo = {}) => {
+            if (index === Object.keys(categories).length) {
+                baseCombinations.push({
+                    recipeMeta: { categoryID, ingCatIDs: {} },
+                    ...combo
+                });
+                return;
             }
-        });
+            
+            const currentCategory = Object.values(categories)[index];
+            for (const ingredient of currentCategory) {
+                generateBaseCombinations(
+                    categories,
+                    index + 1,
+                    { ...combo, [ingredient.name]: { ...ingredient } }
+                );
+            }
+            };
+            
+            generateBaseCombinations(categoryIngredients);
+            
+            // 3. For each base combination, create variations with subcategories
+            const subcategories = maps.SubCategoryMap.filter(sc => sc.CategoryID === categoryID);
+            
+            for (const baseCombination of baseCombinations) {
+                for (const { SubCategoryID: subCatID } of subcategories) {
+                    // Get subcategory ingredients
+                    const subCatIngredients = maps.SubCategoryIngredientMap
+                    .filter(sci => parseInt(sci.SubCategoryID) === parseInt(subCatID))
+                    .map(({ IngredientID, Quantity }) => {
+                        const ingredient = ingredientMap.find(ing => 
+                        parseInt(ing.IngredientID) === parseInt(IngredientID));
+                        return [
+                            ingredient.IngredientName,
+                            {
+                                quantity: Quantity,
+                                cost: Quantity * convertPricePerUnit(ingredient.CostPerUnit, ingredient.UnitType, 'g'),
+                                ingCat: ingredient.IngredientCategory,
+                                ingID: IngredientID,
+                                ingAvail: ingredient.IngredientAvailable
+                            }
+                        ];
+                    });
+                    
+                    //Create new combination with base + subcategory ingredients
+                    const newCombination = {
+                        ...baseCombination,
+                        recipeMeta: {
+                            categoryID: baseCombination.recipeMeta.categoryID,
+                            subCategoryID: subCatID,
+                            ingCatIDs: baseCombination.recipeMeta.ingCatIDs
+                        }
+                    };
+                    
+                    // Add subcategory ingredients
+                    Object.assign(newCombination, Object.fromEntries(subCatIngredients));
+                    
+                    //Calculate total recipe cost.
+                    const totalCost = Object.entries(newCombination)
+                        .filter(([key]) => key !== 'recipeMeta')
+                        .reduce((sum, [_, data]) => sum + (data.cost || 0), 0);
+                    
+                    newCombination.recipeMeta.recipeCost = Number(totalCost.toFixed(4));
+                    
+                    allCombinations.push(newCombination);
+                }
+            }
+        }
         
+
+        //TESTING CODE
+        for(const comb of allCombinations) { //Each comb is a recipe with ingredients.
+            // console.log("Combination: ", comb);
+            Object.keys(comb).forEach(ingredient => { //Each ingredient in the recipe.
+                if(ingredient === 'recipeMeta') return; //Skip the recipeMeta object.
+                const { ingID, ingCat, ingAvail } = comb[ingredient];
+                const firstWord = capitalize(ingCat.split(' ')[0].toLowerCase());
+                const mapKey = `${firstWord}Map`;
+                if (!maps[mapKey] || !ingAvail) return;
+                // console.log(`maps[${mapKey}]: `, maps[mapKey]);
+                const specialID = maps[mapKey].find(item => item[`${firstWord}Name`] === ingredient)?.[`${firstWord}ID`];
+                
+
+                comb['recipeMeta']['ingCatIDs'] = { ...comb['recipeMeta']['ingCatIDs'],  [decapitalize(firstWord)+'ID']: parseInt(specialID) }; //Add the specialID to the rest of the ingredient data. The specialID will be the value for the key that is named according to the ingredient category + 'ID'.
+            });
+        }
+
         
+
 
         res.status(200).json({ success: true, result: allCombinations });
         console.log("Recipes built successfully.");
@@ -367,41 +395,6 @@ const buildRecipes = async (req, res) => {
     }
 };
 
-
-
-const extractSpecialIngredients = (allCombinations) => {
-    Object.entries(allCombinations).reduce((acc, [name, data]) => {
-        if (!data.ingCat || !data.ingID) {
-            acc[name] = { id: 0, name };
-            return acc;
-        }
-
-        const firstWord = capitalize(data.ingCat.split(' ')[0].toLowerCase());
-        const mapKey = `${firstWord}Map`;
-
-        if (!maps[mapKey]) {
-            // acc[decapitalize(firstWord)] = { id: 0, name: '' };
-            return acc;
-        }
-
-        if (!data.ingAvail) {
-            productAvailable = false;
-        }
-
-        const specialMap = maps[mapKey];
-        const specialItem = specialMap.find(item => item[`${firstWord}Name`] === name);
-        const specialID = specialItem?.[`${firstWord}ID`];
-
-        acc[decapitalize(firstWord)] = {
-            id: parseInt(specialID) || 0,
-            name: specialID ? specialItem[`${firstWord}Name`] : ''
-        };
-
-        return acc;
-    }, {});
-
-    console.log("Extracted Special Ingredients: ", extractSpecialIngredients);
-}
 
 
 //Function: Transform the map into a more usable format.
@@ -432,6 +425,8 @@ const buildProducts = async () => {
         // Function: Generate the products from the maps.
         const generateProducts = async () => {
             const products = [];
+            const allCombinations = buildRecipes(); // Build all possible combinations of ingredients for the category.
+
             for (const categoryShapeSize of maps.CategoryShapeSizeMap) { // Iterate over the CategoryShapeSizeMap to get the categoryShapeSize data.
                 let productAvailable = true;
                 const { CategoryShapeID: categoryShapeID, SizeID: sizeID, BatchSize: batchSize } = categoryShapeSize;
@@ -446,7 +441,6 @@ const buildProducts = async () => {
                 const sizeDesc = size.Description;
                 const shapeDesc = shape.Description;
                 
-                const allCombinations = buildRecipes(maps.CategoryIngredientMap, maps.IngredientMap, categoryID); // Build all possible combinations of ingredients for the category.
 
                 for (const combination of allCombinations) {
                     productAvailable = true; // Reset availability status for each combination iteration.
