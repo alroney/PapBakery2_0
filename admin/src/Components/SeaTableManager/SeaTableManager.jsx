@@ -177,7 +177,7 @@ const seatableManager = () => {
         <button onClick={syncTables}>Synchronize</button>
         <button onClick={fetchTables}>Update Available Tables</button>
         <button onClick={updateProductsTable}>Update Available Products</button>
-        {/* <button onClick={buildRecipes}>Build Recipes</button> */}
+        <button onClick={buildRecipes}>Build Recipes</button>
         <p id="recipes"> </p>
             {tables.length > 0 && (
               <div className='meta-data'>

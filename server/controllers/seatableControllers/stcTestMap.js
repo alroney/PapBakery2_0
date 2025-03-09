@@ -277,7 +277,7 @@ const buildRecipes = async (req, res) => {
         for (const { CategoryID: categoryID } of maps.CategoryMap) {
             console.log("\nProcessing Category:", categoryID);
 
-            //1. Get base category ingredients.
+            //#region - Step 1: Get base category ingredients.
             const categoryIngredients = Object.entries(categoryIngredientMap)
                 .filter(([_, { CategoryID: catID }]) => catID === categoryID)
                 .reduce((acc, [_, { IngredientCategory: category, Quantity: quantity }]) => {
@@ -297,8 +297,9 @@ const buildRecipes = async (req, res) => {
                     acc[category].push(...matchingIngredients);
                     return acc;
                 }, {});
+            //#endregion - End of Step 1.
 
-            //2. Generate base combinations for category.
+            //#region - Step 2: Generate base combinations for category.
             const baseCombinations = [];
             const generateBaseCombinations = (categories, index = 0, combo = {}) => {
                 if (index === Object.keys(categories).length) {
@@ -320,8 +321,9 @@ const buildRecipes = async (req, res) => {
             };
 
             generateBaseCombinations(categoryIngredients);
+            //#endregion - End of Step 2.
 
-            //3. For each base combination, create variations with subcategories.
+            //#region - Step 3: For each base combination, create variations with subcategories.
             const subcategories = maps.SubCategoryMap.filter(sc => sc.CategoryID === categoryID);
 
             for (const baseCombination of baseCombinations) {
@@ -346,13 +348,13 @@ const buildRecipes = async (req, res) => {
 
                 baseCombination.RecipeMeta.ingCatIDs = specialIngredients;
 
+                //Create new combinations for each subcategory.
                 for (const { SubCategoryID: subCatID } of subcategories) {
                     //Get subcategory ingredients.
                     const subCatIngredients = maps.SubCategoryIngredientMap
                         .filter(sci => parseInt(sci.SubCategoryID) === parseInt(subCatID))
                         .map(({ IngredientID, Quantity }) => {
-                            const ingredient = ingredientMap.find(ing =>
-                                parseInt(ing.IngredientID) === parseInt(IngredientID));
+                            const ingredient = ingredientMap.find(ing => parseInt(ing.IngredientID) === parseInt(IngredientID));
                             return [
                                 ingredient.IngredientName,
                                 {
@@ -408,7 +410,10 @@ const buildRecipes = async (req, res) => {
                     allCombinations.push(newCombination);
                 }
             }
+            //#endregion - End of Step 3.
         }
+
+        res.status(200).json({ success: true, result: allCombinations });
         console.log("Recipes built successfully.");
         return allCombinations;
     } catch (error) {
