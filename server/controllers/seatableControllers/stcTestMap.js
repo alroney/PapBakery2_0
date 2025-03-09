@@ -267,13 +267,14 @@ const buildRecipes = async (req, res) => {
         console.log("Building recipes...");
         const { CategoryIngredientMap: categoryIngredientMap, IngredientMap: ingredientMap, ...maps } = await getMaps(['categoryMap', 'categoryIngredientMap', 'ingredientMap', 'subCategoryMap', 'subCategoryIngredientMap', 'flourMap', 'flavorMap']);
         let allCombinations = [];
+        let recipeAvail = true;
         let recipeMeta = {}; //May contain the following keys: categoryID, subCategoryID, recipeCost, recipeWeight, 
         
-        // Process each category one at a time
+        //Process each category one at a time.
         for (const { CategoryID: categoryID } of maps.CategoryMap) {
             console.log("\nProcessing Category:", categoryID);
             
-            // 1. First get base category ingredients
+            //1. First get base category ingredients.
             const categoryIngredients = Object.entries(categoryIngredientMap)
             .filter(([_, { CategoryID: catID }]) => catID === categoryID)
             .reduce((acc, [_, { IngredientCategory: category, Quantity: quantity }]) => {
@@ -284,7 +285,7 @@ const buildRecipes = async (req, res) => {
                 .map(([id, ing]) => ({
                     name: ing.IngredientName,
                     quantity,
-                    cost: quantity * convertPricePerUnit(ing.CostPerUnit, ing.UnitType, 'g'),
+                    cost: Number((quantity * convertPricePerUnit(ing.CostPerUnit, ing.UnitType, 'g')).toFixed(4)),
                     ingID: parseInt(id) + 1,
                     ingCat: category,
                     ingAvail: ing.IngredientAvailable
@@ -294,7 +295,7 @@ const buildRecipes = async (req, res) => {
                 return acc;
             }, {});
 
-            // 2. Generate base combinations for category
+            //2. Generate base combinations for category.
             const baseCombinations = [];
             const generateBaseCombinations = (categories, index = 0, combo = {}) => {
             if (index === Object.keys(categories).length) {
@@ -317,12 +318,25 @@ const buildRecipes = async (req, res) => {
             
             generateBaseCombinations(categoryIngredients);
             
-            // 3. For each base combination, create variations with subcategories
+            //3. For each base combination, create variations with subcategories.
             const subcategories = maps.SubCategoryMap.filter(sc => sc.CategoryID === categoryID);
             
             for (const baseCombination of baseCombinations) {
+                Object.keys(baseCombination).forEach(ingredient => { //Each ingredient in the recipe.
+                    if(ingredient === 'recipeMeta') return; //Skip the recipeMeta object.
+                    const { ingCat } = baseCombination[ingredient];
+                    const firstWord = capitalize(ingCat.split(' ')[0].toLowerCase());
+                    const mapKey = `${firstWord}Map`;
+                    if (!maps[mapKey]) return;
+                    // console.log(`maps[${mapKey}]: `, maps[mapKey]);
+                    const specialID = maps[mapKey].find(item => item[`${firstWord}Name`] === ingredient)?.[`${firstWord}ID`];
+                    
+                    baseCombination.recipeMeta.ingCatIDs = { ...baseCombination.recipeMeta.ingCatIDs, [decapitalize(firstWord)+'ID']: parseInt(specialID) }; //Add the specialID to the rest of the ingredient data. The specialID will be the value for the key that is named according to the ingredient category + 'ID'.
+                });
+
+
                 for (const { SubCategoryID: subCatID } of subcategories) {
-                    // Get subcategory ingredients
+                    //Get subcategory ingredients
                     const subCatIngredients = maps.SubCategoryIngredientMap
                     .filter(sci => parseInt(sci.SubCategoryID) === parseInt(subCatID))
                     .map(({ IngredientID, Quantity }) => {
@@ -332,7 +346,7 @@ const buildRecipes = async (req, res) => {
                             ingredient.IngredientName,
                             {
                                 quantity: Quantity,
-                                cost: Quantity * convertPricePerUnit(ingredient.CostPerUnit, ingredient.UnitType, 'g'),
+                                cost: Number((Quantity * convertPricePerUnit(ingredient.CostPerUnit, ingredient.UnitType, 'g')).toFixed(4)),
                                 ingCat: ingredient.IngredientCategory,
                                 ingID: IngredientID,
                                 ingAvail: ingredient.IngredientAvailable
@@ -340,7 +354,7 @@ const buildRecipes = async (req, res) => {
                         ];
                     });
                     
-                    //Create new combination with base + subcategory ingredients
+                    //Create new combination with base + subcategory ingredients.
                     const newCombination = {
                         ...baseCombination,
                         recipeMeta: {
@@ -350,41 +364,36 @@ const buildRecipes = async (req, res) => {
                         }
                     };
                     
-                    // Add subcategory ingredients
+                    //Add subcategory ingredients.
                     Object.assign(newCombination, Object.fromEntries(subCatIngredients));
-                    
+
                     //Calculate total recipe cost.
                     const totalCost = Object.entries(newCombination)
                         .filter(([key]) => key !== 'recipeMeta')
                         .reduce((sum, [_, data]) => sum + (data.cost || 0), 0);
-                    
+
+                    const sortedIngredients = Object.entries(newCombination)
+                        .filter(([key]) => key !== 'recipeMeta')
+                        .map(([name, data]) => ({
+                            name,
+                            quantity: name === 'Egg' ? data.quantity * 48 : data.quantity, //1 Egg = 48g
+                            ingAvail: data.ingAvail
+
+                        }))
+                        .sort((a, b) => b.quantity - a.quantity);
+
+
+                    const totalWeight = sortedIngredients.reduce((sum, item) => sum + item.quantity, 0);
+
                     newCombination.recipeMeta.recipeCost = Number(totalCost.toFixed(4));
+                    newCombination.recipeMeta.ingredientList = sortedIngredients.map(item => item.name).join(', ');
+                    newCombination.recipeMeta.recipeWeight = totalWeight;
+                    newCombination.recipeMeta.recipeAvail = sortedIngredients.every(item => item.ingAvail); //Check if all ingredients are available.
                     
                     allCombinations.push(newCombination);
                 }
             }
         }
-        
-
-        //TESTING CODE
-        for(const comb of allCombinations) { //Each comb is a recipe with ingredients.
-            // console.log("Combination: ", comb);
-            Object.keys(comb).forEach(ingredient => { //Each ingredient in the recipe.
-                if(ingredient === 'recipeMeta') return; //Skip the recipeMeta object.
-                const { ingID, ingCat, ingAvail } = comb[ingredient];
-                const firstWord = capitalize(ingCat.split(' ')[0].toLowerCase());
-                const mapKey = `${firstWord}Map`;
-                if (!maps[mapKey] || !ingAvail) return;
-                // console.log(`maps[${mapKey}]: `, maps[mapKey]);
-                const specialID = maps[mapKey].find(item => item[`${firstWord}Name`] === ingredient)?.[`${firstWord}ID`];
-                
-
-                comb['recipeMeta']['ingCatIDs'] = { ...comb['recipeMeta']['ingCatIDs'],  [decapitalize(firstWord)+'ID']: parseInt(specialID) }; //Add the specialID to the rest of the ingredient data. The specialID will be the value for the key that is named according to the ingredient category + 'ID'.
-            });
-        }
-
-        
-
 
         res.status(200).json({ success: true, result: allCombinations });
         console.log("Recipes built successfully.");
