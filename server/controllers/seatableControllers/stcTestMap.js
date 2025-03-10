@@ -156,81 +156,6 @@ const createNewTable = async (table_name, columns) => {
 
 
 
-const buildRecipes2 = (categoryMapT, categoryIngredientMapT, subCategoryMapT, subCategoryIngredientMapT, ingredientMapT) => {
-    try {
-        console.log("MapT: ", categoryMapT);
-        let hasSubCatIng = false;
-        //Check if subCategoryIngredientMapT has ingredients for any subcategories
-        hasSubCatIng = Object.values(subCategoryIngredientMapT).some(({ SubCategoryID }) => 
-            Object.keys(subCategoryMapT).includes(SubCategoryID.toString())
-        );
-
-        if (!hasSubCatIng) {
-            return 'No SubCategories have ingredients';
-        }
-
-        const recipesBySubCategory = {};
-
-        // Group ingredients by subcategory
-        for (const subCatKey in subCategoryMapT) {
-            const subCategory = subCategoryMapT[subCatKey];
-            const subCatID = parseInt(subCatKey);
-            const categoryID = subCategory.CategoryID;
-            
-            // Get base ingredients for this subcategory's category
-            const baseIngredients = Object.entries(subCategoryIngredientMapT)
-            .filter(([_, ingData]) => ingData.SubCategoryID === subCatID)
-            .map(([_, ingData]) => ({
-                ingredientID: ingData.IngredientID,
-                quantity: ingData.Quantity
-            }));
-
-            // Get category ingredients
-            const categoryIngredients = Object.entries(categoryIngredientMapT)
-            .filter(([_, ingData]) => ingData.CategoryID === categoryID)
-            .map(([_, ingData]) => ({
-                ingredientID: ingData.IngredientID,
-                quantity: ingData.Quantity
-            }));
-
-            // Combine both ingredient lists
-            if (baseIngredients.length > 0 || categoryIngredients.length > 0) {
-            recipesBySubCategory[subCatKey] = {
-                baseIngredients: [...baseIngredients, ...categoryIngredients],
-                name: subCategory.SubCategoryName,
-                categoryID: categoryID
-            };
-            }
-        }
-
-        // Calculate final recipes with costs
-        const finalRecipes = {};
-        for (const [subCatKey, recipe] of Object.entries(recipesBySubCategory)) {
-            const ingredients = recipe.baseIngredients.map(ing => {
-            const ingredientData = ingredientMapT[ing.ingredientID];
-            return {
-                name: ingredientData.IngredientName,
-                quantity: ing.quantity,
-                cost: ing.quantity * convertPricePerUnit(ingredientData.CostPerUnit, ingredientData.UnitType, 'g'),
-                category: ingredientData.IngredientCategory
-            };
-            });
-
-            finalRecipes[subCatKey] = {
-            name: recipe.name,
-            ingredients,
-            totalCost: ingredients.reduce((sum, ing) => sum + ing.cost, 0)
-            };
-        }
-
-        return finalRecipes;
-        
-    }
-    catch(error) {
-        console.error("Error building recipes2: ", error);
-    }
-}
-
 
 
 //Function: Find all possible combinations of ingredients for a given category and subcategory, then build the recipe for each combination.
@@ -400,14 +325,13 @@ const buildRecipes = async () => {
         return allCombinations;
     } catch (error) {
         console.error("Error building recipes: ", error);
-        res.status(500).json({ success: false, message: "Internal server error." });
     }
 };
 
 
 
 //Function: Build the products from the maps.
-const buildProducts = async (req, res) => {
+const buildProducts = async () => {
     console.log("Building products...");
     try {
         const maps = await getMaps([
@@ -470,7 +394,6 @@ const buildProducts = async (req, res) => {
     } 
     catch(error) {
         console.error("Error building products: ", error);
-        res.status(500).json({ success: false, message: "Internal server error." });
     }
 };
 

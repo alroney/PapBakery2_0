@@ -10,7 +10,7 @@ router.get('/table/:tableName', getTableData);
 router.get('/updateProductsTable', updateProductsTable);
 router.get('/syncSeaTable', syncSeaTableData);
 router.get('/buildRecipes', buildRecipes);
-router.get('/testProductBuild', buildProducts);
+router.get('/test', buildProducts);
 
 router.post('/convertFKeys', convertFKeys);
 router.post('/calculate', calculate);

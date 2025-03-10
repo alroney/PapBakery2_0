@@ -171,10 +171,10 @@ const seatableManager = () => {
     }
   }
 
-  const testProductBuild = async () => {
+  const test = async () => {
     setSelectedTable('none');
     try {
-      const response = await fetch(`${apiBase}/seatable/testProductBuild`);
+      const response = await fetch(`${apiBase}/seatable/test`);
       const data = await response.json();
       if(data.success) {
         console.log("Product build test successful.");
@@ -192,7 +192,7 @@ const seatableManager = () => {
         <button onClick={fetchTables}>Update Available Tables</button>
         <button onClick={updateProductsTable}>Update Available Products</button>
         <button onClick={buildRecipes}>Build Recipes</button>
-        <button onClick={testProductBuild}>Test Product Build</button>
+        <button onClick={test}>Test</button>
         <p id="recipes"> </p>
             {tables.length > 0 && (
               <div className='meta-data'>
