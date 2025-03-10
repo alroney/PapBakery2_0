@@ -50,11 +50,35 @@ const getNutritionFact = async (req, res) => {
 
 
 
-const generateRecipeNutritionFact = async () => {
+const generateRecipeNutritionFact = async (req, res) => {
     try {
+        const { NutritionFactMap } = await getMaps(['nutritionFactMap']);
+        const recipes = await buildRecipes();
+
+        const allRecipeNutritionFact = [];
+        for(const recipe of recipes) {
+            let recipeNutritionFact = {};
+            Object.keys(recipe).forEach(ingredient => {
+                if(ingredient === 'RecipeMeta') return;
+                console.log("Ingredient: ", ingredient);
+                const { ingID, quantity } = recipe[ingredient]; //Get the ingredient ID and quantity.
+                const fact = NutritionFactMap.find(fact => fact.IngredientID === ingID); //Find the nutrition fact for the ingredient.
+                let ratio = (ingredient === 'Egg' ? quantity * 48 : quantity) / fact.ServingSize; //Calculate the ratio of the quantity to the serving size.
+                let nutritionFact = {}; //Object to store the nutrition fact for the ingredient.
+                Object.keys(fact).forEach(key => {
+                    if(key === 'NutritionFactID' || key === 'IngredientID' || key === '_id') return;
+                    nutritionFact[key] = fact[key] * ratio; //Calculate the nutrition fact for the ingredient.
+                    console.log("Key: ", key, "Value: ", fact[key] * ratio);
+                });
+                recipeNutritionFact[ingredient] = nutritionFact; //Add the nutrition fact to the recipe nutrition fact.
+            });
+            allRecipeNutritionFact.push(recipe.RecipeMeta.recipeName, recipeNutritionFact); //Add the recipe nutrition fact to the all recipe nutrition fact.
+        }
+        res.status(200).json({ success: true, result: allRecipeNutritionFact });
     }
     catch(error) {
         console.error("(stcTestMap)(generateRecipeNutritionFact) Error generating recipe nutrition fact: ", error);
+        res.status(500).json({ success: false, message: "Internal server error." });
     }
 }
 
@@ -272,6 +296,7 @@ const buildRecipes = async () => {
                     const newCombination = {
                         ...baseCombination,
                         RecipeMeta: {
+                            recipeSKU: '',
                             categoryID: baseCombination.RecipeMeta.categoryID,
                             subCategoryID: subCatID,
                             ingCatIDs: baseCombination.RecipeMeta.ingCatIDs
@@ -284,7 +309,8 @@ const buildRecipes = async () => {
                     const flvName = ingredientCatIDs.flavorID ? maps.FlavorMap.find(fl => fl.FlavorID === ingredientCatIDs.flavorID).FlavorName : 'No Flavor Name';
                     const flvDesc = ingredientCatIDs.flavorID ? maps.FlavorMap.find(fl => fl.FlavorID === ingredientCatIDs.flavorID).Description : 'No Description for Flavor';
 
-                    const recipeName = `${flvName} ${subCatName} ${categoryName}`
+                    newCombination.RecipeMeta.recipeSKU = `${subCatID}${ingredientCatIDs.flourID}${ingredientCatIDs.flavorID}`;
+                    const recipeName = `${flvName} ${subCatName} ${categoryName}`;
 
                     //Calculate total recipe cost.
                     const totalCost = Object.entries(newCombination)
@@ -359,14 +385,14 @@ const buildProducts = async () => {
                     productAvailable = true;
                     //Destructure all the way to RecipeMeta.
                     const { RecipeMeta, ...ingredients } = recipe;
-                    const { categoryID: rMeta_catID, subCategoryID, ingCatIDs, recipeCost, ingredientList, recipeName, recipeDesc, recipeAvail } = RecipeMeta;
-                    const { flavorID, flourID } = ingCatIDs;
+                    const { recipeSKU, categoryID: rMeta_catID, subCategoryID, ingCatIDs, recipeCost, ingredientList, recipeName, recipeDesc, recipeAvail } = RecipeMeta;
+                    
 
                     if(cs_categoryID !== rMeta_catID) return;
                     if(!recipeAvail) productAvailable = false;
 
                     const productID = 0;
-                    const sku = `${subCategoryID}${flavorID}${shapeID}-${sizeID}${flourID}`;
+                    const sku = `${recipeSKU}-${shapeID}${sizeID}`;
                     const productName = `${size.SizeName} ${shape.ShapeName} ${recipeName}`;
                     const productDesc = `${recipeDesc} ${shape.Description} ${size.Description}`
 
@@ -631,4 +657,4 @@ const processForeignKeyConversion = async (tableName, columnName, input) => {
 
 
 
-module.exports = { testSTCMaps, updateProductsTable, convertFKeys, getNutritionFact, buildRecipes, buildProducts};
+module.exports = { testSTCMaps, updateProductsTable, convertFKeys, getNutritionFact, buildRecipes, generateRecipeNutritionFact};

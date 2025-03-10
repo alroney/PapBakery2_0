@@ -178,6 +178,7 @@ const seatableManager = () => {
       const data = await response.json();
       if(data.success) {
         console.log("Product build test successful.");
+        document.getElementById("test").innerHTML = JSON.stringify(data.result, null, 2).replace(/\n/g, '<br>').replace(/ /g, '&nbsp;');
       }
     }
     catch(error) {
@@ -193,7 +194,7 @@ const seatableManager = () => {
         <button onClick={updateProductsTable}>Update Available Products</button>
         <button onClick={buildRecipes}>Build Recipes</button>
         <button onClick={test}>Test</button>
-        <p id="recipes"> </p>
+        <p id="test"> </p>
             {tables.length > 0 && (
               <div className='meta-data'>
                 <p>Tables last updated: {stMetaData.lastUpdated}</p>
