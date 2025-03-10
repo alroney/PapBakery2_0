@@ -37,7 +37,7 @@ const convertFKeys = async (req, res) => {
 }
 
 
-const getNutritionFact = async (req, res) => {
+const getNutritionFact = async () => {
     try {
         let result;
         const filePath = path.join(__dirname, '../../cache/recipeNutrtionFacts.json');
@@ -58,11 +58,11 @@ const getNutritionFact = async (req, res) => {
             // Save the generated data
             fs.writeFileSync(filePath, JSON.stringify(result, null, 2));
         }
-        res.status(200).json({ success: true, result });
+        return result;
     }
     catch(error) {
         console.error("(stcTestMap)(getNutritionFact) Error getting nutrition fact: ", error);
-        res.status(500).json({ success: false, message: "Internal server error." });
+        return { success: false, message: "Internal server error" };
     }
 }
 
@@ -580,24 +580,27 @@ const convertForeignKeys = async (map, idToName) => {
             
             const changes = {}; //Temporary Object to store the changes made to the rows.
             //Process the foreign key conversion for each row. Using `Promise.all` with map processes all operations in parallel (faster but more memory intensive).
-            await Promise.all(Object.keys(rows).map(async row => {
-                const columns = rows[row];
-                changes[row] = {_id: columns._id}; //Store the _id in the changes object. 
-                
-                //Proccess the foreign key conversion for each column in the column structure.
-                await Promise.all(columnStructure.map(async column => {
-                    const value = columns[column];
+            // Process one column at a time
+            for (const column of columnStructure) {
+                console.log(`Processing column: ${column}`);
+                // Process all rows for current column
+                await Promise.all(Object.keys(rows).map(async row => {
+                    const value = rows[row][column];
+                    if (!changes[row]) {
+                        changes[row] = { _id: rows[row]._id };
+                    }
+                    
                     const result = await processForeignKeyConversion(table_name, column, value);
-                    if(result.newValue === undefined) { //Skip columns that have no valid new value.
+                    if (!result.newValue || result.newValue === 'undefined') {
+                        console.log(`No valid new value found for column: ${column}`);
                         return;
                     }
-                    else {
-                        const { newColumnName, newValue } = result;
-                        delete changes[row][column];
-                        changes[row][newColumnName] = newValue;
-                    }
+                    
+                    const { newColumnName, newValue } = result;
+                    delete changes[row][column];
+                    changes[row][newColumnName] = newValue;
                 }));
-            }));
+            }
 
             //Apply changes to rows. This removes the row count keys created by the temporary changes object.
             Object.keys(changes).forEach(row => {
