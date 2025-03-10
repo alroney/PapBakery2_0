@@ -58,21 +58,26 @@ const generateRecipeNutritionFact = async (req, res) => {
         const allRecipeNutritionFact = [];
         for(const recipe of recipes) {
             let recipeNutritionFact = {};
+            const sku = recipe.RecipeMeta.recipeSKU;
             Object.keys(recipe).forEach(ingredient => {
                 if(ingredient === 'RecipeMeta') return;
-                console.log("Ingredient: ", ingredient);
                 const { ingID, quantity } = recipe[ingredient]; //Get the ingredient ID and quantity.
                 const fact = NutritionFactMap.find(fact => fact.IngredientID === ingID); //Find the nutrition fact for the ingredient.
                 let ratio = (ingredient === 'Egg' ? quantity * 48 : quantity) / fact.ServingSize; //Calculate the ratio of the quantity to the serving size.
                 let nutritionFact = {}; //Object to store the nutrition fact for the ingredient.
                 Object.keys(fact).forEach(key => {
                     if(key === 'NutritionFactID' || key === 'IngredientID' || key === '_id') return;
-                    nutritionFact[key] = fact[key] * ratio; //Calculate the nutrition fact for the ingredient.
-                    console.log("Key: ", key, "Value: ", fact[key] * ratio);
+                    nutritionFact[key] = Number(fact[key]) * Number(ratio); //Calculate the nutrition fact for the ingredient.
                 });
-                recipeNutritionFact[ingredient] = nutritionFact; //Add the nutrition fact to the recipe nutrition fact.
+                // Sum up nutrition facts for the ingredient into the recipe total
+                Object.keys(nutritionFact).forEach(key => {
+                    if (!recipeNutritionFact[key]) {
+                        recipeNutritionFact[key] = 0;
+                    }
+                    recipeNutritionFact[key] += nutritionFact[key];
+                });
             });
-            allRecipeNutritionFact.push(recipe.RecipeMeta.recipeName, recipeNutritionFact); //Add the recipe nutrition fact to the all recipe nutrition fact.
+            allRecipeNutritionFact.push({ sku, recipeNutritionFact }); //Add the recipe nutrition fact to the all recipe nutrition
         }
         res.status(200).json({ success: true, result: allRecipeNutritionFact });
     }
