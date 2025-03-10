@@ -39,7 +39,25 @@ const convertFKeys = async (req, res) => {
 
 const getNutritionFact = async (req, res) => {
     try {
-        const result = await generateRecipeNutritionFact();
+        let result;
+        const filePath = path.join(__dirname, '../../cache/recipeNutrtionFacts.json');
+
+        try {
+            const fileData = fs.readFileSync(filePath, 'utf8');
+            result = JSON.parse(fileData);
+        } catch (err) {
+            // File doesn't exist or can't be read, generate new data
+            result = await generateRecipeNutritionFact();
+            
+            // Ensure directory exists
+            const dir = path.dirname(filePath);
+            if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir, { recursive: true });
+            }
+            
+            // Save the generated data
+            fs.writeFileSync(filePath, JSON.stringify(result, null, 2));
+        }
         res.status(200).json({ success: true, result });
     }
     catch(error) {
@@ -50,40 +68,47 @@ const getNutritionFact = async (req, res) => {
 
 
 
-const generateRecipeNutritionFact = async (req, res) => {
+const generateRecipeNutritionFact = async () => {
     try {
+        //Fetch the NutritionFactMap and build the recipes.
         const { NutritionFactMap } = await getMaps(['nutritionFactMap']);
         const recipes = await buildRecipes();
 
-        const allRecipeNutritionFact = [];
-        for(const recipe of recipes) {
+        //Generate the nutrition facts for each recipe.
+        const allRecipeNutritionFact = recipes.reduce((acc, recipe) => { //acc = accumulator (or nutritionFactsByRecipe).
+            const recipeSKU = recipe.RecipeMeta.recipeSKU;
             let recipeNutritionFact = {};
-            const sku = recipe.RecipeMeta.recipeSKU;
-            Object.keys(recipe).forEach(ingredient => {
+
+            //Calculate nutrition facts for each ingredient in the recipe.
+            Object.entries(recipe).forEach(([ingredient, data]) => {
                 if(ingredient === 'RecipeMeta') return;
-                const { ingID, quantity } = recipe[ingredient]; //Get the ingredient ID and quantity.
-                const fact = NutritionFactMap.find(fact => fact.IngredientID === ingID); //Find the nutrition fact for the ingredient.
-                let ratio = (ingredient === 'Egg' ? quantity * 48 : quantity) / fact.ServingSize; //Calculate the ratio of the quantity to the serving size.
-                let nutritionFact = {}; //Object to store the nutrition fact for the ingredient.
+
+                const {ingID, quantity} = data;
+                const fact = NutritionFactMap.find(fact => fact.IngredientID === ingID);
+                if(!fact) return;
+
+                const ratio = (ingredient === 'Egg' ? quantity * 48 : quantity) / fact.ServingSize;
+                //Combine the nutrition facts for each ingredient to get the nf for the whole recipe.
                 Object.keys(fact).forEach(key => {
-                    if(key === 'NutritionFactID' || key === 'IngredientID' || key === '_id') return;
-                    nutritionFact[key] = Number(fact[key]) * Number(ratio); //Calculate the nutrition fact for the ingredient.
-                });
-                // Sum up nutrition facts for the ingredient into the recipe total
-                Object.keys(nutritionFact).forEach(key => {
-                    if (!recipeNutritionFact[key]) {
-                        recipeNutritionFact[key] = 0;
-                    }
-                    recipeNutritionFact[key] += nutritionFact[key];
+                    if(['NutritionFactID', 'IngredientID', '_id'].includes(key)) return;
+                    if(!recipeNutritionFact[key]) recipeNutritionFact[key] = 0;
+
+                    recipeNutritionFact[key] += Number(fact[key]) * ratio;
                 });
             });
-            allRecipeNutritionFact.push({ sku, recipeNutritionFact }); //Add the recipe nutrition fact to the all recipe nutrition
-        }
-        res.status(200).json({ success: true, result: allRecipeNutritionFact });
+
+            acc.push({ [recipeSKU]: recipeNutritionFact });
+            return acc;
+        }, []); //Initial value of the accumulator is an empty array. End of reduce.
+        
+        const lastUpdated = new Date().toISOString();
+        const nutritionFactData = { lastUpdated, facts: allRecipeNutritionFact };
+        
+        return nutritionFactData;
     }
     catch(error) {
         console.error("(stcTestMap)(generateRecipeNutritionFact) Error generating recipe nutrition fact: ", error);
-        res.status(500).json({ success: false, message: "Internal server error." });
+        return { success: false, message: "Internal server error." };
     }
 }
 
