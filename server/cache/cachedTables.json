@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2025-03-10T15:12:17.766Z",
+  "lastUpdated": "2025-03-10T15:26:34.689Z",
   "tableList": [
     "Recipe-A",
     "Ingredient",
@@ -1831,91 +1831,91 @@
             "_id": "cSv0i_5GQPmKkILKi86U1w",
             "CategoryShapeSizeID": 1,
             "CategoryShapeID": 1,
-            "SizeName": "Tiny",
+            "SizeID": 1,
             "BatchSize": 200
           },
           {
             "_id": "Xe_aRDPBQxixi39FZNOGhg",
             "CategoryShapeSizeID": 2,
             "CategoryShapeID": 1,
-            "SizeName": "Small",
+            "SizeID": 2,
             "BatchSize": 55
           },
           {
             "_id": "eAHNeRaeSyWkx3lX956oQw",
             "CategoryShapeSizeID": 3,
             "CategoryShapeID": 1,
-            "SizeName": "Medium",
+            "SizeID": 3,
             "BatchSize": 50
           },
           {
             "_id": "BtcV0t5mSwCF7T_-PYxjkw",
             "CategoryShapeSizeID": 4,
             "CategoryShapeID": 1,
-            "SizeName": "Large",
+            "SizeID": 4,
             "BatchSize": 50
           },
           {
             "_id": "ctoqEsB2TYiDPV9WeDgZug",
             "CategoryShapeSizeID": 5,
             "CategoryShapeID": 1,
-            "SizeName": "Extra Large",
+            "SizeID": 5,
             "BatchSize": 30
           },
           {
             "_id": "c0seog9SQUG4trvK-l3L9Q",
             "CategoryShapeSizeID": 6,
             "CategoryShapeID": 2,
-            "SizeName": "Small",
+            "SizeID": 2,
             "BatchSize": 70
           },
           {
             "_id": "M6hzGPs9QeuEHLBL0_aDVQ",
             "CategoryShapeSizeID": 7,
             "CategoryShapeID": 2,
-            "SizeName": "Medium",
+            "SizeID": 3,
             "BatchSize": 100
           },
           {
             "_id": "XhZzeGzkRmuyN2B21lqsUw",
             "CategoryShapeSizeID": 8,
             "CategoryShapeID": 2,
-            "SizeName": "Large",
+            "SizeID": 4,
             "BatchSize": 50
           },
           {
             "_id": "RRaGSb14TTaBdO_5YzCCIQ",
             "CategoryShapeSizeID": 9,
             "CategoryShapeID": 2,
-            "SizeName": "Extra Large",
+            "SizeID": 5,
             "BatchSize": 20
           },
           {
             "_id": "NpjJ8LxdSauzLvYA0xR1cw",
             "CategoryShapeSizeID": 10,
             "CategoryShapeID": 3,
-            "SizeName": "Extra Large",
+            "SizeID": 5,
             "BatchSize": 20
           },
           {
             "_id": "HBxC9OkETISQahFb7HcBaQ",
             "CategoryShapeSizeID": 11,
             "CategoryShapeID": 4,
-            "SizeName": "Tiny",
+            "SizeID": 1,
             "BatchSize": 135
           },
           {
             "_id": "byyP2XL0SvSnTsXheutrDQ",
             "CategoryShapeSizeID": 12,
             "CategoryShapeID": 5,
-            "SizeName": "Tiny",
+            "SizeID": 1,
             "BatchSize": 108
           },
           {
             "_id": "SvzNjQ24R9CA3sZX1yWIGw",
             "CategoryShapeSizeID": 13,
             "CategoryShapeID": 6,
-            "SizeName": "Tiny",
+            "SizeID": 1,
             "BatchSize": 230
           }
         ]

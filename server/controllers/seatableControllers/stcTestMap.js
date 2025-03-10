@@ -579,11 +579,9 @@ const convertForeignKeys = async (map, idToName) => {
             );
             
             const changes = {}; //Temporary Object to store the changes made to the rows.
-            //Process the foreign key conversion for each row. Using `Promise.all` with map processes all operations in parallel (faster but more memory intensive).
-            // Process one column at a time
+            //Process one column at a time
             for (const column of columnStructure) {
-                console.log(`Processing column: ${column}`);
-                // Process all rows for current column
+                //Process all rows for current column
                 await Promise.all(Object.keys(rows).map(async row => {
                     const value = rows[row][column];
                     if (!changes[row]) {
@@ -592,7 +590,6 @@ const convertForeignKeys = async (map, idToName) => {
                     
                     const result = await processForeignKeyConversion(table_name, column, value);
                     if (!result.newValue || result.newValue === 'undefined') {
-                        console.log(`No valid new value found for column: ${column}`);
                         return;
                     }
                     
