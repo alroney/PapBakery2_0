@@ -497,14 +497,11 @@ const perProductFact = async (req, res) => {
                             productFact[key] = Number((recipeFact[recipeSKU][key] * servingSizeRatio).toFixed(4));
                         }
                     }
-
-                    console.log("Product Fact: ", productFact);
-
-
-                    return;
+                    perProductFact[ProductSKU] = productFact;
                 }
             }
         }
+        res.status(200).json({ success: true, result: perProductFact });
     }
     catch(error) {
         console.error("(stcTestMap)(perProductFact) Error getting nutrition fact per product: ", error);
