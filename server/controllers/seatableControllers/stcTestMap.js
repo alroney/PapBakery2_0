@@ -454,7 +454,68 @@ const buildProducts = async () => {
 };
 
 
+const perProductFact = async (req, res) => {
+    try {
+        const nutritionFact = await getNutritionFact();
+        const maps = await getMaps(['products-AMap', 'categoryShapeMap', 'categoryShapeSizeMap', 'subCategoryAvgWeightMap']);
+        const perProductFact = {};
+        let count = 0;
 
+         for(const product of maps['Products-AMap']){
+            if(count === 11) { //For testing purposes, only run once.
+                console.log("Product: ", product);
+                const { ProductSKU } = product;
+                const recipeSKU = ProductSKU.split('-')[0];
+                const shapeSizeSKU = ProductSKU.split('-')[1];
+                //Get individual ids needed for avg product weight.
+                const subCatID = recipeSKU.charAt(0);
+                const shapeID = shapeSizeSKU.charAt(0);
+                const sizeID = shapeSizeSKU.charAt(1);
+
+                console.log("ProductSKU: ", ProductSKU);
+                console.log("RecipeSKU: ", recipeSKU);
+
+                const recipeFact = nutritionFact.facts.find(fact => fact[recipeSKU]); //Get the nutrition fact for the recipe based off the first 3 numbers in the productSKU.
+                for(const scaw of maps['SubCategoryAvgWeightMap']) { //scaw = SubCategoryAvgWeight.
+                    const isBaked = scaw.Baked;
+                    const cssID = scaw.CategoryShapeSizeID;
+                    const subCat = scaw.SubCategoryID;
+                    //Get the size and shape id to match with the product sku.
+                    const matchSizeID = maps['CategoryShapeSizeMap'].find(css => css.CategoryShapeSizeID === cssID).SizeID; //Get the size id from the css map based off the cssID in scaw.
+                    const catShapeID = maps['CategoryShapeSizeMap'].find(css => css.CategoryShapeSizeID === cssID).CategoryShapeID;
+                    const matchShapeID = maps['CategoryShapeMap'].find(cs => cs.CategoryShapeID === catShapeID).ShapeID;
+
+                    if(isBaked && (subCat === parseInt(subCatID) && matchSizeID === parseInt(sizeID) && matchShapeID === parseInt(shapeID))) {
+                        const avgWeight = scaw.AvgWeight;
+                        console.log(`Avg weight for ${ProductSKU}: ${avgWeight}`);
+
+                        const productFact = {};
+                        const recipeServingSize = recipeFact[recipeSKU].ServingSize;
+                        for(const key in recipeFact[recipeSKU]) {
+                            if(key === 'ServingSize') {
+                                productFact[key] = avgWeight;
+                            } else {
+                                const servingSizeRatio = avgWeight / recipeServingSize;
+                                productFact[key] = Number((recipeFact[recipeSKU][key] * servingSizeRatio).toFixed(4));
+                            }
+                        }
+
+                        console.log("Product Fact: ", productFact);
+
+
+                        return;
+                    }
+                }
+            }
+
+            count++;
+        }
+    }
+    catch(error) {
+        console.error("(stcTestMap)(perProductFact) Error getting nutrition fact per product: ", error);
+        res.status(500).json({ success: false, message: "Internal server error." });
+    }
+}
 
 
 
@@ -687,4 +748,4 @@ const processForeignKeyConversion = async (tableName, columnName, input) => {
 
 
 
-module.exports = { testSTCMaps, updateProductsTable, convertFKeys, getNutritionFact, buildRecipes, generateRecipeNutritionFact};
+module.exports = { testSTCMaps, updateProductsTable, convertFKeys, getNutritionFact, perProductFact, buildRecipes, generateRecipeNutritionFact};
