@@ -171,6 +171,20 @@ const seatableManager = () => {
     }
   }
 
+  const getProductNF = async () => {
+    setSelectedTable('none');
+    try {
+      const response = await fetch(`${apiBase}/seatable/perProductFacts`);
+      const data = await response.json();
+      if(data.success) {
+        console.log("Product build test successful.");
+      }
+    }
+    catch(error) {
+      failSafe("Error testing product build: ", error);
+    }
+  }
+
   const test = async () => {
     setSelectedTable('none');
     try {
@@ -193,6 +207,7 @@ const seatableManager = () => {
         <button onClick={fetchTables}>Update Available Tables</button>
         <button onClick={updateProductsTable}>Update Available Products</button>
         <button onClick={buildRecipes}>Build Recipes</button>
+        <button onClick={getProductNF}>Get Nutrition Facts</button>
         <button onClick={test}>Test</button>
         <p id="test"> </p>
             {tables.length > 0 && (

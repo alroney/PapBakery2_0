@@ -455,7 +455,7 @@ const buildProducts = async () => {
 
 
 
-const perProductFact = async (req, res) => {
+const perProductFacts = async (req, res) => {
     try {
         console.log("Generating nutrition fact per product...");
 
@@ -528,7 +528,7 @@ const perProductFact = async (req, res) => {
         fs.writeFileSync(filePath, JSON.stringify(productFactData, null, 2));
 
         res.status(200).json({ success: true, result: perProductFact });
-        console.log("Product nutrition facts generated successfully.");
+        console.log(`${Object.keys(perProductFact).length} product nutrition facts generated successfully.`);
     } catch (error) {
         console.error("(stcTestMap)(perProductFact) Error getting nutrition fact per product: ", error);
         res.status(500).json({ success: false, message: "Internal server error." });
@@ -766,4 +766,4 @@ const processForeignKeyConversion = async (tableName, columnName, input) => {
 
 
 
-module.exports = { testSTCMaps, updateProductsTable, convertFKeys, getRecipeNutritionFacts, perProductFact, buildRecipes, generateRecipeNutritionFacts};
+module.exports = { testSTCMaps, updateProductsTable, convertFKeys, getRecipeNutritionFacts, perProductFacts, buildRecipes, generateRecipeNutritionFacts};
