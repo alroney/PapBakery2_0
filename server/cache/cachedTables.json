@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2025-03-12T11:27:59.579Z",
+  "lastUpdated": "2025-03-12T15:06:46.551Z",
   "tableList": [
     "Recipe-A",
     "Ingredient",
@@ -391,7 +391,7 @@
             "PurchaseCost": 3.12,
             "CostPerUnit": 0.06782608696,
             "IngredientCategory": "FLAVOR AGENT",
-            "IngredientAvailable": false
+            "IngredientAvailable": true
           },
           {
             "_id": "SmC12F9fTKuTYh973wHOLA",
