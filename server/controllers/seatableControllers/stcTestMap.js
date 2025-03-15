@@ -39,26 +39,17 @@ const convertFKeys = async (req, res) => {
 
 const getRecipeNutritionFacts = async () => {
     try {
-        let result;
         const filePath = path.join(__dirname, '../../cache/recipeNutrtionFacts.json');
-
+        
         try {
-            const fileData = fs.readFileSync(filePath, 'utf8');
-            result = JSON.parse(fileData);
-        } catch (err) {
-            // File doesn't exist or can't be read, generate new data
-            result = await generateRecipeNutritionFact();
-            
-            // Ensure directory exists
-            const dir = path.dirname(filePath);
-            if (!fs.existsSync(dir)) {
-                fs.mkdirSync(dir, { recursive: true });
-            }
-            
-            // Save the generated data
+            return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        } 
+        catch {
+            const result = await generateRecipeNutritionFacts();
+            fs.mkdirSync(path.dirname(filePath), { recursive: true });
             fs.writeFileSync(filePath, JSON.stringify(result, null, 2));
+            return result;
         }
-        return result;
     }
     catch(error) {
         console.error("(stcTestMap)(getNutritionFact) Error getting nutrition fact: ", error);
@@ -67,7 +58,7 @@ const getRecipeNutritionFacts = async () => {
 }
 
 
-
+//Function: Generate the nutrition facts for each recipe.
 const generateRecipeNutritionFacts = async () => {
     try {
         //Fetch the NutritionFactMap and build the recipes.
@@ -386,7 +377,7 @@ const buildRecipes = async () => {
 
 
 
-//Function: Build the products from the maps.
+//Function: Build the products using the recipes then from shapes and sizes.
 const buildProducts = async () => {
     console.log("Building products...");
     try {
@@ -401,7 +392,7 @@ const buildProducts = async () => {
         const generateProducts = async () => {
             const products = [];
 
-            for (const categoryShapeSize of maps.CategoryShapeSizeMap) { // Iterate over the CategoryShapeSizeMap to get the categoryShapeSize data.
+            for (const categoryShapeSize of maps.CategoryShapeSizeMap) { //Iterate over the CategoryShapeSizeMap to get the categoryShapeSize data.
                 let productAvailable = true;
                 const { CategoryShapeID: categoryShapeID, SizeID: sizeID, BatchSize: batchSize } = categoryShapeSize;
                 const categoryShape = maps.CategoryShapeMap.find(cs => cs.CategoryShapeID === categoryShapeID);
@@ -454,7 +445,7 @@ const buildProducts = async () => {
 };
 
 
-
+//Function: Generate the nutrition facts for each individual products.
 const perProductFacts = async (req, res) => {
     try {
         console.log("Generating nutrition fact per product...");
@@ -465,6 +456,7 @@ const perProductFacts = async (req, res) => {
         //Initialize objects to store product facts.
         const perProductFact = {};
 
+        //#region - Lookup Maps.
         //Create a map of subcategory average weight for quick lookup. scaw = SubCategoryAvgWeight.
         const subCategoryAvgWeightMap = maps['SubCategoryAvgWeightMap'].reduce((acc, scaw) => {
             const { CategoryShapeSizeID: cssID, SubCategoryID, AvgWeight, Baked } = scaw;
@@ -480,6 +472,7 @@ const perProductFacts = async (req, res) => {
             acc[recipeSKU] = fact[recipeSKU];
             return acc;
         }, {});
+        //#endregion - End of Lookup Maps.
 
         //Iterate over each product to calculate its nutrition facts.
         maps['Products-AMap'].forEach(product => {
@@ -510,6 +503,7 @@ const perProductFacts = async (req, res) => {
             }
         });
 
+        //#region - File Handling.
         //Define the file path to save the product nutrition facts.
         const filePath = path.join(__dirname, '../../cache/productNutritionFacts.json');
         const productFactData = {
@@ -526,6 +520,7 @@ const perProductFacts = async (req, res) => {
 
         //Save data to file in JSON format.
         fs.writeFileSync(filePath, JSON.stringify(productFactData, null, 2));
+        //#endregion - End of File Handling.
 
         res.status(200).json({ success: true, result: perProductFact });
         console.log(`${Object.keys(perProductFact).length} product nutrition facts generated successfully.`);
