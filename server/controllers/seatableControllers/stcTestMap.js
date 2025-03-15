@@ -168,6 +168,8 @@ const updateProductsTable = async (req, res) => {
 
 
 
+
+
 //Function: Delete a table by table name.
 const deleteOldTable = async (table_name) => {
     try {
@@ -197,9 +199,6 @@ const createNewTable = async (table_name, columns) => {
         console.error("(stcTestMap)(createNewTable) Error creating new table: ", error);
     }
 }
-
-
-
 
 
 
@@ -413,7 +412,7 @@ const buildProducts = async () => {
                     if(!recipeAvail) productAvailable = false;
 
                     const productID = 0;
-                    const sku = `${recipeSKU}-${shapeID}${sizeID}`;
+                    const sku = `${recipeSKU}-${shapeID}${sizeID}`; //SKU = Stock Keeping Unit. (###-##)
                     const productName = `${size.SizeName} ${shape.ShapeName} ${recipeName}`;
                     const productDesc = `${recipeDesc} ${shape.Description} ${size.Description}`
 
@@ -529,16 +528,6 @@ const perProductFacts = async (req, res) => {
         res.status(500).json({ success: false, message: "Internal server error." });
     }
 }
-
-
-
-
-
-
-
-
-
-
 
 
 

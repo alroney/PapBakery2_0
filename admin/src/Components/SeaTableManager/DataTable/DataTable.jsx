@@ -19,10 +19,8 @@ const DataTable = ({tableName, isLoading}) => {
         const fetchTableData = async () => {
             setLoading(true);
             try {
-                console.log("Fetching table data...");
                 const response = await fetch(`${apiBase}/seatable/table/${tableName}`);
                 const data = await response.json();
-                console.log("Table Data: ", data);
                 setData(data.rows);
                 setColumnTypes(determineColumnTypes(data.rows));
             }
@@ -55,7 +53,6 @@ const DataTable = ({tableName, isLoading}) => {
                 columnTypes[key] = typeof rows[0][key];
             }
         });
-        console.log("Column Types: ", columnTypes);
         return columnTypes;
     }
 
