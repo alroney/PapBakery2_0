@@ -447,8 +447,6 @@ const buildProducts = async () => {
 //Function: Generate the nutrition facts for each individual products.
 const perProductFacts = async (req, res) => {
     try {
-        console.log("Generating nutrition fact per product...");
-
         //Fetch the nutrition fact and necessary maps.
         const recipeNutritionFacts = await getRecipeNutritionFacts();
         const maps = await getMaps(['products-AMap', 'categoryShapeMap', 'categoryShapeSizeMap', 'subCategoryAvgWeightMap']);
@@ -522,7 +520,7 @@ const perProductFacts = async (req, res) => {
         //#endregion - End of File Handling.
 
         res.status(200).json({ success: true, result: perProductFact });
-        console.log(`${Object.keys(perProductFact).length} product nutrition facts generated successfully.`);
+        console.log(`${Object.keys(perProductFact).length} product nutrition facts generated successfully for ${Object.keys('Product-AMap').length} products.`);
     } catch (error) {
         console.error("(stcTestMap)(perProductFact) Error getting nutrition fact per product: ", error);
         res.status(500).json({ success: false, message: "Internal server error." });
@@ -592,7 +590,6 @@ const updateRowData = async (table_name, data) => {
 
 //Function: Convert the foreign keys in the given map.
 const convertForeignKeys = async (map, idToName) => {
-    console.log("(stcTestMap.js)(convertForeignKeys) Converting foreign keys...");
     try {
         let isCacheFound = false;
         const filePath = path.join(__dirname, '../../cache/cachedTables.json');
@@ -686,15 +683,16 @@ const convertForeignKeys = async (map, idToName) => {
                                 newColumnType,
                                 { format: newColumnType }
                             );
-                        } catch (err) {
-                            return console.error(`Failed to process column ${oldColumn}:`, err);
+                        } 
+                        catch (error) {
+                            console.error(`Failed to process column ${oldColumn}:`, error)
+                            return {success: false, message: `Failed to process column ${oldColumn}: ${error}`};
                         }
                     })
             );
 
             if(!columnUpdated.success) return { success: false, message: "(stcTestMaps.js)(convertForeignKeys) Failed to complete foreign key conversion: seatable column did not update." };
 
-            console.log(columnUpdated.message);
             await new Promise(resolve => setTimeout(resolve, 1000)); //Wait for 1 seconds before updating the rows. This is to ensure that the column changes are completed before updating the rows.
             const rowUpdated = await updateRowData(table_name, rows); //Update the rows with the converted foreign keys.
 
@@ -702,6 +700,8 @@ const convertForeignKeys = async (map, idToName) => {
 
             //Once both the columns and rows are updated in SeaTable, we can update them in the cache.
             await updateTableData(table_name, rows, columnsUpdating);
+            console.log(`Foreign keys converted successfully for ${table_name}.`);
+            return { success: true, message: "Foreign keys converted successfully." };
         }
 
         
