@@ -1,5 +1,5 @@
-const { capitalize } = require('../../utils/helpers');
-const { getTablesData } = require('../seatableControllers/stDataController'); //Import the getTablesData function from the stDataController.js file.
+const { capitalize } = require('./helpers');
+const { getTablesData } = require('../controllers/seatableControllers/stDataController'); //Import the getTablesData function from the stDataController.js file.
 
 
 

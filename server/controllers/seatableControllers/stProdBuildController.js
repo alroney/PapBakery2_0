@@ -1,5 +1,5 @@
 const { capitalize, decapitalize } = require('../../utils/helpers');
-const { getMaps } = require('./stcMaps');
+const { getMaps } = require('../../utils/stDataMapperService');
 const columnOperations  = require('./stColumnController');
 const { updateRow, appendRow } = require('./stRowController');
 const { createTable, deleteTable } = require('./stTableController');
@@ -56,6 +56,7 @@ const getRecipeNutritionFacts = async () => {
         return { success: false, message: "Internal server error" };
     }
 }
+
 
 
 //Function: Generate the nutrition facts for each recipe.
@@ -750,4 +751,4 @@ const processForeignKeyConversion = async (tableName, columnName, input) => {
 
 
 
-module.exports = { testSTCMaps, updateProductsTable, convertFKeys, getRecipeNutritionFacts, perProductFacts, buildRecipes, generateRecipeNutritionFacts};
+module.exports = { testSTCMaps, updateProductsTable, convertFKeys, getRecipeNutritionFacts, perProductFacts, buildRecipes, generateRecipeNutritionFacts, propagateTableUpdates};
