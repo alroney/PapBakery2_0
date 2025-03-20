@@ -305,4 +305,4 @@ const updateTableData = async (tableName, newRows, columns) => {
     }
 }
 
-module.exports = { getTables, getTableData, getTablesData, updateTableData, getTableDataDirectly, syncSeaTableData };
+module.exports = { getTables, getTableData, getTablesData, updateTableData, getTableDataDirectly, syncSeaTableData};

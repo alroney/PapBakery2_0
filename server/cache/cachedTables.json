@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2025-03-17T12:17:05.566Z",
+  "lastUpdated": "2025-03-20T11:22:37.801Z",
   "tableList": [
     "Ingredient",
     "NutritionFact",
@@ -15,7 +15,7 @@
     "CategoryShape",
     "CategoryShapeSize",
     "SubCategoryAvgWeight",
-    "Products-A"
+    "Product"
   ],
   "tablesData": [
     {
@@ -25,7 +25,7 @@
           {
             "_id": "UUwu-hJvRxG0pSoCBiOmMA",
             "IngredientID": "1",
-            "FullName": "King Arthur's All Purpose Flour",
+            "IngredientFullName": "King Arthur's All Purpose Flour",
             "IngredientName": "All Purpose Flour",
             "UnitType": "Ounces",
             "UnitSize": 80,
@@ -37,7 +37,7 @@
           {
             "_id": "SGnCpmHwRreejrAo74yd_w",
             "IngredientID": "2",
-            "FullName": "King Arthur's Whole Wheat Flour",
+            "IngredientFullName": "King Arthur's Whole Wheat Flour",
             "IngredientName": "Whole Wheat Flour",
             "UnitType": "Ounces",
             "UnitSize": 80,
@@ -49,7 +49,7 @@
           {
             "_id": "L7WVBcuBQueCulQ0h0K00w",
             "IngredientID": "3",
-            "FullName": "Quaker Whole Grain Oat Flour",
+            "IngredientFullName": "Quaker Whole Grain Oat Flour",
             "IngredientName": "Oat Flour",
             "UnitType": "Ounces",
             "UnitSize": 20,
@@ -61,7 +61,7 @@
           {
             "_id": "KYmIcvMLT_qz0rF6SICreg",
             "IngredientID": "4",
-            "FullName": "Unsalted Butter",
+            "IngredientFullName": "Unsalted Butter",
             "IngredientName": "Butter",
             "UnitType": "Ounces",
             "UnitSize": 64,
@@ -73,7 +73,7 @@
           {
             "_id": "fFyyrO47RaaaoSxjZZo2GA",
             "IngredientID": "5",
-            "FullName": "Large Egg",
+            "IngredientFullName": "Large Egg",
             "IngredientName": "Egg",
             "UnitType": "Count",
             "UnitSize": 12,
@@ -85,7 +85,7 @@
           {
             "_id": "LVZJd9INQb6xhCJjQf6YCg",
             "IngredientID": "6",
-            "FullName": "Whole Milk",
+            "IngredientFullName": "Whole Milk",
             "IngredientName": "Milk",
             "UnitType": "Fluid Ounces",
             "UnitSize": 32,
@@ -97,7 +97,7 @@
           {
             "_id": "UTc5aay3T1qtGQASnVVpMQ",
             "IngredientID": "7",
-            "FullName": "Nature's Promise Unsweetened Applesauce",
+            "IngredientFullName": "Nature's Promise Unsweetened Applesauce",
             "IngredientName": "Applesauce",
             "UnitType": "Ounces",
             "UnitSize": 46,
@@ -109,7 +109,7 @@
           {
             "_id": "SmC12F9fTKuTYh973wHOLA",
             "IngredientID": "8",
-            "FullName": "Peanut Butter",
+            "IngredientFullName": "Peanut Butter",
             "IngredientName": "Peanut Butter",
             "UnitType": "Ounces",
             "UnitSize": 40,
@@ -121,7 +121,7 @@
           {
             "_id": "P4_13CEtRiufG7ZttLbk3A",
             "IngredientID": "9",
-            "FullName": "Pure Pumpkin",
+            "IngredientFullName": "Pure Pumpkin",
             "IngredientName": "Pumpkin",
             "UnitType": "Ounces",
             "UnitSize": 15,
@@ -133,7 +133,7 @@
           {
             "_id": "WJv2s9YWQpiTj6ID0rAQpg",
             "IngredientID": "10",
-            "FullName": "Banana",
+            "IngredientFullName": "Banana",
             "IngredientName": "Banana",
             "UnitType": "Ounces",
             "UnitSize": 4.16,
@@ -145,7 +145,7 @@
           {
             "_id": "Kv70-ZmnQoqRw7djocmZeA",
             "IngredientID": "11",
-            "FullName": "Blueberry",
+            "IngredientFullName": "Blueberry",
             "IngredientName": "Blueberry",
             "UnitType": "Ounces",
             "UnitSize": 16,
@@ -157,7 +157,7 @@
           {
             "_id": "R-5x7QSQSFegF4Jr-ZlKJg",
             "IngredientID": "12",
-            "FullName": "Ground All Spice",
+            "IngredientFullName": "Ground All Spice",
             "IngredientName": "All Spice",
             "UnitType": "Ounces",
             "UnitSize": 1.8,
@@ -169,7 +169,7 @@
           {
             "_id": "Dgl_rwgpSwyZ0BDsqls4sw",
             "IngredientID": "13",
-            "FullName": "Ground Cinnamon",
+            "IngredientFullName": "Ground Cinnamon",
             "IngredientName": "Cinnamon",
             "UnitType": "Ounces",
             "UnitSize": 2.37,
@@ -181,7 +181,7 @@
           {
             "_id": "IUJJmOltSFK83UNg9fXWiw",
             "IngredientID": "14",
-            "FullName": "Ground Cumin",
+            "IngredientFullName": "Ground Cumin",
             "IngredientName": "Cumin",
             "UnitType": "Ounces",
             "UnitSize": 1.5,
@@ -193,7 +193,7 @@
           {
             "_id": "KpNGvKcySd6COGfWmOcjXw",
             "IngredientID": "15",
-            "FullName": "Ground Nutmeg",
+            "IngredientFullName": "Ground Nutmeg",
             "IngredientName": "Nutmeg",
             "UnitType": "Ounces",
             "UnitSize": 1.1,
@@ -205,7 +205,7 @@
           {
             "_id": "Swh8QxOiSG2ABXPK6-Hszg",
             "IngredientID": "16",
-            "FullName": "Pumpkin Pie Spice",
+            "IngredientFullName": "Pumpkin Pie Spice",
             "IngredientName": "Pumpkin Spice",
             "UnitType": "Ounces",
             "UnitSize": 1.12,
@@ -217,7 +217,7 @@
           {
             "_id": "WVa8-bc3SsONO2K-j1B0yw",
             "IngredientID": "17",
-            "FullName": "Brown Sugar",
+            "IngredientFullName": "Brown Sugar",
             "IngredientName": "Brown Sugar",
             "UnitType": "Ounces",
             "UnitSize": 32,
@@ -229,7 +229,7 @@
           {
             "_id": "cVl9CjsYSZam3w8WC05wmw",
             "IngredientID": "18",
-            "FullName": "Chocolate Chips",
+            "IngredientFullName": "Chocolate Chips",
             "IngredientName": "Chocolate Chips",
             "UnitType": "Ounces",
             "UnitSize": 16,
@@ -241,7 +241,7 @@
           {
             "_id": "NLIeqNZaTHO5j08uH2ablQ",
             "IngredientID": "19",
-            "FullName": "Granulated Sugar",
+            "IngredientFullName": "Granulated Sugar",
             "IngredientName": "Sugar",
             "UnitType": "Ounces",
             "UnitSize": 160,
@@ -253,7 +253,7 @@
           {
             "_id": "BWG_9thQSj2j3zfervtRag",
             "IngredientID": "20",
-            "FullName": "Honey",
+            "IngredientFullName": "Honey",
             "IngredientName": "Honey",
             "UnitType": "Fluid Ounces",
             "UnitSize": 24,
@@ -265,7 +265,7 @@
           {
             "_id": "d4U0928ZRP6O1TbLqp3Srw",
             "IngredientID": "21",
-            "FullName": "Maple Syrup",
+            "IngredientFullName": "Maple Syrup",
             "IngredientName": "Maple Syrup",
             "UnitType": "Fluid Ounces",
             "UnitSize": 46.07,
@@ -277,7 +277,7 @@
           {
             "_id": "JXGT9n3AShqMUOlVOGkpYA",
             "IngredientID": "22",
-            "FullName": "Molasses",
+            "IngredientFullName": "Molasses",
             "IngredientName": "Molasses",
             "UnitType": "Fluid Ounces",
             "UnitSize": 12,
@@ -289,7 +289,7 @@
           {
             "_id": "AQpP2WEYSMKOc72e1J6enA",
             "IngredientID": "23",
-            "FullName": "Pure Vanilla Extract",
+            "IngredientFullName": "Pure Vanilla Extract",
             "IngredientName": "Vanilla Extract",
             "UnitType": "Fluid Ounces",
             "UnitSize": 8,
@@ -301,7 +301,7 @@
           {
             "_id": "WujNbqv9RnG30v7nNrv-aQ",
             "IngredientID": "24",
-            "FullName": "Baking Powder",
+            "IngredientFullName": "Baking Powder",
             "IngredientName": "Baking Powder",
             "UnitType": "Ounces",
             "UnitSize": 8.1,
@@ -313,7 +313,7 @@
           {
             "_id": "Zx9dY5FDQ42U8nYyRiVuLA",
             "IngredientID": "25",
-            "FullName": "Baking Soda",
+            "IngredientFullName": "Baking Soda",
             "IngredientName": "Baking Soda",
             "UnitType": "Ounces",
             "UnitSize": 16,
@@ -325,7 +325,7 @@
           {
             "_id": "JfqkE0_CSVqoOI7mfSkyVA",
             "IngredientID": "26",
-            "FullName": "Cream of Tartar",
+            "IngredientFullName": "Cream of Tartar",
             "IngredientName": "Cream of Tartar",
             "UnitType": "Ounces",
             "UnitSize": 1.5,
@@ -337,7 +337,7 @@
           {
             "_id": "BgYq_A-vTueo_AbTML3oqQ",
             "IngredientID": "27",
-            "FullName": "Salt",
+            "IngredientFullName": "Salt",
             "IngredientName": "Salt",
             "UnitType": "Ounces",
             "UnitSize": 26,
@@ -349,7 +349,7 @@
           {
             "_id": "A4ySwSiERZGCdlyp7en35g",
             "IngredientID": "28",
-            "FullName": "Water",
+            "IngredientFullName": "Water",
             "IngredientName": "Water",
             "UnitType": "Fluid Ounces",
             "UnitSize": 128000,
@@ -1195,8 +1195,8 @@
           {
             "_id": "SyKHln-yRPaKYhiJL5vU3g",
             "CategoryIngredientID": "2",
-            "IngredientCategory": "FLAVOR AGENT",
             "CategoryID": 1,
+            "IngredientCategory": "FLAVOR AGENT",
             "Quantity": 115
           },
           {
@@ -1259,7 +1259,7 @@
           {
             "_id": "TJoI5uUQSMG1UZ6MStFItA",
             "SubCategoryID": 1,
-            "SubCategoryName": "SunnySide",
+            "SubCategoryName": "SunnySides",
             "Description": "with a crack of an egg for that boost of protein.",
             "CategoryID": 1
           },
@@ -1487,7 +1487,7 @@
           },
           {
             "_id": "WHBQOzonS9WmfxTmFWoI_A",
-            "SizeID": "",
+            "SizeID": null,
             "SizeName": "",
             "Description": ""
           }
@@ -1546,63 +1546,63 @@
             "CategoryShapeSizeID": 1,
             "CategoryShapeID": 1,
             "SizeID": 1,
-            "BatchSize": 200
+            "BatchSize": 300
           },
           {
             "_id": "Xe_aRDPBQxixi39FZNOGhg",
             "CategoryShapeSizeID": 2,
             "CategoryShapeID": 1,
             "SizeID": 2,
-            "BatchSize": 55
+            "BatchSize": 154
           },
           {
             "_id": "eAHNeRaeSyWkx3lX956oQw",
             "CategoryShapeSizeID": 3,
             "CategoryShapeID": 1,
             "SizeID": 3,
-            "BatchSize": 50
+            "BatchSize": 67
           },
           {
             "_id": "BtcV0t5mSwCF7T_-PYxjkw",
             "CategoryShapeSizeID": 4,
             "CategoryShapeID": 1,
             "SizeID": 4,
-            "BatchSize": 50
+            "BatchSize": 26
           },
           {
             "_id": "ctoqEsB2TYiDPV9WeDgZug",
             "CategoryShapeSizeID": 5,
             "CategoryShapeID": 1,
             "SizeID": 5,
-            "BatchSize": 30
+            "BatchSize": 18
           },
           {
             "_id": "c0seog9SQUG4trvK-l3L9Q",
             "CategoryShapeSizeID": 6,
             "CategoryShapeID": 2,
             "SizeID": 2,
-            "BatchSize": 70
+            "BatchSize": 89
           },
           {
             "_id": "M6hzGPs9QeuEHLBL0_aDVQ",
             "CategoryShapeSizeID": 7,
             "CategoryShapeID": 2,
             "SizeID": 3,
-            "BatchSize": 100
+            "BatchSize": 40
           },
           {
             "_id": "XhZzeGzkRmuyN2B21lqsUw",
             "CategoryShapeSizeID": 8,
             "CategoryShapeID": 2,
             "SizeID": 4,
-            "BatchSize": 50
+            "BatchSize": 21
           },
           {
             "_id": "RRaGSb14TTaBdO_5YzCCIQ",
             "CategoryShapeSizeID": 9,
             "CategoryShapeID": 2,
             "SizeID": 5,
-            "BatchSize": 20
+            "BatchSize": 18
           },
           {
             "_id": "NpjJ8LxdSauzLvYA0xR1cw",
@@ -1998,7 +1998,7 @@
       }
     },
     {
-      "tableName": "Products-A",
+      "tableName": "Product",
       "data": {
         "rows": [
           {
