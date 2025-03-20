@@ -80,7 +80,7 @@ const insertColumn = async (security, data) => {
 
     try {
         const response = await axios(options);
-        console.log("Column created: ", response.data);
+        response.data.success ? console.log("Column created successfully.") : console.error("Column creation failed: ", response.data);
         return { success: true, message: "Column created successfully." };
     }
     catch(error) {
@@ -112,7 +112,7 @@ const deleteColumn = async (security, table_name, column) => {
 
     try {
         const response = await axios(options);
-        console.log("Column deleted: ", response.data);
+        response.data.success ? console.log("Column deleted successfully.") : console.error("Column deletion failed: ", response.data);
         return { success: true, message: "Column deleted successfully." };
     }
     catch(error) {

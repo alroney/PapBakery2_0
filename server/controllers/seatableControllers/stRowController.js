@@ -20,7 +20,7 @@ const updateRow = async (data) => {
 
     try {
         const response = await axios(options);
-        console.log("Row(s) updated: ", response.data);
+        console.log("Row(s) updated successfully.");
         return { success: true, message: "Row(s) updated successfully." };
     }
     catch(error) {
@@ -46,7 +46,7 @@ const appendRow = async (data) => {
 
     try {
         const response = await axios(options);
-        console.log("Row(s) appended: ", response.data);
+        console.log("Row(s) appended successfully!");
         return { success: true, message: "Row(s) appended successfully." };
     }
     catch(error) {

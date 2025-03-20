@@ -121,10 +121,10 @@ const seatableManager = () => {
     }
   }
 
-  const updateProductsTable = async () => {
+  const updateProductTable = async () => {
     setSelectedTable('none');
     try {
-      const response = await fetch(`${apiBase}/seatable/updateProductsTable`);
+      const response = await fetch(`${apiBase}/seatable/updateProductTable`);
       const data = await response.json();
       if(data.success) {
         console.log("Products table updated successfully.");
@@ -191,7 +191,7 @@ const seatableManager = () => {
       const response = await fetch(`${apiBase}/seatable/test`);
       const data = await response.json();
       if(data.success) {
-        console.log("Product build test successful.");
+        console.log("Full update test successful.");
         document.getElementById("test").innerHTML = JSON.stringify(data.result, null, 2).replace(/\n/g, '<br>').replace(/ /g, '&nbsp;');
       }
     }
@@ -205,9 +205,7 @@ const seatableManager = () => {
         <h1>SeaTable</h1>
         <button onClick={syncTables}>Synchronize</button>
         <button onClick={fetchTables}>Update Available Tables</button>
-        <button onClick={updateProductsTable}>Update Available Products</button>
-        <button onClick={buildRecipes}>Build Recipes</button>
-        <button onClick={getProductNF}>Get Nutrition Facts</button>
+        <button onClick={updateProductTable}>Update Available Products</button>
         <button onClick={test}>Test</button>
         <p id="test"> </p>
             {tables.length > 0 && (

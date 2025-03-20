@@ -21,9 +21,8 @@ const createTable = async (tableData) => {
     };
 
     try {
-        console.log("Table Data: ", tableData);
         const response = await axios(options);
-        console.log("Table created: ", response.data);
+        if(response.data.success) console.log("Table created");
         return { success: true, message: "Table created successfully." };
     }
     catch(error) {
@@ -49,7 +48,7 @@ const deleteTable = async (table_name) => {
 
     try {
         const response = await axios(options);
-        console.log("Table deleted: ", response.data);
+        response.data.success ? console.log("Table deleted successfully.") : console.error("Table deletion failed: ", response.data);
         return { success: true, message: "Table deleted successfully." };
     }
     catch(error) {
@@ -78,7 +77,7 @@ const renameTable = async (oldTableName, newTableName, req, res) => {
 
     try {
         const response = await axios(options);
-        console.log("Table renamed: ", response.data);
+        response.data.success ? console.log("Table renamed successfully.") : console.error("Table renaming failed: ", response.data);
         res.status(200).json({ success: true, message: "Table renamed successfully." });
     }
     catch(error) {

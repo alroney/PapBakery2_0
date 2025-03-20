@@ -2,7 +2,7 @@ const axios = require('axios'); //Axios is a promise-based HTTP client for the b
 const convertUnits = require('../utils/unitConversion'); //Converts units of measurement.
 const { fetchStoredToken, getBaseTokenAndUUID } = require('./seatableControllers/stTokenController'); //Import functions from tokenController.js.
 const { getTablesData, updateTableData } = require('./seatableControllers/stDataController'); //Import the cached tables data from stDataController.js.
-const { propagateTableUpdates } = require('./seatableControllers/stProdBuildController');
+const { fullUpdate } = require('./seatableControllers/stProdBuildController');
 const urlBase = "https://cloud.seatable.io"; //SeaTable server.
 
 
@@ -28,12 +28,12 @@ const updateRows = async (req, res) => {
         if(response.data.success) {
             const result = await updateTableData(tableName, rows, null);
             if(result.success) {
-                await propagateTableUpdates(tableName, rows);
+                await fullUpdate(req, res);
             }
 
         }
         
-        res.status(200).json(response.data);
+        // res.status(200).json(response.data);
     }
     catch(error) {
         console.error("(seatableController)(updateRows) Error updating rows: ", error);

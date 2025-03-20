@@ -58,6 +58,7 @@ const getRecipeNutritionFacts = async () => {
 }
 
 
+//Function: Convert all foreign keys in all tables from Name to ID.
 const convertAllToID = async (allTables) => {
     try {
         const tablesToConvert = [];
@@ -123,8 +124,11 @@ const convertAllToID = async (allTables) => {
 }
 
 
+//Function: Update all tables to match any changes made to a single table.
 const fullUpdate = async (req, res) => {
     try {
+        const {tableName, rows} = req.body;
+        console.log("tableName: ", tableName);
         const filePath = path.join(__dirname, '../../cache/cachedTables.json');
         if (!fs.existsSync(filePath)) {
             return { success: false, message: "Cache not found, cannot determine table dependencies" };
@@ -135,11 +139,19 @@ const fullUpdate = async (req, res) => {
         //Convert any and all foreign keus from Name to ID.
         const convertResult = await convertAllToID(allTables);
         if(!convertResult.success) {
-            console.error("Failed to convert all tables to ID:", convertResult.message);
-            res.status(500).json({ success: false, message: "Failed to convert all tables to ID" });
+            console.error(convertResult.message);
+            res.status(500).json({ success: false, message: convertResult.message });
             return;
         }
 
+
+        //Update Product table.
+        const productUpdate = await updateProductTable();
+        if(!productUpdate.success) {
+            console.error(productUpdate.message);
+            res.status(500).json({ success: false, message: productUpdate.message });
+            return;
+        }
 
         res.status(200).json({ success: true, message: "Full update successful." });
         
@@ -149,148 +161,6 @@ const fullUpdate = async (req, res) => {
         res.status(500).json({ success: false, message: "Internal server error." });
     }
 }
-
-
-
-
-/**
- * Updates all tables that depend on a modified source table.
- * @param {string} sourceTable - The name of the table that was updated.
- * @param {Array<Object>} updatedRows - The updated rows from the source table.
- * @returns {Object} - Result of the update operation.
- */
-const updateDependentTables = async (sourceTable, updatedRows) => {
-    try {
-        console.log(`Checking for tables dependent on ${sourceTable}...`);
-        
-        //Get all tables from cache.
-        const filePath = path.join(__dirname, '../../cache/cachedTables.json');
-        if (!fs.existsSync(filePath)) {
-            return { success: false, message: "Cache not found, cannot determine table dependencies" };
-        }
-        
-        const cachedTablesData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-        const allTables = Object.values(cachedTablesData.tablesData);
-        
-        //Find tables that might depend on the source table.
-        const dependentTables = [];
-        for (const table of allTables) {
-            const tableName = table.tableName;
-            if (tableName === sourceTable) continue; //Skip the source table itself.
-            
-            const tableData = table.data;
-            if (!tableData?.rows?.length) continue;
-            
-            //Check if any columns reference the source table (either as ID or Name).
-            const firstRow = tableData.rows[0];
-            console.log(`Checking ${tableName} for references to ${sourceTable}...`);
-            const hasReference = Object.keys(firstRow).some(column => 
-                column === `${sourceTable}ID` || 
-                column === `${sourceTable}Name`
-            );
-            
-            if (hasReference) {
-                dependentTables.push(tableName);
-            }
-        }
-        
-        if (dependentTables.length === 0) {
-            console.log(`No dependent tables found for ${sourceTable}`);
-            return { success: true, message: "No dependent tables to update" };
-        }
-        
-        console.log(`Found ${dependentTables.length} dependent tables for ${sourceTable}: ${dependentTables.join(', ')}`);
-        
-        //Update each dependent table.
-        const updateResults = [];
-        for (const dependentTable of dependentTables) {
-            console.log(`Updating ${dependentTable} based on changes in ${sourceTable}...`);
-            
-            //Get the dependent table data.
-            const tableData = await getTableDataDirectly(dependentTable);
-            if (!tableData?.rows?.length) {
-                console.error(`Failed to get table data for ${dependentTable}`);
-                updateResults.push({
-                    table: dependentTable,
-                    success: false,
-                    message: `Failed to get table data for ${dependentTable}`
-                });
-                continue;
-            }
-            
-            //Create map for the dependent table.
-            const dependentMap = { [`${dependentTable}Map`]: tableData.rows };
-            
-            //Check if we need to convert IDs to Names or Names to IDs.
-            const hasIdColumn = tableData.rows[0][`${sourceTable}ID`] !== undefined;
-            const hasNameColumn = tableData.rows[0][`${sourceTable}Name`] !== undefined;
-            
-            //Only proceed if the table has relevant columns to update.
-            if (!hasIdColumn && !hasNameColumn) {
-                updateResults.push({
-                    table: dependentTable,
-                    success: true,
-                    message: `No relevant columns to update in ${dependentTable}`
-                });
-                continue;
-            }
-            
-            //Convert foreign keys using existing function
-            const idToName = false; //If we have Name but no ID, convert Name to ID.
-            const result = await convertForeignKeys(dependentMap, idToName);
-            
-            updateResults.push({
-                table: dependentTable,
-                success: result.success,
-                message: result.message
-            });
-        }
-        
-        const allSuccessful = updateResults.every(result => result.success);
-        return {
-            success: allSuccessful,
-            message: allSuccessful ? 
-                `Successfully updated all dependent tables for ${sourceTable}` : 
-                `Failed to update some dependent tables for ${sourceTable}`,
-            details: updateResults
-        };
-    } catch (error) {
-        console.error(`Error updating dependent tables for ${sourceTable}:`, error);
-        return {
-            success: false,
-            message: `Error updating dependent tables: ${error.message}`
-        };
-    }
-};
-
-
-
-
-/**
- * Triggers dependent table updates after a source table is modified
- * @param {string} tableName - The name of the table that was modified
- * @param {Array<Object>} updatedRows - The updated rows
- * @returns {Promise<Object>} - Result of the operation
- */
-const propagateTableUpdates = async (tableName, updatedRows) => {
-    try {
-        console.log(`Propagating updates from ${tableName} to dependent tables...`);
-        const result = await updateDependentTables(tableName, updatedRows);
-        console.log(`Finished propagating updates from ${tableName}:`, result);
-        return result;
-    } catch (error) {
-        console.error(`Failed to propagate updates from ${tableName}:`, error);
-        return { 
-            success: false, 
-            message: `Failed to propagate updates: ${error.message}` 
-        };
-    }
-};
-
-
-
-
-
 
 
 
@@ -341,9 +211,9 @@ const generateRecipeNutritionFacts = async () => {
 
 
 //Function: Update the products table using a combination of the maps.
-const updateProductsTable = async (req, res) => {
+const updateProductTable = async () => {
     try {
-        const table_name = 'ProductMap';
+        const table_name = 'Product';
         let clearedToContinue = true;
         const existingMaps = await getMaps(['productMap']);
 
@@ -388,17 +258,17 @@ const updateProductsTable = async (req, res) => {
             
             await createNewTable(table_name, columns);
             await appendRow({ table_name, rows: products });
-            res.status(200).json({ success: true, message: "Product table created successfully." });
+            return { success: true, message: "Product table created successfully." };
         }
         else { 
             console.log("Failed to update products table.");
-            res.status(500).json({ success: false, message: "Failed to update products table." });
+            return { success: false, message: "Failed to update products table." };
         }
 
     }
     catch(error) {
-        console.error("(stProdBuildController)(updateProductData) Error updating product data: ", error);
-        res.status(500).json({ success: false, message: "Internal server error." });
+        console.error("(stProdBuildController)(updateProductTable) Error updating product data: ", error);
+        return { success: false, message: "Internal server error." };
     }
 }
 
@@ -681,7 +551,7 @@ const buildProducts = async () => {
 
 
 //Function: Generate the nutrition facts for each individual products.
-const perProductFacts = async (req, res) => {
+const perProductFacts = async () => {
     try {
         //Fetch the nutrition fact and necessary maps.
         const recipeNutritionFacts = await getRecipeNutritionFacts();
@@ -755,11 +625,11 @@ const perProductFacts = async (req, res) => {
         fs.writeFileSync(filePath, JSON.stringify(productFactData, null, 2));
         //#endregion - End of File Handling.
 
-        res.status(200).json({ success: true, result: perProductFact });
         console.log(`${Object.keys(perProductFact).length} product nutrition facts generated successfully for ${Object.keys('Product-AMap').length} products.`);
+        return {success: true, message: "Product nutrition facts generated successfully."};
     } catch (error) {
         console.error("(stProdBuildController)(perProductFact) Error getting nutrition fact per product: ", error);
-        res.status(500).json({ success: false, message: "Internal server error." });
+        return { success: false, message: "Internal server error." };
     }
 }
 
@@ -992,4 +862,4 @@ const processForeignKeyConversion = async (tableName, columnName, input) => {
 
 
 
-module.exports = { testSTCMaps, updateProductsTable, convertFKeys, getRecipeNutritionFacts, perProductFacts, buildRecipes, generateRecipeNutritionFacts, propagateTableUpdates, fullUpdate };
+module.exports = { testSTCMaps, updateProductTable, convertFKeys, getRecipeNutritionFacts, perProductFacts, buildRecipes, generateRecipeNutritionFacts, fullUpdate };
