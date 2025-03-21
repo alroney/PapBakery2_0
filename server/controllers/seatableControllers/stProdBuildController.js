@@ -126,39 +126,53 @@ const convertAllToID = async (allTables) => {
 
 //Function: Update all tables to match any changes made to a single table.
 const fullUpdate = async (req, res) => {
+    const startTime = Date.now();
+    let log = [];
+    
     try {
-        const {tableName, rows} = req.body;
-        console.log("tableName: ", tableName);
+        //Log request info without storing unused variables.
+        log.push(`Updating data for request with table: ${req.body.tableName || 'all tables'}`);
         const filePath = path.join(__dirname, '../../cache/cachedTables.json');
-        if (!fs.existsSync(filePath)) {
-            return { success: false, message: "Cache not found, cannot determine table dependencies" };
+        try {
+            //Check if cache exists.
+            await fs.promises.access(filePath);
+
+            //Read and parse cache data.
+            const cachedTablesData = JSON.parse(await fs.promises.readFile(filePath, 'utf8'));
+            const allTables = Object.values(cachedTablesData.tablesData);
+
+            //Convert foreign keys from Name to ID format.
+            log.push('Checking foregin keys...');
+            const convertResult = await convertAllToID(allTables);
+            if(!convertResult.success) {
+                throw new Error(`Foregin key conversion failed: ${convertResult.message}`);
+            }
+            log.push('Foreign key check successful.');
+
+            //Update Product table with current data.
+            log.push('Updating product table...');
+            const productUpdate = await updateProductTable();
+            if(!productUpdate.success) {
+                throw new Error(`Product table update failed: ${productUpdate.message}`);
+            }
+            log.push('Product table updated successfully.');
+
+
+            const executionTime = Date.now() - startTime;
+            log.push(`Full update completed in ${executionTime}ms.`);
+            console.log(log.join('\n'));
+            res.status(200).json({ success: true, message: "Full update successful.", executionTime });
         }
-        const cachedTablesData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-        const allTables = Object.values(cachedTablesData.tablesData);
-
-        //Convert any and all foreign keus from Name to ID.
-        const convertResult = await convertAllToID(allTables);
-        if(!convertResult.success) {
-            console.error(convertResult.message);
-            res.status(500).json({ success: false, message: convertResult.message });
-            return;
+        catch(fileError) {
+            console.error("(stProdBuildController)(fullUpdate) Error reading cached tables: ", fileError);
+            res.status(500).json({ success: false, message: "Cache not found or invalid, cannot determine table dependencies." });
         }
-
-
-        //Update Product table.
-        const productUpdate = await updateProductTable();
-        if(!productUpdate.success) {
-            console.error(productUpdate.message);
-            res.status(500).json({ success: false, message: productUpdate.message });
-            return;
-        }
-
-        res.status(200).json({ success: true, message: "Full update successful." });
-        
     }
     catch(error) {
-        console.error("(stProdBuildController)(fullUpdate) Error updating all tables: ", error);
-        res.status(500).json({ success: false, message: "Internal server error." });
+        const errorTime = Date.now() - startTime;
+        console.error(`(stProdBuildController)(fullUpdate) Error after ${errorTime}ms: `, error);
+        console.error(log.join('\n'));
+        res.status(500).json({ success: false, message: error.message || "Internal server error." });
     }
 }
 
