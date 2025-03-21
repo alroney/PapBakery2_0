@@ -198,6 +198,16 @@ const fullUpdate = async (req, res) => {
                 log.push("All tables successfully converted from Name to ID.");
             }
 
+
+            if(req.body.tableName === "NutritionFact") {
+                log.push("Recalculating recipe and nutrition facts");
+                ppf = await perProductFacts();
+                if(!ppf.success) {
+                    throw new Error("Failed to recalculate nutrition facts.");
+                }
+            }
+
+
             //Update Product table with current data.
             log.push('Updating product table...');
             const productUpdate = await updateProductTable();
@@ -618,7 +628,7 @@ const perProductFacts = async () => {
     try {
         //Fetch the nutrition fact and necessary maps.
         const recipeNutritionFacts = await getRecipeNutritionFacts();
-        const maps = await getMaps(['products-AMap', 'categoryShapeMap', 'categoryShapeSizeMap', 'subCategoryAvgWeightMap']);
+        const maps = await getMaps(['productMap', 'categoryShapeMap', 'categoryShapeSizeMap', 'subCategoryAvgWeightMap']);
         //Initialize objects to store product facts.
         const perProductFact = {};
 
@@ -688,7 +698,7 @@ const perProductFacts = async () => {
         fs.writeFileSync(filePath, JSON.stringify(productFactData, null, 2));
         //#endregion - End of File Handling.
 
-        console.log(`${Object.keys(perProductFact).length} product nutrition facts generated successfully for ${Object.keys('Product-AMap').length} products.`);
+        console.log(`${Object.keys(perProductFact).length} product nutrition facts generated successfully for ${Object.keys('Product').length} products.`);
         return {success: true, message: "Product nutrition facts generated successfully."};
     } catch (error) {
         console.error("(stProdBuildController)(perProductFact) Error getting nutrition fact per product: ", error);
@@ -762,141 +772,106 @@ const updateRowData = async (table_name, data) => {
 //Function: Convert the foreign keys in the given map.
 const convertForeignKeys = async (map, idToName, cachedMaps = {}) => {
     try {
-        let isCacheFound = false;
-        const filePath = path.join(__dirname, '../../cache/cachedTables.json');
-
-        if(fs.existsSync(filePath)) {
-            isCacheFound = true;
-            console.log("(stProdBuildController.js)(convertForeignKeys) Cache found!");
-        }
-
-        const mapName = Object.keys(map)[0]; //Get the map name.
-        const table_name = mapName.replace('Map', ''); //Get the table name from the map name.
-        const rows = map[mapName]; //Get the rows from the map.
-        const columnsRenamed = {}; //Object to store the columns that will be renamed.
-
-        //Find columns that need conversion.
-        const columnStructure = Object.keys(rows[0]) //Get the column structure from the first row.
-            .filter(column => !column.startsWith(table_name)) //Filter out columns that start with the table name.
-            .filter(column => idToName ? column.endsWith('ID') : column.endsWith('Name'));
-
-        if(columnStructure.length === 0) {
-            return {success: true, message: "No columns need converting."};
-        }
-
-        const validColumns = [];
-        // Process all columns in parallel
-        const columnResults = await Promise.all(columnStructure.map(async column => {
-            const value = rows[0][column];
-            if(!value) return null;
-            
-            const result = await processForeignKeyConversion(table_name, column, value, cachedMaps);
-            return result.newColumnName !== column ? column : null;
-        }));
-
-        // Filter out null values and extract valid columns
-        validColumns.push(...columnResults.filter(column => column !== null));
+        const [mapName] = Object.keys(map);
+        const table_name = mapName.replace('Map', '');
+        const rows = map[mapName];
         
-        if(validColumns.length === 0) {
-            return {success: true, message: "No valid columns need converting."};
+        // Find columns needing conversion
+        const columnsToConvert = Object.keys(rows[0])
+            .filter(column => !column.startsWith(table_name) && 
+                (idToName ? column.endsWith('ID') : column.endsWith('Name')));
+
+        if (!columnsToConvert.length) {
+            return { success: true, message: "No columns need converting." };
         }
 
-        //Process all columns in parallel.
-        const columnPromises = validColumns.map(async column => {
-            const newColumnName = idToName ? column.replace(/ID$/g, 'Name') : column.replace(/Name$/g, 'ID');
+        // Process all columns in parallel
+        const columnsProcessed = await Promise.all(columnsToConvert.map(async column => {
+            const value = rows[0][column];
+            if (!value) return null;
+
+            const { newColumnName, newValue } = await processForeignKeyConversion(table_name, column, value, cachedMaps);
+            if (newColumnName === column) return null;
+
             const newColumnType = idToName ? 'text' : 'number';
-
-            //Process all rows for this column in parallel.
-            const rowUpdates = await Promise.all(rows.map(async row => {
-                const value = row[column];
-                if(!value) return null;
-
-                const result = await processForeignKeyConversion(table_name, column, value, cachedMaps);
-
-                if(!result.newValue || result.newValue === 'undefined') return null;
-
-                return {
+            
+            // Process all rows for this column
+            const updates = (await Promise.all(rows.map(async row => {
+                const result = await processForeignKeyConversion(table_name, column, row[column], cachedMaps);
+                return result.newValue && result.newValue !== 'undefined' ? {
                     row_id: row._id,
                     column: newColumnName,
                     value: result.newValue
-                };
-            }));
-
-            //Filter out null values.
-            const validUpdates = rowUpdates.filter(update => update !== null);
+                } : null;
+            }))).filter(Boolean);
 
             return {
                 oldColumn: column,
                 newColumnName,
                 newColumnType,
-                updates: validUpdates
+                updates
             };
-        });
+        })).then(results => results.filter(Boolean));
 
-        const columnsProcessed = await Promise.all(columnPromises)
-
-        const columnUpdatePromises = columnsProcessed.map(async column => {
-            try {
-                const columnUpdated = await renameAndUpdateColumnType(
-                    table_name,
-                    column.oldColumn,
-                    column.newColumnName,
-                    column.newColumnType,
-                    { format: column.newColumnType }
-                );
-                return columnUpdated;
-            }
-            catch (error) {
-                console.error(`Failed to process column ${column.oldColumn}:`, error);
-                return { success: false };
-            }
-        })
-
-        await Promise.all(columnUpdatePromises);
-
-        const rowUpdatesByID = {};
-        columnsProcessed.forEach(column => {
-            column.updates.forEach(update => {
-                if(!rowUpdatesByID[update.row_id]) rowUpdatesByID[update.row_id] = {_id: update.row_id};
-                
-                rowUpdatesByID[update.row_id][update.column] = update.value;
-            });
-        });
-
-        const rowsToUpdate = Object.values(rowUpdatesByID);
-        if(rowsToUpdate.length > 0) {
-            await updateRowData(table_name, rowsToUpdate);
+        if (!columnsProcessed.length) {
+            return { success: true, message: "No valid columns need converting." };
         }
 
-        const updatedRows = [...rows]; // Create a copy of the original rows
-        columnsProcessed.forEach(column => {
+        // Update column names and types
+        await Promise.all(columnsProcessed.map(column =>
+            renameAndUpdateColumnType(
+                table_name,
+                column.oldColumn,
+                column.newColumnName,
+                column.newColumnType,
+                { format: column.newColumnType }
+            )
+        ));
+
+        // Prepare row updates
+        const rowUpdates = columnsProcessed.reduce((acc, column) => {
             column.updates.forEach(update => {
-                // Find the row with matching ID
-                const rowIndex = updatedRows.findIndex(row => row._id === update.row_id);
-                if (rowIndex !== -1) {
-                    // Add the new column value
-                    updatedRows[rowIndex][update.column] = update.value;
-                    // Remove the old column value
-                    delete updatedRows[rowIndex][column.oldColumn];
+                acc[update.row_id] = {
+                    ...acc[update.row_id],
+                    _id: update.row_id,
+                    [update.column]: update.value
+                };
+            });
+            return acc;
+        }, {});
+
+        // Update rows if needed
+        if (Object.keys(rowUpdates).length) {
+            await updateRowData(table_name, rowUpdates);
+        }
+
+        // Update table data
+        const updatedRows = rows.map(row => {
+            const newRow = { ...row };
+            columnsProcessed.forEach(column => {
+                const update = column.updates.find(u => u.row_id === row._id);
+                if (update) {
+                    newRow[update.column] = update.value;
+                    delete newRow[column.oldColumn];
                 }
             });
+            return newRow;
         });
 
-        await updateTableData(table_name, updatedRows, columnsProcessed.reduce((acc, col) => {
-            acc[col.oldColumn] = {
+        await updateTableData(table_name, updatedRows, columnsProcessed.reduce((acc, col) => ({
+            ...acc,
+            [col.oldColumn]: {
                 newColumnName: col.newColumnName,
                 newColumnType: col.newColumnType,
-            };
-            return acc;
-        }, {}));
+            }
+        }), {}));
 
         return { success: true, message: "Foreign keys converted successfully." };
-
+    } catch (error) {
+        console.error("(stProdBuildController.js)(convertForeignKeys) Error converting foreign keys:", error);
+        throw error;
     }
-    catch(error) {
-        console.error("(stProdBuildController.js)(convertForeignKeys) Error converting foreign keys: ", error);
-    }
-}
+};
 
 
 
