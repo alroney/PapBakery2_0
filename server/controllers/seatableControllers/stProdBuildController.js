@@ -9,20 +9,6 @@ const fs = require('fs');
 const path = require('path');
 
 
-const testSTCMaps = async (req, res) => {
-    try {
-        // const map = getMaps(['subCategoryIngredientMap']);
-        // const updatedMap = convertForeignKeys(map, false);
-        // updatedMap;
-        await buildProducts();
-        res.status(200).json({ success: true });
-    }
-    catch (error) {
-        console.error("(stProdBuildController)(testSTCMaps) Error testing STC Maps: ", error);
-        res.status(500).json({ success: false, message: "Internal server error." });
-    }
-}
-
 
 const convertFKeys = async (req, res) => {
     try {
@@ -278,8 +264,6 @@ const updateProductTable = async () => {
         return { success: false, message: "Internal server error." };
     }
 }
-
-
 
 
 
@@ -850,4 +834,4 @@ const processForeignKeyConversion = async (tableName, columnName, input, cachedM
 
 
 
-module.exports = { testSTCMaps, updateProductTable, convertFKeys, getRecipeNutritionFacts, perProductFacts, buildRecipes, generateRecipeNutritionFacts, fullUpdate };
+module.exports = { updateProductTable, convertFKeys, getRecipeNutritionFacts, perProductFacts, buildRecipes, generateRecipeNutritionFacts, fullUpdate };
