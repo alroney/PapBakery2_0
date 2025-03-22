@@ -7,7 +7,10 @@ const Item = (props) => {
 
   const { id, name, image, price} = props;
   
+
+
 //Link affects APP.js Routes
+//TODO: Change this to represent subcategory.
   return (
     <div className="item">
         <Link to={`/product/${id}/${name.split(' ').join('-')}`}><img onClick={window.scrollTo(0,0)} src={image} alt="" /></Link>

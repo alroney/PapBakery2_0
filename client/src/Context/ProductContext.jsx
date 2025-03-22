@@ -65,6 +65,7 @@ export const ProductProvider = ({ children }) => {
     const [state, dispatch] = useReducer(productReducer, initialState);
 
 
+
     useEffect(() => {
         //Fetch all products from the backend API when the provider is mounted
         const fetchProducts = async () => {
@@ -79,8 +80,9 @@ export const ProductProvider = ({ children }) => {
             catch(error) {
                 console.error("Failed to fetch products: ", error);
             }
-    }
-    fetchProducts();
+        }
+
+        fetchProducts();
     }, []); //The empty dependency array ensures this runs only once when the provider mounts.
 
     return (
@@ -89,6 +91,8 @@ export const ProductProvider = ({ children }) => {
         </ProductContext.Provider>
     );
 };
+
+
 
 //Custom hook to use product context
 export const useProduct = () => {

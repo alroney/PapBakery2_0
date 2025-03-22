@@ -8,6 +8,9 @@ export const Popular = memo(() => {
 
   const [topProducts, setTopProducts] = useState([]);
 
+
+
+  //UseEffect: Fetch the top products from the API.
   useEffect(() => {
     fetch(`${apiUrl}/products/top`) //Call the API endpoint.
     .then((response) => {
@@ -31,6 +34,8 @@ export const Popular = memo(() => {
     })
   }, []); //[] indicates to be called only one time when component is mounted.
 
+
+  
   return (
     <div className="popular">
         <h1>Popular</h1>

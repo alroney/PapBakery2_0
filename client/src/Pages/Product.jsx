@@ -15,6 +15,7 @@ export const Product = () => {
   const [product, setProduct] = useState(null);
 
 
+
   useEffect(() => {
     //Find product by ID
     const foundProduct = state.products.find(
@@ -25,10 +26,13 @@ export const Product = () => {
   }, [state.products, productId]);
 
 
+
   if(!product) {
     return <div> No product to display.</div>
   }
 
+
+  
   return (
     <div>
       <Breadcrum product={product}/>

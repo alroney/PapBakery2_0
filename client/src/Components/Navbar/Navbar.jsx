@@ -29,6 +29,7 @@ export const Navbar = () => {
     }
 
 
+
     //Function: Complete a process for logging out.
     const handleLogout = () => {
         localStorage.removeItem('auth-token'); //Clear the token.
@@ -37,6 +38,8 @@ export const Navbar = () => {
         setMenu("home"); //Set menu to home to prepare the <hr>.
     }
 
+
+
     //Function: Toggle the dropdown menu.
     const dropdown_toggle = (e) => {
         navRef.current.classList.toggle('nav-combo-visible');
@@ -44,12 +47,16 @@ export const Navbar = () => {
         toggleScroll(navRef.current.classList.contains('nav-combo-visible')); //Disable scolling when menu is open.
     }
 
+
+
     //Function: Check if the token is expired.
     const isTokenExpired = (token) => {
         if(!token) return true; //If token is not present, return true.
         const decodedToken = JSON.parse(atob(token.split('.')[1])); //Decode the token.
         return decodedToken.exp * 1000 < Date.now(); //Return true if token is expired.
     }
+
+
 
     //UseEffect: Check if the token is expired.
     useEffect(() => {
@@ -60,6 +67,8 @@ export const Navbar = () => {
         }
     }, []);
 
+
+
     //UseEffect: Update the menu based on the current path.
     useEffect(() => {
         const pathSegments = location.pathname.split('/').filter(Boolean); //Split the path and remove empty strings.
@@ -67,6 +76,8 @@ export const Navbar = () => {
         setMenu(currentMenu); //Set the menu to the current menu.
     }, [location]);
 
+
+    
   return (
     <div className='navbar'>
         <div className='nav-logo'>
@@ -84,6 +95,7 @@ export const Navbar = () => {
                 <li onClick={()=>{setMenu("home")}}>
                     <NavLink className="nav-item"  to='/'>Home</NavLink>{menu==="home"?<hr/>:<></>}
                 </li> 
+                {/* TODO: Dynamic navlink based on available categories. */}
                 <li onClick={()=>{setMenu("biscuits")}}>
                     <NavLink className="nav-item" to='/biscuits'>Biscuits</NavLink>{menu==="biscuits"?<hr/>:<></>}
                 </li>

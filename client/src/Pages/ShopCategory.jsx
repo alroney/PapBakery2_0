@@ -4,6 +4,12 @@ import { ShopContext } from '../Context/ShopContext';
 import dropdown_icon from '../Components/Assets/img/icon/dropdown_icon.png';
 import Item from '../Components/Item/Item';
 
+
+/* MAJOR TODO: Use display the Subcategory for the selected category. 
+ * Then upon selection it will then show the product and its options.
+*/
+
+
 export const ShopCategory = (props) => {
   console.log("==(ShopCategory) Page Loaded.==");
 
@@ -13,6 +19,8 @@ export const ShopCategory = (props) => {
   const filteredProducts = all_product.filter((item) =>  item.category === props.category );
   console.log("Current Category: ", props.category);
   
+
+
   return (
     <div className="shop-category">
       <div className="shopcategory-indexSort">

@@ -20,24 +20,29 @@ const productSchema = new Mongoose.Schema(
         },
         description: {
             type: String,
-            required: false, //CHANGE LATER
+            required: false, //CHANGE LATER TO TRUE
             default: `Product Description`,
         },
-        category:{
+        category: {
             type: String,
             required: true,
             default: "none",
         },
-        price:{
+        subcategory: {
+            type: String,
+            required: false, //CHANGE LATER TO TRUE
+            default: "none",
+        },
+        price: {
             type: Number,
             required: true,
             default: 0,
         },
-        date:{
+        date: {
             type: Date,
             default: Date.now(),
         },
-        available:{
+        available: {
             type: Boolean,
             default: true,
         },
