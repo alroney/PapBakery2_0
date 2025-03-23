@@ -2,6 +2,7 @@ const Products = require('../models/productSchema'); //Get & import the Products
 const Users = require('../models/userSchema');
 const fs = require('fs');
 const path = require('path');
+const { getTableDataDirectly } = require('./seatableControllers/stDataController');
 require('dotenv').config({ path: __dirname + '/.env' }); //Allows access to environment variables.
 const serverUrl = process.env.SERVER_URL;
 
@@ -69,6 +70,38 @@ const fetchAllProducts = async () => {
         throw error;
     }
 };
+
+
+
+//API endpoint to synchronize all the products from Seatable to MongoDB.
+const syncProducts = async (req,res) => {
+    try {
+        const productsData = await getTableDataDirectly('Product');
+        const productsArray = Array.isArray(productsData.rows) ? productsData.rows : [productsData];
+        const keys = Object.keys(productsArray[0] || {})
+            .filter(key => key !== '_id')
+            .map(key => ({
+            [key.replace(/Product/g, '').charAt(0).toLowerCase() + key.replace(/Product/g, '').slice(1)]: key
+            }));
+
+        const newProducts = productsArray.map(product => {
+            const newProduct = {};
+            keys.forEach(key => {
+                const [newKey] = Object.keys(key);
+                newProduct[newKey] = product[key[newKey]];
+            });
+            return newProduct;
+        });
+
+        await Products.insertMany(newProducts);
+
+        res.status(200).json({ success: true, message: "Products synchronized successfully." });
+    }
+    catch(error) {
+        console.error("Error while syncing products: ", error);
+        res.status(500).json({ success: false, message: "Internal server error." });
+    }
+}
 
 
 
@@ -230,4 +263,4 @@ const topProducts = async (req,res) => {
 
 
 
-module.exports = { allProducts, addProduct, removeProduct, editProduct, topProducts, newProducts};
+module.exports = { allProducts, addProduct, removeProduct, editProduct, topProducts, newProducts, syncProducts};

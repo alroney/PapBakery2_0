@@ -69,44 +69,64 @@ const AddProduct = () => {
         }
     }
 
+    const Sync_Products = async () => {
+        try {
+            const response = await fetch(`${apiBase}/products/sync`, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+            });
+            const data = await response.json();
+            data.success ? alert("Products Synced") : alert("Failed to Sync Products");
+        }
+        catch(error) {
+            console.error("Failed to sync products: ", error);
+        }
+    }
+
 
 
   return (
     <div className="add-product">
-        <div className="addproduct-itemfield">
-            <p>Product title</p>
-            <input value={productDetails.name} onChange={changeHandler} type="text" name='name' placeholder='Type here' />
-        </div>
-
-        <div className="addproduct-price">
+        <button className="addproduct-sync-all" onClick={() => (Sync_Products())}>Sync All Products</button>
+        <div className="addproduct-form">
             <div className="addproduct-itemfield">
-                <p>Price</p>
-                <input value={productDetails.price} onChange={changeHandler} type="text" name="price" placeholder='Type here'/>
+                <p>Product title</p>
+                <input value={productDetails.name} onChange={changeHandler} type="text" name='name' placeholder='Type here' />
             </div>
-        </div>
-        
-        <div className="addproduct-itemfield">
-            <p>Product Category</p>
-            <select value={productDetails.category} onChange={changeHandler} name="category" className="add-product-selector">
-                <option value="biscuit">Biscuit</option>
-                <option value="training_treat">Training Treat</option>
-            </select>
-        </div>
 
-        <div className="addproduct-itemfield">
-            <p>Product Description</p>
-            <input value={productDetails.description} onChange={changeHandler} type="text" name='description' placeholder='Type here'/> 
-        </div>
+            <div className="addproduct-price">
+                <div className="addproduct-itemfield">
+                    <p>Price</p>
+                    <input value={productDetails.price} onChange={changeHandler} type="text" name="price" placeholder='Type here'/>
+                </div>
+            </div>
+            
+            <div className="addproduct-itemfield">
+                <p>Product Category</p>
+                <select value={productDetails.category} onChange={changeHandler} name="category" className="add-product-selector">
+                    <option value="biscuit">Biscuit</option>
+                    <option value="training_treat">Training Treat</option>
+                </select>
+            </div>
 
-        <div className="addproduct-itemfield">
-            <label htmlFor="file-input">
-                {/*If image is TRUE create an image url and display it : ELSE display default image */}
-                <img src={image?URL.createObjectURL(image):upload_area} className="addproduct-thumbnail-img" alt="" />
-            </label>
-            <input onChange={imageHandler} type="file" name="image" id="file-input" hidden/>
+            <div className="addproduct-itemfield">
+                <p>Product Description</p>
+                <input value={productDetails.description} onChange={changeHandler} type="text" name='description' placeholder='Type here'/> 
+            </div>
+
+            <div className="addproduct-itemfield">
+                <label htmlFor="file-input">
+                    {/*If image is TRUE create an image url and display it : ELSE display default image */}
+                    <img src={image?URL.createObjectURL(image):upload_area} className="addproduct-thumbnail-img" alt="" />
+                </label>
+                <input onChange={imageHandler} type="file" name="image" id="file-input" hidden/>
+            </div>
+            
+            <button onClick={() => (Add_Product())} className="addproduct-btn">ADD</button>
         </div>
-        
-        <button onClick={() => (Add_Product())} className="addproduct-btn">ADD</button>
     </div>
   )
 }

@@ -8,6 +8,11 @@ const Mongoose = require('mongoose');
 const productSchema = new Mongoose.Schema(
     {
         //key: object -> { key: value,}.
+        sku: {
+            type: String,
+            required: true,
+            default: "000-00",
+        },
         name: {
             type: String,
             required: true,
@@ -16,7 +21,7 @@ const productSchema = new Mongoose.Schema(
         image: {
             type: String,
             required: true,
-            default: "",
+            default: "none",
         },
         description: {
             type: String,
@@ -36,7 +41,7 @@ const productSchema = new Mongoose.Schema(
         price: {
             type: Number,
             required: true,
-            default: 0,
+            default: 1,
         },
         date: {
             type: Date,
