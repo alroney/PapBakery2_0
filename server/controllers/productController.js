@@ -75,68 +75,144 @@ const fetchAllProducts = async () => {
 
 
 //API endpoint to synchronize all the products from Seatable to MongoDB.
-const syncProducts = async (req,res) => {
+const syncProducts = async (req, res) => {
     try {
-        // Get mappings before synchronization
-        const categoryData = await getTableDataDirectly('Category');
-        const subCategoryData = await getTableDataDirectly('SubCategory');
-        const flourData = await getTableDataDirectly('Flour');
-        const flavorData = await getTableDataDirectly('Flavor'); 
-        const shapeData = await getTableDataDirectly('Shape');
-        const sizeData = await getTableDataDirectly('Size');
-
-        // Create maps for lookups
+        console.time('syncProducts');
+        
+        //Fetch all reference data in parallel.
+        const [categoryData, subCategoryData, flourData, flavorData, shapeData, sizeData, productsData] = 
+            await Promise.all([
+                getTableDataDirectly('Category'),
+                getTableDataDirectly('SubCategory'),
+                getTableDataDirectly('Flour'),
+                getTableDataDirectly('Flavor'),
+                getTableDataDirectly('Shape'),
+                getTableDataDirectly('Size'),
+                getTableDataDirectly('Product')
+            ]);
+        
+        console.log(`Fetched ${productsData.rows.length} products and reference data`);
+        
+        //Create maps for lookups .- using more descriptive variable names
         const flourMap = new Map(flourData.rows.map(row => [row.FlourId, row.FlourName]));
         const flavorMap = new Map(flavorData.rows.map(row => [row.FlavorId, row.FlavorName]));
         const shapeMap = new Map(shapeData.rows.map(row => [row.ShapetId, row.ShapeName]));
         const sizeMap = new Map(sizeData.rows.map(row => [row.SizeId, row.SizeName]));
-        const subCategoryMap = new Map(subCategoryData.rows.map(row => [row.SubCategoryID, { categoryId: row.CategoryID, name: row.SubCategoryName }]));
-        const categoryMap = new Map(categoryData.rows.map(row => [row.CategoryID, { name: row.CategoryName }]));
-
-        const productsData = await getTableDataDirectly('Product'); //Get the products data from the seatable API.
-        const productsArray = Array.isArray(productsData.rows) ? productsData.rows : [productsData]; //Convert the data to an array if it's not already.
-        const keys = Object.keys(productsArray[0] || {})
-            .filter(key => key !== '_id' && key !== 'ProductID') //Remove the _id field to prevent duplication/overwriting.
-            .map(key => ({
-                [key.replace(/Product/g, '').toLowerCase()]: key //Remove the word product and convert to camelcase to match the mongoDB schema.
-            }));
-
-        const updProducts = productsArray.map(product => {
-            const updProduct = {};
-            keys.forEach(key => {
-                const [newKey] = Object.keys(key);
-                if (newKey === 'sku') {
-                    const sku = product[key[newKey]];
-                    // console.log("\nSKU: ", sku);
-                    const deSKU = destructureSKU(sku);
-                    const { subCategoryID } = deSKU;
-
-                    updProduct.subcategory = subCategoryMap.get(Number(subCategoryID)).name;
-                    updProduct.category = categoryMap.get(subCategoryMap.get(Number(subCategoryID)).categoryId).name;
-                    
-                }
-                updProduct[newKey] = product[key[newKey]];
+        const subCategoryMap = new Map(subCategoryData.rows.map(row => [
+            row.SubCategoryID, 
+            { categoryId: row.CategoryID, name: row.SubCategoryName }
+        ]));
+        const categoryMap = new Map(categoryData.rows.map(row => [
+            row.CategoryID, 
+            { name: row.CategoryName }
+        ]));
+        
+        //Ensure we have an array of products.
+        const productsArray = Array.isArray(productsData.rows) ? productsData.rows : [productsData];
+        
+        if (productsArray.length === 0) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "No products found to synchronize" 
             });
-            return updProduct;
+        }
+        
+        //Create a more efficient key mapping by doing this once instead of for each product.
+        const keyMap = Object.keys(productsArray[0] || {})
+            .filter(key => key !== '_id' && key !== 'ProductID')
+            .reduce((map, key) => {
+                map[key] = key.replace(/Product/g, '').toLowerCase();
+                return map;
+            }, {});
+        
+        //Process products in batches to avoid memory issues with large datasets.
+        const BATCH_SIZE = 100;
+        let processed = 0;
+        
+        for (let i = 0; i < productsArray.length; i += BATCH_SIZE) {
+            const batch = productsArray.slice(i, i + BATCH_SIZE);
+            
+            //Transform products more efficiently.
+            const updProducts = batch.map(product => {
+                const updProduct = {};
+                
+                //Apply key transformations using the pre.-calculated map
+                for (const [oldKey, newKey] of Object.entries(keyMap)) {
+                    updProduct[newKey] = product[oldKey];
+                    
+                    //Special handling for SKU.
+                    if (newKey === 'sku') {
+                        const sku = product[oldKey];
+                        const deSKU = destructureSKU(sku);
+                        const { subCategoryID } = deSKU;
+                        
+                        //Add error handling for missing mappings.
+                        const subCategory = subCategoryMap.get(Number(subCategoryID));
+                        if (subCategory) {
+                            updProduct.subcategory = subCategory.name;
+                            
+                            const category = categoryMap.get(subCategory.categoryId);
+                            if (category) {
+                                updProduct.category = category.name;
+                            } else {
+                                console.warn(`Category not found for subcategory ID: ${subCategoryID}`);
+                                updProduct.category = 'Unknown';
+                            }
+                        } else {
+                            console.warn(`Subcategory not found for ID: ${subCategoryID}`);
+                            updProduct.subcategory = 'Unknown';
+                            updProduct.category = 'Unknown';
+                        }
+                        
+                        //Add additional attributes from SKU if available.
+                        if (deSKU.flourID && flourMap.has(Number(deSKU.flourID))) {
+                            updProduct.flour = flourMap.get(Number(deSKU.flourID));
+                        }
+                        if (deSKU.flavorID && flavorMap.has(Number(deSKU.flavorID))) {
+                            updProduct.flavor = flavorMap.get(Number(deSKU.flavorID));
+                        }
+                        if (deSKU.shapeID && shapeMap.has(Number(deSKU.shapeID))) {
+                            updProduct.shape = shapeMap.get(Number(deSKU.shapeID));
+                        }
+                        if (deSKU.sizeID && sizeMap.has(Number(deSKU.sizeID))) {
+                            updProduct.size = sizeMap.get(Number(deSKU.sizeID));
+                        }
+                    }
+                }
+                
+                return updProduct;
+            });
+            
+            //Create bulk operations for the current batch.
+            const bulkOps = updProducts.map(product => ({
+                updateOne: {
+                    filter: { sku: product.sku },
+                    update: { $set: product },
+                    upsert: true,
+                },
+            }));
+            
+            //Execute bulk operations for this batch.
+            await Products.bulkWrite(bulkOps);
+            
+            processed += batch.length;
+            console.log(`Processed ${processed}/${productsArray.length} products`);
+        }
+        
+        console.timeEnd('syncProducts');
+        
+        res.status(200).json({ 
+            success: true, 
+            message: `${processed} products synchronized successfully.` 
         });
-
-        //Create bulk operations for upsert (update if exists, insert if not).
-        const bulkOps = updProducts.map(product => ({
-            updateOne: {
-                filter: { sku: product.sku }, //Find the product by SKU.
-                update: { $set: product }, //update the product with the new values.
-                upsert: true, //Insert if not found.
-            },
-        }));
-
-        //Execute the bulk operations.
-        await Products.bulkWrite(bulkOps);
-
-        res.status(200).json({ success: true, message: "Products synchronized successfully." });
     }
     catch(error) {
         console.error("Error while syncing products: ", error);
-        res.status(500).json({ success: false, message: "Internal server error." });
+        res.status(500).json({ 
+            success: false, 
+            message: "Internal server error.",
+            error: error.message
+        });
     }
 }
 
