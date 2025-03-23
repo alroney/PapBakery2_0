@@ -16,8 +16,8 @@ export const ShopCategory = (props) => {
   const { all_product } = useContext(ShopContext);
 
   //Filter products based on the category passed in props.
-  const filteredProducts = all_product.filter((item) =>  item.category === props.category );
-  console.log("Current Category: ", props.category);
+  const filteredProducts = all_product.filter((item) => item.category.toLowerCase().replace(/\s+/g, '') === props.category.toLowerCase().replace(/\s+/g, ''));
+  console.log(`Props Cat: ${props.category.toLowerCase()}`);
   
 
 
