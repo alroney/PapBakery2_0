@@ -76,12 +76,12 @@ const fetchAllProducts = async () => {
 //API endpoint to synchronize all the products from Seatable to MongoDB.
 const syncProducts = async (req,res) => {
     try {
-        const productsData = await getTableDataDirectly('Product');
-        const productsArray = Array.isArray(productsData.rows) ? productsData.rows : [productsData];
+        const productsData = await getTableDataDirectly('Product'); //Get the products data from the seatable API.
+        const productsArray = Array.isArray(productsData.rows) ? productsData.rows : [productsData]; //Convert the data to an array if it's not already.
         const keys = Object.keys(productsArray[0] || {})
-            .filter(key => key !== '_id')
+            .filter(key => key !== '_id') //Remove the _id field to prevent duplication/overwriting.
             .map(key => ({
-            [key.replace(/Product/g, '').charAt(0).toLowerCase() + key.replace(/Product/g, '').slice(1)]: key
+            [key.replace(/Product/g, '').charAt(0).toLowerCase() + key.replace(/Product/g, '').slice(1)]: key //Remove the word product and convert to camelcase to match the mongoDB schema.
             }));
 
         const newProducts = productsArray.map(product => {

@@ -158,4 +158,4 @@ const decapitalize = (str) => {
     return str.charAt(0).toLowerCase() + str.slice(1);
 }
 
-module.exports = { sendConfirmationEmail, generateCartSummary, getCartData, rateLimiter, isValidJSON, getStateTaxRates, capitalize, decapitalize };
+module.exports = { sendConfirmationEmail, generateCartSummary, getCartData, isValidJSON, getStateTaxRates, capitalize, decapitalize };
