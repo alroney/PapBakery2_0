@@ -86,10 +86,26 @@ const AddProduct = () => {
         }
     }
 
-
+    const Destruct_SKU = async () => {
+        try {
+            const response = await fetch(`${apiBase}/products/destructSKU`, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+            });
+            const data = await response.json();
+            data.success ? alert("SKU Destructed") : alert("Failed to Destruct SKU");
+        }
+        catch(error) {
+            console.error("Failed to destruct SKU: ", error);
+        }
+    }
 
   return (
     <div className="add-product">
+        <button onClick={() => (Destruct_SKU())}>Destruct SKU</button>
         <button className="addproduct-sync-all" onClick={() => (Sync_Products())}>Sync All Products</button>
         <div className="addproduct-form">
             <div className="addproduct-itemfield">

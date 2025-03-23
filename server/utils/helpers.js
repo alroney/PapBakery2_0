@@ -158,4 +158,16 @@ const decapitalize = (str) => {
     return str.charAt(0).toLowerCase() + str.slice(1);
 }
 
-module.exports = { sendConfirmationEmail, generateCartSummary, getCartData, isValidJSON, getStateTaxRates, capitalize, decapitalize };
+
+const destructureSKU = (sku) => {
+    const [recipeSKU, ssSKU] = sku.split("-");
+    const subCategoryID = recipeSKU.charAt(0);
+    const flourID = recipeSKU.charAt(1);
+    const flavorID = recipeSKU.charAt(2);
+    const shapeID = ssSKU.charAt(0);
+    const sizeID = ssSKU.charAt(1);
+
+    return { subCategoryID, flourID, flavorID, shapeID, sizeID };
+}
+
+module.exports = { sendConfirmationEmail, rateLimiter, generateCartSummary, getCartData, isValidJSON, getStateTaxRates, capitalize, decapitalize, destructureSKU };

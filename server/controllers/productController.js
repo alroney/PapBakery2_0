@@ -3,6 +3,7 @@ const Users = require('../models/userSchema');
 const fs = require('fs');
 const path = require('path');
 const { getTableDataDirectly } = require('./seatableControllers/stDataController');
+const { destructureSKU } = require('../utils/helpers');
 require('dotenv').config({ path: __dirname + '/.env' }); //Allows access to environment variables.
 const serverUrl = process.env.SERVER_URL;
 
@@ -76,24 +77,60 @@ const fetchAllProducts = async () => {
 //API endpoint to synchronize all the products from Seatable to MongoDB.
 const syncProducts = async (req,res) => {
     try {
+        // Get mappings before synchronization
+        const categoryData = await getTableDataDirectly('Category');
+        const subCategoryData = await getTableDataDirectly('SubCategory');
+        const flourData = await getTableDataDirectly('Flour');
+        const flavorData = await getTableDataDirectly('Flavor'); 
+        const shapeData = await getTableDataDirectly('Shape');
+        const sizeData = await getTableDataDirectly('Size');
+
+        // Create maps for lookups
+        const flourMap = new Map(flourData.rows.map(row => [row.FlourId, row.FlourName]));
+        const flavorMap = new Map(flavorData.rows.map(row => [row.FlavorId, row.FlavorName]));
+        const shapeMap = new Map(shapeData.rows.map(row => [row.ShapetId, row.ShapeName]));
+        const sizeMap = new Map(sizeData.rows.map(row => [row.SizeId, row.SizeName]));
+        const subCategoryMap = new Map(subCategoryData.rows.map(row => [row.SubCategoryID, { categoryId: row.CategoryID, name: row.SubCategoryName }]));
+        const categoryMap = new Map(categoryData.rows.map(row => [row.CategoryID, { name: row.CategoryName }]));
+
         const productsData = await getTableDataDirectly('Product'); //Get the products data from the seatable API.
         const productsArray = Array.isArray(productsData.rows) ? productsData.rows : [productsData]; //Convert the data to an array if it's not already.
         const keys = Object.keys(productsArray[0] || {})
-            .filter(key => key !== '_id') //Remove the _id field to prevent duplication/overwriting.
+            .filter(key => key !== '_id' && key !== 'ProductID') //Remove the _id field to prevent duplication/overwriting.
             .map(key => ({
-            [key.replace(/Product/g, '').charAt(0).toLowerCase() + key.replace(/Product/g, '').slice(1)]: key //Remove the word product and convert to camelcase to match the mongoDB schema.
+                [key.replace(/Product/g, '').toLowerCase()]: key //Remove the word product and convert to camelcase to match the mongoDB schema.
             }));
 
-        const newProducts = productsArray.map(product => {
-            const newProduct = {};
+        const updProducts = productsArray.map(product => {
+            const updProduct = {};
             keys.forEach(key => {
                 const [newKey] = Object.keys(key);
-                newProduct[newKey] = product[key[newKey]];
+                if (newKey === 'sku') {
+                    const sku = product[key[newKey]];
+                    // console.log("\nSKU: ", sku);
+                    const deSKU = destructureSKU(sku);
+                    const { subCategoryID } = deSKU;
+
+                    updProduct.subcategory = subCategoryMap.get(Number(subCategoryID)).name;
+                    updProduct.category = categoryMap.get(subCategoryMap.get(Number(subCategoryID)).categoryId).name;
+                    
+                }
+                updProduct[newKey] = product[key[newKey]];
             });
-            return newProduct;
+            return updProduct;
         });
 
-        await Products.insertMany(newProducts);
+        //Create bulk operations for upsert (update if exists, insert if not).
+        const bulkOps = updProducts.map(product => ({
+            updateOne: {
+                filter: { sku: product.sku }, //Find the product by SKU.
+                update: { $set: product }, //update the product with the new values.
+                upsert: true, //Insert if not found.
+            },
+        }));
+
+        //Execute the bulk operations.
+        await Products.bulkWrite(bulkOps);
 
         res.status(200).json({ success: true, message: "Products synchronized successfully." });
     }
