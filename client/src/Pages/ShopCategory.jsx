@@ -14,10 +14,11 @@ export const ShopCategory = (props) => {
   console.log("==(ShopCategory) Page Loaded.==");
 
   const { all_subcategory } = useContext(ShopContext);
+  const { category } = props;
   
   console.log("==(ShopCategory) all_subcategory: ", all_subcategory);
   console.log("==(ShopCategory) props: ", props);
-  const filteredSubCategories = all_subcategory.filter((item) => item.categoryID === props.category);
+  const filteredSubCategories = all_subcategory.filter((item) => item.categoryID === category.categoryID);
 
 
   
@@ -35,7 +36,7 @@ export const ShopCategory = (props) => {
       </div>
       <div className="shopcategory-products">
         {filteredSubCategories.map((item, i) => {
-            return <Item key={i} id={item._id} name={item.name} image={item.image} />
+            return <Item key={i} id={item._id} name={item.subCategoryName + ` ${category.categoryName}`} image={item.subCategoryImage} />
         })}
       </div>
       <div className="shopcategory-loadmore">

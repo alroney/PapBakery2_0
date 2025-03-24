@@ -83,11 +83,10 @@ function App() {
         <Routes>
           <Route path='/' element={<Home/>}/>
           {all_category.map(category => {
-            console.log("Category:", category);
             return (
               <Route 
-                key={category} 
-                path={`/${category}`} 
+                key={category.categoryID}
+                path={`/${category.categoryName.replace(/\s+/g, '-')}`}
                 element={<ShopCategory category={category}/>}
               />
             );

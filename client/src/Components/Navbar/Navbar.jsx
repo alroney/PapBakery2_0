@@ -93,8 +93,6 @@ export const Navbar = () => {
         const pathSegments = location.pathname.split('/').filter(Boolean); //Split the path and remove empty strings.
         const currentMenu = pathSegments[0] || 'home'; //Get the first segment of the path.
         setMenu(currentMenu); //Set the menu to the current menu.
-        console.log("Current Menu: ", currentMenu);
-        console.log("Location: ", location);
     }, [location]);
 
 
