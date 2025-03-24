@@ -13,12 +13,14 @@ export const ShopContext = createContext(null);
 const ShopContextProvider = (props) => {
     console.log("(ShopContext.jsx) -> (ShopContextProvider) Component Loaded.");
 
-    //State to store all products fetched from the server. Default set to empty array.
+    //State variables to store all products, categories, subcategories and loading status.
+    const [all_category, setAll_Category] = useState([]);
+    const [all_subcategory, setAll_Subcategory] = useState([]);
     const [all_product, setAll_Product] = useState([]);
     const [loading, setLoading] = useState(true);
     
     
-    //Asynchronously fetches all products from the server and updates the state.
+    //Function: asynchronously fetches all products from the server and updates the state.
     const fetchProducts = async () => {
         try {
             const response = await fetch(`${apiUrl}/products/all`);
@@ -32,14 +34,48 @@ const ShopContextProvider = (props) => {
         }
     }
 
+
+    //Function: asynchronously fetches all categories from the server and updates the state.
+    const fetchCategories = async () => {
+        try {
+            const response = await fetch(`${apiUrl}/products/allCategories`);
+            const data = await response.json(); //Get the response from the api, transform it into a JSON format then set it to data.
+            setAll_Category(data);
+            setLoading(false);
+        }
+        catch(error) {
+            console.error("Failed to fetch categories: ", error);
+            setLoading(false);
+        }
+    }
+
+    //Function: asynchronously fetches all subcategories from the server and updates the state.
+    const fetchSubcategories = async () => {
+        try {
+            const response = await fetch(`${apiUrl}/products/allSubCategories`);
+            const data = await response.json(); //Get the response from the api, transform it into a JSON format then set it to data.
+            setAll_Subcategory(data);
+            setLoading(false);
+        }
+        catch(error) {
+            console.error("Failed to fetch subcategories: ", error);
+            setLoading(false);
+        }
+    }
+    
+
     //useEffect hook to fetch products and load cart items on component mount.
     useEffect(() => {
+        fetchCategories();
+        fetchSubcategories();
         fetchProducts();
     }, []) //The empty dependency array ensures this runs only once when the component is mounted.
     
 
     //Context value that will be available to all child components.
     const contextValue = {
+        all_category,
+        all_subcategory,
         all_product,
         fetchProducts, 
         loading,

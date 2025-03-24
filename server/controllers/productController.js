@@ -76,7 +76,59 @@ const fetchAllProducts = async () => {
 
 
 
-//API endpoint to synchronize all the products from Seatable to MongoDB.
+//Function: Find and return all categories in the MongoDB.
+const fetchAllCategories = async () => {
+    try {
+        let categories = await Category.find();
+        return categories;
+    }
+    catch(error) {
+        console.log("Error while fetching categories: ", error);
+    }
+}
+
+
+
+//API endpoint to fetch all categories.
+const allCategories = async (req,res) => {
+    try {
+        let categories = await fetchAllCategories();
+        res.send(categories);
+    }
+    catch(error) {
+        console.log("Error while getting all categories: ", error);
+    }
+}
+
+
+
+//Function: Find and return all subcategories in the MongoDB.
+const fetchAllSubcategories = async () => {
+    try {
+        let subcategories = await SubCategory.find();
+        return subcategories;
+    }
+    catch(error) {
+        console.log("Error while fetching subcategories: ", error);
+    }
+}
+
+
+
+//API endpoint to fetch all subcategories.
+const allSubcategories = async (req,res) => {
+    try {
+        let subcategories = await fetchAllSubcategories();
+        res.send(subcategories);
+    }
+    catch(error) {
+        console.log("Error while getting all subcategories: ", error);
+    }
+}
+
+
+
+//Function: API endpoint to synchronize all the products from Seatable to MongoDB.
 const syncProducts = async (req, res) => {
     try {
         console.time('syncProducts');
@@ -120,7 +172,7 @@ const syncProducts = async (req, res) => {
             const subCategoryBulkOps = subCategoryData.rows.map(row => ({
                 updateOne: {
                     filter: { subCategoryID: row.SubCategoryID },
-                    update: { 
+                    update: {
                         $set: {
                             subCategoryID: row.SubCategoryID,
                             subCategoryName: row.SubCategoryName,
@@ -419,4 +471,4 @@ const topProducts = async (req,res) => {
 
 
 
-module.exports = { allProducts, addProduct, removeProduct, editProduct, topProducts, newProducts, syncProducts};
+module.exports = { allProducts, addProduct, removeProduct, editProduct, topProducts, newProducts, syncProducts, allCategories, allSubcategories};
