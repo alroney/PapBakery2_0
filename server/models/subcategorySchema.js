@@ -13,6 +13,11 @@ const subCategorySchema = new Mongoose.Schema(
             required: true,
             default: "none",
         },
+        subCategoryImage: {
+            type: String,
+            required: true,
+            default: "none",
+        },
         categoryID: {
             type: Number,
             required: true,

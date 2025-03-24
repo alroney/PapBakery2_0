@@ -95,7 +95,6 @@ const syncProducts = async (req, res) => {
         
         console.log(`Fetched ${productsData.rows.length} products and reference data`);
         
-
         //Synchronize categories first.
         if(categoryData.rows.length > 0) {
             console.log(`Synchronizing ${categoryData.rows.length} categories...`);
@@ -125,6 +124,7 @@ const syncProducts = async (req, res) => {
                         $set: {
                             subCategoryID: row.SubCategoryID,
                             subCategoryName: row.SubCategoryName,
+                            subCategoryImage: row.SubCategoryImage,
                             categoryID: row.CategoryID
                         }
                     },
