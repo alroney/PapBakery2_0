@@ -8,15 +8,34 @@ import nav_dropdown from '../Assets/img/icon/nav_dropdown.png';
 import { NavLink, useLocation } from 'react-router';
 import { CartContext } from '../../Context/CartContext';
 import { useUser } from '../../Context/UserContext';
+import apiUrl from '@config';
 
 export const Navbar = () => {
     console.log("(Navbar.jsx) Component Loaded.");
 
     const [menu, setMenu] = useState("home"); //Initialize the menu selection.
+    const [prodCats, setProdCats] = useState([]); //Initialize the product categories.
     const {getTotalCartItems} = useContext(CartContext); //Get the total cart items from the CartContext.
     const { currentUser, setCurrentUser } = useUser(); //Get the current user and set the current user from the UserContext.
     const navRef = useRef(); //Create a reference to the navRef.
     const location = useLocation(); //Get the current location.
+
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await fetch(`${apiUrl}/products/allCategories`);
+                const data = await response.json();
+                setProdCats(data);
+                console.log("Categories: ", data);
+            }
+            catch(error) {
+                console.error("Failed to fetch categories: ", error);
+            }
+        }
+        fetchCategories();
+    }, []);
+
 
     //Function: Disable page scrolling.
     const toggleScroll = (disabled) => {
@@ -95,13 +114,13 @@ export const Navbar = () => {
                 <li onClick={()=>{setMenu("home")}}>
                     <NavLink className="nav-item"  to='/'>Home</NavLink>{menu==="home"?<hr/>:<></>}
                 </li> 
-                {/* TODO: Dynamic navlink based on available categories. */}
-                <li onClick={()=>{setMenu("biscuits")}}>
-                    <NavLink className="nav-item" to='/biscuits'>Biscuits</NavLink>{menu==="biscuits"?<hr/>:<></>}
-                </li>
-                <li onClick={()=>{setMenu("trainingTreats")}}>
-                    <NavLink className="nav-item" to='/trainingTreats'>Training Treats</NavLink>{menu==="trainingTreats"?<hr/>:<></>}
-                </li>
+                {prodCats.map((cat, i) => {
+                    return (
+                        <li key={i} onClick={()=>{setMenu(cat.categoryName)}}>
+                            <NavLink className="nav-item" to={`/shop/${cat.categoryName.replace(/\s+/g, '-')}`}>{cat.categoryName}</NavLink>{menu===cat.categoryName?<hr/>:<></>}
+                        </li>
+                    );
+                })}
             </ul>
         </div>
         <div className="nav-right-side">

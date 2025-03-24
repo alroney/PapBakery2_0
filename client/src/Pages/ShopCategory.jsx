@@ -13,11 +13,13 @@ import Item from '../Components/Item/Item';
 export const ShopCategory = (props) => {
   console.log("==(ShopCategory) Page Loaded.==");
 
-  const { all_product } = useContext(ShopContext);
+  const { all_subcategory } = useContext(ShopContext);
+  
+  console.log("==(ShopCategory) all_subcategory: ", all_subcategory);
+  console.log("==(ShopCategory) props: ", props);
+  const filteredSubCategories = all_subcategory.filter((item) => item.categoryID === props.category);
 
-  //Filter products based on the category passed in props.
-  const filteredProducts = all_product.filter((item) => item.category.toLowerCase().replace(/\s+/g, '') === props.category.toLowerCase().replace(/\s+/g, ''));
-  console.log(`Props Cat: ${props.category.toLowerCase()}`);
+
   
 
 
@@ -25,16 +27,15 @@ export const ShopCategory = (props) => {
     <div className="shop-category">
       <div className="shopcategory-indexSort">
         <p>
-          <span>Showing 1-{filteredProducts.length}</span> out of {all_product.length} products
+          <span>Showing 1-{filteredSubCategories.length}</span> out of {all_subcategory.length} Products
         </p>
         <div className="shopcategory-sort">
           Sort by <img src={dropdown_icon} alt="dropdown arrow"/>
         </div>
       </div>
       <div className="shopcategory-products">
-        {filteredProducts.map((item, i) => {
-            return <Item key={i} id={item._id} name={item.name} price={item.price} image={item.image} />
-
+        {filteredSubCategories.map((item, i) => {
+            return <Item key={i} id={item._id} name={item.name} image={item.image} />
         })}
       </div>
       <div className="shopcategory-loadmore">

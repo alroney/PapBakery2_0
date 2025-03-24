@@ -16,6 +16,7 @@ import apiUrl from '@config';
 function App() {
   console.log("========(App.js) Loaded.========");
   const { currentUser, setCurrentUser } = useUser();
+  const [all_category, setAll_Category] = useState([]);
   const [showDisclaimer, setShowDisclaimer] = useState(false); //TEMPORARY
 
   useEffect(() => {
@@ -40,7 +41,19 @@ function App() {
     };
 
     fetchCurrentUser();
-  }, [currentUser, setCurrentUser])
+  }, [currentUser, setCurrentUser]);
+
+  useEffect(() => {
+    const fetchAllCategories = async () => {
+      const response = await fetch(`${apiUrl}/products/allCategories`);
+      const data = await response.json();
+      return data;
+    }
+
+    fetchAllCategories().then(data => {
+      setAll_Category(data);
+    });
+  }, [])
 
   return (
     <div>
@@ -49,17 +62,15 @@ function App() {
           <p>Welcome, {currentUser.name}</p>
         ) : (
           <p>Browsing as Guest</p>
-        )
-      
-      }
-      <p>ALPHA Testing</p>
+        )}
+        <p>ALPHA Testing</p>
       </header>
       <BrowserRouter>
         <Navbar/>
         <div className="disclaimer" style={{margin: 50+'px'}}>
           <h2>Site Disclaimer:</h2>
           <button onClick={() => setShowDisclaimer(!showDisclaimer)}>{showDisclaimer ? "Hide Disclaimer" : "Show Disclaimer"}</button>
-          {showDisclaimer && //TEMPORARY
+          {showDisclaimer && 
             <p>
               This website is in the early stages of development. 
               All content, design, and functionality are subject to significant change and do not represent a finalized site. 
@@ -71,14 +82,20 @@ function App() {
         </div>
         <Routes>
           <Route path='/' element={<Home/>}/>
-          <Route path='/biscuits' element={<ShopCategory category="biscuit"/>}/>
-          <Route path='/trainingTreats' element={<ShopCategory category="trainingTreat"/>}/>
+          {all_category.map(category => {
+            console.log("Category:", category);
+            return (
+              <Route 
+                key={category} 
+                path={`/${category}`} 
+                element={<ShopCategory category={category}/>}
+              />
+            );
+          })}
           <Route path='/aboutUs' element={<AboutUs/>}/>
-
           <Route path='/product'>
             <Route path=':productId/:name' element={<Product/>}/>
           </Route>
-
           <Route path='/cart' element={<Cart/>}/>
           <Route path='/login' element={<LoginSignup/>}/>
         </Routes>

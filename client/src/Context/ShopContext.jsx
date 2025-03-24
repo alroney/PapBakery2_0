@@ -77,9 +77,12 @@ const ShopContextProvider = (props) => {
         all_category,
         all_subcategory,
         all_product,
-        fetchProducts, 
+        fetchProducts,
         loading,
     };
+
+
+    console.log("==(ShopContext) props: ", props);
 
     //Return the Provider component, passing the context value down to children components.
     return (
