@@ -116,7 +116,7 @@ const fetchAllSubcategories = async () => {
 
 
 //API endpoint to fetch all subcategories.
-const allSubcategories = async (req,res) => {
+const allSubCategories = async (req,res) => {
     try {
         let subcategories = await fetchAllSubcategories();
         res.send(subcategories);
@@ -471,4 +471,4 @@ const topProducts = async (req,res) => {
 
 
 
-module.exports = { allProducts, addProduct, removeProduct, editProduct, topProducts, newProducts, syncProducts, allCategories, allSubcategories};
+module.exports = { allProducts, addProduct, removeProduct, editProduct, topProducts, newProducts, syncProducts, allCategories, allSubCategories};
