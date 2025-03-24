@@ -93,6 +93,8 @@ export const Navbar = () => {
         const pathSegments = location.pathname.split('/').filter(Boolean); //Split the path and remove empty strings.
         const currentMenu = pathSegments[0] || 'home'; //Get the first segment of the path.
         setMenu(currentMenu); //Set the menu to the current menu.
+        console.log("Current Menu: ", currentMenu);
+        console.log("Location: ", location);
     }, [location]);
 
 
@@ -117,7 +119,7 @@ export const Navbar = () => {
                 {prodCats.map((cat, i) => {
                     return (
                         <li key={i} onClick={()=>{setMenu(cat.categoryName)}}>
-                            <NavLink className="nav-item" to={`/shop/${cat.categoryName.replace(/\s+/g, '-')}`}>{cat.categoryName}</NavLink>{menu===cat.categoryName?<hr/>:<></>}
+                            <NavLink className="nav-item" to={`/${cat.categoryName.replace(/\s+/g, '-')}`}>{cat.categoryName}</NavLink>{menu===`${cat.categoryName.replace(/\s+/g, '-')}`?<hr/>:<></>}
                         </li>
                     );
                 })}
