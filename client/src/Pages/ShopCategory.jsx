@@ -36,7 +36,7 @@ export const ShopCategory = (props) => {
       </div>
       <div className="shopcategory-products">
         {filteredSubCategories.map((item, i) => {
-            return <Item key={i} id={item._id} name={item.subCategoryName + ` ${category.categoryName}`} image={item.subCategoryImage} />
+            return <Item key={i} id={item.subCategoryID} name={item.subCategoryName + ` ${category.categoryName}`} image={item.subCategoryImage} /> //Parameters passed to Item component.
         })}
       </div>
       <div className="shopcategory-loadmore">

@@ -49,6 +49,7 @@ const fetchAllProducts = async () => {
             {
                 $group: {
                     _id: '$_id',
+                    sku: { $first: '$sku' },
                     name: { $first: '$name' },
                     description: { $first: '$description' },
                     price: { $first: '$price' },

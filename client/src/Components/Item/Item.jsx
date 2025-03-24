@@ -13,8 +13,7 @@ const Item = (props) => {
 //TODO: Change this to represent subcategory.
   return (
     <div className="item">
-        <img src={image} alt="" />
-        {/* <Link to={`/product/${id}/${name.split(' ').join('-')}`}><img onClick={window.scrollTo(0,0)} src={image} alt="" /></Link> */}
+        <Link to={`/product/${name.split(' ').join('-')}/111-11`}><img onClick={window.scrollTo(0,0)} src={image} alt="" /></Link>
         <div className='item-header'>
           <p>{name}</p>
         </div>

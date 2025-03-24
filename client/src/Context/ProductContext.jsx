@@ -67,7 +67,7 @@ export const ProductProvider = ({ children }) => {
 
 
     useEffect(() => {
-        //Fetch all products from the backend API when the provider is mounted
+        //Fetch all products from the backend API when the provider is mounted.
         const fetchProducts = async () => {
             try {
                 const response = await fetch(`${apiUrl}/products/all`);
@@ -94,7 +94,7 @@ export const ProductProvider = ({ children }) => {
 
 
 
-//Custom hook to use product context
+//Custom hook to use product context.
 export const useProduct = () => {
     console.log("(ProductContext.jsx) -> (useProduct) Hook Activated.");
 

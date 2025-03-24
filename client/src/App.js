@@ -82,6 +82,7 @@ function App() {
         </div>
         <Routes>
           <Route path='/' element={<Home/>}/>
+          {/* Dynamic creation of routes based on categories available. */}
           {all_category.map(category => {
             return (
               <Route 
@@ -93,7 +94,7 @@ function App() {
           })}
           <Route path='/aboutUs' element={<AboutUs/>}/>
           <Route path='/product'>
-            <Route path=':productId/:name' element={<Product/>}/>
+            <Route path=':name/:productSKU' element={<Product/>}/>
           </Route>
           <Route path='/cart' element={<Cart/>}/>
           <Route path='/login' element={<LoginSignup/>}/>

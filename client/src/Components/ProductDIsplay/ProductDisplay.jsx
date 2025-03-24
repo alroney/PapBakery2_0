@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import './ProductDisplay.css'
 import star_icon from '../Assets/img/icon/star_icon.png'
 import star_dull_icon from '../Assets/img/icon/star_dull_icon.png'
@@ -8,6 +8,11 @@ export const ProductDisplay = (props) => {
     console.log("(ProductDisplay.jsx) Component Loaded.");
 
     const {product} = props;
+    const [selectedFlavor, setSelectedFlavor] = useState(null);
+    const [selectedShape, setSelectedShape] = useState(null);
+    const [selectedSize, setSelectedSize] = useState(null);
+    const [selectedFlour, setSelectedFlour] = useState(null);
+
     const {name, image, description, rating, reviews, price} = product;
     const {handleAddToCart} = useContext(CartContext);
 
@@ -57,12 +62,32 @@ export const ProductDisplay = (props) => {
                 <p>{description}</p>
             </div>
 
-            <div className="productdisplay-right-size">
-                <h1>Select Size</h1>
-                <div className="productdisplay-right-sizes">
-                    {/* TODO: Dynamic size selection based on sizes available to product.*/}
+            <div className="productdisplay-right-option">
+                <div className="productdisplay-right-options">
+                    <h2>Select Flavor</h2>
+                    <div className="productdisplay-right-flavors">
+                        {/* TODO: Dynamic flavor selection based on flavors available to product. */}
+                    </div>
                 </div>
-            </div>
+                <div className="productdisplay-right-options">
+                    <h2>Select Shape</h2>
+                    <div className="productdisplay-right-shapes">
+                        {/* TODO: Dynamic shape selection based on shapes available to subcategory. */}
+                    </div>
+                </div>
+                <div className="productdisplay-right-options">
+                    <h2>Select Size</h2>
+                    <div className="productdisplay-right-sizes">
+                        {/* TODO: Dynamic size selection based on sizes available to shape.*/}
+                    </div>
+                </div>
+                <div className="productdisplay-right-options">
+                    <h2>Select Flour</h2>
+                    <div className="productdisplay-right-flours">
+                        {/* TODO: Dynamic flour selection based on available flours. */}
+                    </div>
+                </div>
+            </div> {/* End of productdisplay-right-options */}
 
             <button onClick={() => {handleAddToCart(product)}}>ADD TO CART</button>
             <p className="productdisplay-right-category"><span>Category: </span></p>

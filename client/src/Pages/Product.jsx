@@ -11,19 +11,21 @@ export const Product = () => {
   console.log("==(Product.jsx) Component Loaded.==");
 
   const { state } = useProduct();
-  const { productId } = useParams();
+  const { productSKU } = useParams(); //Get the product ID from the URL.
   const [product, setProduct] = useState(null);
 
 
+  /* MAJOR TODO: change this to find product from SKU possibly. */
 
   useEffect(() => {
     //Find product by ID
+    console.log("==(Product.jsx) -> useEffect -> state.products ", state.products);
     const foundProduct = state.products.find(
-      (p) => p._id === productId
+      (p) => p.sku === productSKU
     );
     
     setProduct(foundProduct);
-  }, [state.products, productId]);
+  }, [state.products, productSKU]);
 
 
 
@@ -38,7 +40,7 @@ export const Product = () => {
       <Breadcrum product={product}/>
       <ProductDisplay product={product}/>
       <DescriptionBox/>
-      <Reviews productId={productId}/>
+      {/* <Reviews productSKU={productSKU}/> */}
       <RelatedProducts/>
     </div>
   )
