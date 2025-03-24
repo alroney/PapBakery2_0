@@ -1,4 +1,6 @@
 const Products = require('../models/productSchema'); //Get & import the Products model.
+const SubCategory = require('../models/subcategorySchema'); //Get & import the SubCategory model.
+const Category = require('../models/categorySchema'); //Get & import the Category model.
 const Users = require('../models/userSchema');
 const fs = require('fs');
 const path = require('path');
@@ -93,6 +95,47 @@ const syncProducts = async (req, res) => {
         
         console.log(`Fetched ${productsData.rows.length} products and reference data`);
         
+
+        //Synchronize categories first.
+        if(categoryData.rows.length > 0) {
+            console.log(`Synchronizing ${categoryData.rows.length} categories...`);
+            const categoryBulkOps = categoryData.rows.map(row => ({
+                updateOne: {
+                    filter: { categoryID: row.CategoryID },
+                    update: { 
+                        $set: {
+                            categoryID: row.CategoryID,
+                            categoryName: row.CategoryName
+                        }
+                    },
+                    upsert: true,
+                },
+            }));
+            await Category.bulkWrite(categoryBulkOps);
+            console.log(`Synchronized ${categoryData.rows.length} categories.`);
+        }
+
+        //Synchronize subcategories next.
+        if(subCategoryData.rows.length > 0) {
+            console.log(`Synchronizing ${subCategoryData.rows.length} subcategories...`);
+            const subCategoryBulkOps = subCategoryData.rows.map(row => ({
+                updateOne: {
+                    filter: { subCategoryID: row.SubCategoryID },
+                    update: { 
+                        $set: {
+                            subCategoryID: row.SubCategoryID,
+                            subCategoryName: row.SubCategoryName,
+                            categoryID: row.CategoryID
+                        }
+                    },
+                    upsert: true,
+                },
+            }));
+            await SubCategory.bulkWrite(subCategoryBulkOps);
+            console.log(`Synchronized ${subCategoryData.rows.length} subcategories.`);
+        }
+
+
         //Create maps for lookups .- using more descriptive variable names
         const flourMap = new Map(flourData.rows.map(row => [row.FlourId, row.FlourName]));
         const flavorMap = new Map(flavorData.rows.map(row => [row.FlavorId, row.FlavorName]));
