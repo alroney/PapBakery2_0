@@ -54,6 +54,7 @@ const fetchAllProducts = async () => {
                     description: { $first: '$description' },
                     price: { $first: '$price' },
                     category: { $first: '$category' },
+                    subCategory: { $first: '$subcategory' },
                     image: { $first: '$image' },
                     rating: { $first: '$rating' },
                     reviewCount: { $first: '$reviewCount' },

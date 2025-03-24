@@ -18,8 +18,7 @@ export const Product = () => {
   /* MAJOR TODO: change this to find product from SKU possibly. */
 
   useEffect(() => {
-    //Find product by ID
-    console.log("==(Product.jsx) -> useEffect -> state.products ", state.products);
+    //Find product by SKU
     const foundProduct = state.products.find(
       (p) => p.sku === productSKU
     );
@@ -40,7 +39,7 @@ export const Product = () => {
       <Breadcrum product={product}/>
       <ProductDisplay product={product}/>
       <DescriptionBox/>
-      {/* <Reviews productSKU={productSKU}/> */}
+      {/* <Reviews productSKU={productSKU}/> */} {/* DISABLED until rework of Reviews gathering is done. */}
       <RelatedProducts/>
     </div>
   )
