@@ -4,11 +4,10 @@ import arrow_icon from '../Assets/img/icon/breadcrum_arrow.png'
 
 export const Breadcrum = (props) => {
     const {product} = props;
-    console.log("(Breadcrum.jsx) product: ", product);
     const arrowImg = <img src={arrow_icon} alt=">"/>;
 
 
-    
+
   return (
     <div className="breadcrum">
         HOME {arrowImg} {product.category} {arrowImg} {product.subCategory}

@@ -8,8 +8,235 @@ const { getTableDataDirectly } = require('./seatableControllers/stDataController
 const { destructureSKU } = require('../utils/helpers');
 require('dotenv').config({ path: __dirname + '/.env' }); //Allows access to environment variables.
 const serverUrl = process.env.SERVER_URL;
+const NodeCache = require('node-cache');
+
+
 
 const baseImagePath = `${serverUrl}/images`; //Base path for images.
+const constraintsCache = new NodeCache({ stdTTL: 3600 }); //Create a cache instande with a Time To Live of 1 hour (3600 seconds).
+
+const getProductBySKU = async (req, res) => {
+    try {
+        const { sku } = req.params;
+        const product = await Products.findOne({ sku });
+
+        if(!product) {
+            return res.status(404).json({ success: false, message: 'Product not found' });
+        }
+
+        res.json({ success: true, product });
+    } 
+    catch(error) {
+        console.error("(getProductBySKU) Error fetching product by SKU: ", error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+};
+
+
+//#region - PRODUCT OPTIONS API ENDPOINTS
+const getFlavorOptions = async (req, res) => {
+    try {
+        const flavors = await getTableDataDirectly('Flavor');
+        res.json(flavors);
+    } catch (error) {
+        console.error("(getFlavorOptions) Error fetching flavor options: ", error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}
+
+const getFlourOptions = async (req, res) => {
+    try {
+        const flours = await getTableDataDirectly('Flour');
+        res.json(flours);
+    } catch (error) {
+        console.error("(getFlourOptions) Error fetching flour options: ", error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}
+
+const getShapeOptions = async (req, res) => {
+    try {
+        const shapes = await getTableDataDirectly('Shape');
+        res.json(shapes);
+    } catch (error) {
+        console.error("(getShapeOptions) Error fetching shape options: ", error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}
+
+const getSizeOptions = async (req, res) => {
+    try {
+        const sizes = await getTableDataDirectly('Size');
+        res.json(sizes);
+    } catch (error) {
+        console.error("(getSizeOptions) Error fetching size options: ", error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}
+
+const getCategoryShapes = async (req, res) => {
+    try {
+        const { categoryId } = req.query;
+        const categoryShapeData = await getTableDataDirectly('CategoryShape');
+
+        let result = categoryShapeData;
+
+        //Filter by categoryId if provided.
+        if(categoryId) {
+            const filteredRows = categoryShapeData.rows.filter(row => row.CategoryID === Number(categoryId));
+            result = { ...categoryShapeData, rows: filteredRows };
+        }
+
+        res.json(result);
+    } catch (error) {
+        console.error("(getCategoryShapes) Error fetching shapes: ", error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}
+
+const getCategoryShapeSizes = async (req, res) => {
+    try {
+        const { categoryShapeId, shapeId } = req.query;
+        const categoryShapeSizeData = await getTableDataDirectly('CategoryShapeSize');
+
+        let result = categoryShapeSizeData;
+
+        //Filter by categoryShapeId if provided.
+        if(categoryShapeId) {
+            const filteredRows = categoryShapeSizeData.rows.filter(row => row.CategoryShapeID === Number(categoryShapeId));
+            result = { ...categoryShapeSizeData, rows: filteredRows };
+        }
+        else if(shapeId) {
+            const categoryShapes = await getTableDataDirectly('CategoryShape');
+            const relevantCategoryShapeIds = categoryShapes.rows.filter(row => row.ShapeID === Number(shapeId)).map(row => row.CategoryShapeID);
+            const filteredRows = categoryShapeSizeData.rows.filter(row => relevantCategoryShapeIds.includes(row.CategoryShapeID));
+
+            result = { ...categoryShapeSizeData, rows: filteredRows };
+        }
+
+        res.json(result);
+
+    } catch (error) {
+        console.error("(getCategoryShapeSizes) Error fetching sizes: ", error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}
+//#endregion - PRODUCT OPTIONS API ENDPOINTS
+
+
+
+const getProductConstraints = async (req, res) => {
+    try {
+        const { categoryId } = req.query;
+        const cacheKey = categoryId ? `constraints_${categoryId}` : 'constraints_all';
+
+        //Try to get from cache first.
+        const cachedData = constraintsCache.get(cacheKey);
+        if(cachedData) {
+            return res.json(cachedData);
+        }
+
+        //Fetch required data in parallel.
+        const [categoryShapes, categoryShapeSizes] = await Promise.all([
+            getTableDataDirectly('CategoryShape'),
+            getTableDataDirectly('CategoryShapeSize')
+        ]);
+        
+        //Build optimized constraint structure.
+        const validShapesByCategory = new Map();
+        const validSizesByShape = new Map();
+        const categoryShapeMap = new Map();
+        
+        //Process category-shape relationships.
+        categoryShapes.rows.forEach(cs => {
+            //Skip if category filter is applied and this row doesn't match.
+            if (categoryId && cs.CategoryID !== Number(categoryId)) return;
+            
+            //Initialize set if needed.
+            if (!validShapesByCategory.has(cs.CategoryID)) {
+                validShapesByCategory.set(cs.CategoryID, new Set());
+            }
+            
+            //Add shape to the set of valid shapes for this category.
+            validShapesByCategory.get(cs.CategoryID).add(cs.ShapeID);
+            
+            //Store mapping for later use.
+            categoryShapeMap.set(cs.CategoryShapeID, {
+                categoryId: cs.CategoryID,
+                shapeId: cs.ShapeID
+            });
+        });
+        
+        //Process category-shape-size relationships.
+        categoryShapeSizes.rows.forEach(css => {
+            const categoryShape = categoryShapeMap.get(css.CategoryShapeID);
+            
+            if (categoryShape) {
+                const { shapeId } = categoryShape;
+                
+                //Skip if category filter is applied and this row doesn't match.
+                if (categoryId && categoryShape.categoryId !== Number(categoryId)) return;
+                
+                //Initialize set if needed.
+                if (!validSizesByShape.has(shapeId)) {
+                    validSizesByShape.set(shapeId, new Set());
+                }
+                
+                //Add size to the set of valid sizes for this shape.
+                validSizesByShape.get(shapeId).add(css.SizeID);
+            }
+        });
+        
+        //Convert to JSON-friendly format.
+        const result = {
+            validShapesByCategory: Object.fromEntries(
+                Array.from(validShapesByCategory.entries()).map(([key, value]) => [
+                    key, 
+                    Array.from(value)
+                ])
+            ),
+            validSizesByShape: Object.fromEntries(
+                Array.from(validSizesByShape.entries()).map(([key, value]) => [
+                    key, 
+                    Array.from(value)
+                ])
+            ),
+            //Include raw data for reference if needed.
+            raw: {
+                categoryShapes: categoryShapes.rows,
+                categoryShapeSizes: categoryShapeSizes.rows
+            }
+        };
+
+        constraintsCache.set(cacheKey, result); //Cache the result for future use.
+        res.json(result);
+    } catch (error) {
+        console.error("Error fetching product constraints: ", error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+} //End of getProductConstraints function.
+
+
+
+//Function: Find the subcategory by ID.
+const getSubcategoryById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const subcategories = await getTableDataDirectly('SubCategory');
+        const subcategory = subcategories.rows.find(row => row.SubCategoryID === Number(id));
+
+        if(!subcategory) {
+            return res.status(404).json({ success: false, message: 'Subcategory not found' });
+        }
+
+        res.json(subcategory);
+    }
+    catch(error) {
+        console.error("Error fetching subcategory by ID: ", error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}
+
 
 
 //Function: Find and return all products in the MongoDB
@@ -85,9 +312,9 @@ const fetchAllCategories = async () => {
         return categories;
     }
     catch(error) {
-        console.log("Error while fetching categories: ", error);
+        console.log("(fetchAllCategories) Error while fetching categories: ", error);
     }
-}
+};
 
 
 
@@ -98,9 +325,9 @@ const allCategories = async (req,res) => {
         res.send(categories);
     }
     catch(error) {
-        console.log("Error while getting all categories: ", error);
+        console.log("(allCategories) Error while getting all categories: ", error);
     }
-}
+};
 
 
 
@@ -113,7 +340,7 @@ const fetchAllSubcategories = async () => {
     catch(error) {
         console.log("Error while fetching subcategories: ", error);
     }
-}
+};
 
 
 
@@ -126,7 +353,7 @@ const allSubCategories = async (req,res) => {
     catch(error) {
         console.log("Error while getting all subcategories: ", error);
     }
-}
+};
 
 
 
@@ -311,7 +538,7 @@ const syncProducts = async (req, res) => {
             error: error.message
         });
     }
-}
+};
 
 
 
@@ -473,4 +700,4 @@ const topProducts = async (req,res) => {
 
 
 
-module.exports = { allProducts, addProduct, removeProduct, editProduct, topProducts, newProducts, syncProducts, allCategories, allSubCategories};
+module.exports = { allProducts, addProduct, removeProduct, editProduct, topProducts, newProducts, syncProducts, allCategories, allSubCategories, getFlavorOptions, getFlourOptions, getShapeOptions, getSizeOptions, getProductBySKU, getSubcategoryById, getCategoryShapes, getCategoryShapeSizes, getProductConstraints };
