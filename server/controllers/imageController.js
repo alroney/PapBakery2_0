@@ -59,6 +59,8 @@ const uploadImage = (req,res) => {
     }
 }
 
+
+
 //API endpoint to set cache headers for nutrition fact images.
 const setCacheHeaders = (req, res) => {
     const filePath = path.join(__dirname, '../../public/images/nutrition', `${req.params.sku}.png`);
