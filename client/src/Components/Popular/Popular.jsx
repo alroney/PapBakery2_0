@@ -43,7 +43,8 @@ export const Popular = memo(() => {
         <div className="popular-item">
             {
               topProducts.map((item, i) => {
-                return <Item key={i} id={item._id} name={item.name} image={item.image} price={item.price} /> 
+                console.log("(Popular.jsx) Item: ", item);
+                return <Item key={i} id={item._id} scID={item.subCategoryID} scName={item.subCategory} catName={item.category} sku={item.sku} name={item.name} image={item.image} price={item.price} /> 
               })
             }
         </div>
