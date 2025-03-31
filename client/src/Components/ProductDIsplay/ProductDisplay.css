@@ -118,6 +118,7 @@
     }
     
     .option-item.disabled {
+        display: none;
         opacity: 0.5;
         cursor: not-allowed;
         background-color: #f0f0f0;

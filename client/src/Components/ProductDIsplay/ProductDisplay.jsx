@@ -58,10 +58,10 @@ export const ProductDisplay = (props) => {
     });
 
     const [currentProduct, setCurrentProduct] = useState(product);
-    
-
     const {name, image, description, rating, reviews, price} = currentProduct || {};
     const {handleAddToCart} = useContext(CartContext);
+
+
 
     //UseEffect: Fetch available options when component mounts.
     useEffect(() => {
@@ -255,7 +255,7 @@ export const ProductDisplay = (props) => {
                 if(isMounted.current) {
                     setCurrentProduct(data.product);
                 }
-                
+
                 //Update URL without refreshing the page.
                 const pathSegments = location.pathname.split('/');
                 const newPath = pathSegments.slice(0, pathSegments.length - 1).join('/') + `/${currentSKU}`;
