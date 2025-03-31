@@ -68,6 +68,12 @@ export const ProductDisplay = (props) => {
         const fetchOptions = async () => {
             try {
                 const subcategoryId = initialSelections?.subcategoryId; //Get subcategory ID from initial selections.
+                
+                //First get subcategory info to determine category.
+                const subcategoryRes = await fetch(`${apiUrl}/products/subcategory/${subcategoryId}`);
+                const subcategory = await subcategoryRes.json();
+                const catId = subcategory?.CategoryID;
+                setCategoryId(catId); //Set the category ID in state.
 
                 const [ //Fetch all the options in parallel.
                     flavorsRes,
@@ -75,14 +81,12 @@ export const ProductDisplay = (props) => {
                     sizesRes,
                     floursRes,
                     constraintRes,
-                    subcategoryRes
                 ] = await Promise.all([
                     fetch(`${apiUrl}/products/options/flavors`),
                     fetch(`${apiUrl}/products/options/shapes`),
                     fetch(`${apiUrl}/products/options/sizes`),
                     fetch(`${apiUrl}/products/options/flours`),
-                    fetch(`${apiUrl}/products/constraints${subcategoryId ? `?subcategoryId=${subcategoryId}` : ''}`), //This is a conditional fetch based on the subcategory. This is where the req.query is based off of.
-                    fetch(`${apiUrl}/products/subcategory/${initialSelections?.subcategoryId}`)
+                    fetch(`${apiUrl}/products/constraints${catId ? `?categoryId=${catId}` : ''}`), //This is a conditional fetch based on the subcategory. This is where the req.query is based off of.
                 ]);
 
                 const [ //Destructure the responses.
@@ -90,20 +94,14 @@ export const ProductDisplay = (props) => {
                     shapes,
                     sizes,
                     flours,
-                    constraintsData,
-                    subcategory
+                    constraintsData
                 ] = await Promise.all([
                     flavorsRes.json(),
                     shapesRes.json(),
                     sizesRes.json(),
                     floursRes.json(),
-                    constraintRes.json(),
-                    subcategoryRes.json()
+                    constraintRes.json()
                 ]);
-
-                //Set the category ID based on the subcategory.
-                const catId = subcategory?.CategoryID;
-                setCategoryId(catId);
 
                 console.log("flavors.rows: ", flavors.rows);
                 console.log("shapes.rows: ", shapes.rows);

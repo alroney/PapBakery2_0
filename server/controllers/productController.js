@@ -26,7 +26,7 @@ const getProductBySKU = async (req, res) => {
         }
 
         //Get nutrition facts.
-        const nutritionFacts = nutritionLabelService.getProductNutritionData(sku);
+        const nutritionFacts = nutritionLabelService.getProductNutrition(sku);
 
         //Generate nutrition image if it doesn't exist.
         let nutritionImageFilename = null;
