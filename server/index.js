@@ -24,9 +24,6 @@ const Users = require('./models/userSchema');
 
 
 
-
-
-
 app.use(helmet());
 app.use(express.json()); //Automatically parse incoming requests as JSON.
 app.use(express.urlencoded({extended: true})); 
@@ -74,12 +71,28 @@ app.use(bodyParser.json());
         res.status(200).json({ status: 'ok' });
     });
 
-    //Middleware to serve static images from the 'upload/images' folder.
-    app.use('/images', express.static(path.join(__dirname, '../upload/images')));
-
-    
-
 //#endregion
+
+
+//Add caching for nutrition images.
+app.use('/public/images/nutrition', express.static(path.join(__dirname, '../public/images/nutrition'), {
+    maxAge: '30d', //Cache for 30 days.
+    setHeaders: (res, path) => {
+        res.setHeader('Cache-Control', 'public, max-age=2592000'); //30 days.
+
+        //Set content type based on file extension.
+        if(path.endsWith('webp')) {
+            res.setHeader('Content-Type', 'image/webp');
+        }
+        else if(path.endsWith('png')) {
+            res.setHeader('Content-Type', 'image/png');
+        }
+    }
+}));
+
+//Regular static file serving for other images.
+app.use('/public/images', express.static(path.join(__dirname, '../public/images')));
+
 
 
 //Use the routes as middleware

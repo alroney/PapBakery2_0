@@ -6,13 +6,14 @@ const fs = require('fs');
 const path = require('path');
 const { getTableDataDirectly } = require('./seatableControllers/stDataController');
 const { destructureSKU } = require('../utils/helpers');
+const nutritionLabelService = require('../services/nutritionLabelService');
 require('dotenv').config({ path: __dirname + '/.env' }); //Allows access to environment variables.
 const serverUrl = process.env.SERVER_URL;
 const NodeCache = require('node-cache');
 
 
 
-const baseImagePath = `${serverUrl}/images`; //Base path for images.
+const baseImagePath = `${serverUrl}/public/images`; //Base path for images.
 const constraintsCache = new NodeCache({ stdTTL: 3600 }); //Create a cache instande with a Time To Live of 1 hour (3600 seconds).
 
 const getProductBySKU = async (req, res) => {
@@ -24,6 +25,41 @@ const getProductBySKU = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Product not found' });
         }
 
+        //Get nutrition facts.
+        const nutritionFacts = nutritionLabelService.getProductNutritionData(sku);
+
+        //Generate nutrition image if it doesn't exist.
+        let nutritionImageFilename = null;
+        if(nutritionFacts) {
+            //Check if we have a version mapping.
+            const versionMappingPath = path.join(__dirname, '../cache/nutrition-image-versions.json');
+            if(fs.existsSync(versionMappingPath)) {
+                const versionMap = JSON.parse(fs.readFileSync(versionMappingPath, 'utf8'));
+                if(versionMap[sku]) {
+                    nutritionImageFilename = `${sku}.${versionMap[sku]}.png`;
+                }
+            }
+
+            //If no version found, generate one.
+            if(!nutritionImageFilename) {
+                nutritionImageFilename = await nutritionLabelService.generateNutritionImage(sku);
+            }
+        }
+
+        //Add nutrition image URL to product data.
+        if(nutritionImageFilename) {
+            product.nutritionImageUrl = `${baseImagePath}/nutrition/${nutritionImageFilename}`;
+
+            //Also include webp format for modern browsers.
+            const webpFilename = nutritionImageFilename.replace('.png', '.webp');
+            product.nutritionImageUrlWebp = `${baseImagePath}/nutrition/${webpFilename}`;
+        }
+
+        //Include raw nutrition facts for client-side use if needed.
+        if(nutritionFacts) {
+            product.nutritionFacts = nutritionFacts;
+        }
+
         res.json({ success: true, product });
     } 
     catch(error) {
@@ -31,6 +67,46 @@ const getProductBySKU = async (req, res) => {
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
+
+
+
+//Function: Get nutrition image directly.
+const getNutritionImage = async (req, res) => {
+    try {
+        const { sku } = req.params;
+
+        //Check if we have a version mapping.
+        const versionMappingPath = path.join(__dirname, '../cache/nutrition-image-versions.json');
+        let nutritionImageFilename = null;
+
+        if(fs.existsSync(versionMappingPath)) {
+            const versionMap = JSON.parse(fs.readFileSync(versionMappingPath, 'utf8'));
+            if(versionMap[sku]) {
+                nutritionImageFilename = `${sku}.${versionMap[sku]}.png`;
+            }
+        }
+
+        //If no version found, generate one.
+        if(!nutritionImageFilename) {
+            nutritionImageFilename = await nutritionLabelService.generateNutritionImage(sku);
+
+            if(!nutritionImageFilename) {
+                return res.status(404).json({ success: false, message: 'Nutrition image not found' });
+            }
+        }
+
+        //Set cache control headers for better performance.
+        res.setHeader('Cache-Control', 'public, max-age=604800'); //Cache for 1 week.
+
+        //Redirect to the image URL.
+        res.redirect(`${baseImagePath}/nutrition/${nutritionImageFilename}`);
+    }
+    catch(error) {
+        console.error("(getNutritionImage) Error fetching nutrition image: ", error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}
+
 
 
 //#region - PRODUCT OPTIONS API ENDPOINTS
@@ -700,4 +776,24 @@ const topProducts = async (req,res) => {
 
 
 
-module.exports = { allProducts, addProduct, removeProduct, editProduct, topProducts, newProducts, syncProducts, allCategories, allSubCategories, getFlavorOptions, getFlourOptions, getShapeOptions, getSizeOptions, getProductBySKU, getSubcategoryById, getCategoryShapes, getCategoryShapeSizes, getProductConstraints };
+module.exports = {
+    allProducts,
+    addProduct, 
+    removeProduct,
+    editProduct,
+    topProducts,
+    newProducts,
+    syncProducts,
+    allCategories,
+    allSubCategories,
+    getFlavorOptions,
+    getFlourOptions,
+    getShapeOptions,
+    getSizeOptions,
+    getProductBySKU,
+    getSubcategoryById,
+    getCategoryShapes,
+    getCategoryShapeSizes,
+    getProductConstraints,
+    getNutritionImage,
+};

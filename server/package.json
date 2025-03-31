@@ -25,6 +25,7 @@
     "node-cache": "^5.1.2",
     "node-fetch": "^3.3.2",
     "nodemailer": "^6.9.15",
+    "puppeteer": "^24.4.0",
     "redis": "^4.7.0"
   }
 }

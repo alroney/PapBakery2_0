@@ -1,29 +1,30 @@
 const express = require('express');
 const router = express.Router();
 const authenticateUser = require('../middlewares/authMiddleware');
-const { allProducts, addProduct, removeProduct, editProduct, topProducts, newProducts, syncProducts, allCategories, allSubCategories, getFlavorOptions, getFlourOptions, getShapeOptions, getSizeOptions, getProductBySKU, getSubcategoryById, getCategoryShapes, getCategoryShapeSizes, getProductConstraints} = require('../controllers/productController');
+const productController = require('../controllers/productController');
 const { testDSKU } = require('../controllers/seatableControllers/stProdBuildController');
 
 
-router.get('/all', allProducts);
-router.get('/top', topProducts);
-router.get('/new', newProducts);
-router.get('/allCategories', allCategories);
-router.get('/allSubCategories', allSubCategories);
-router.get('/options/flavors', getFlavorOptions);
-router.get('/options/flours', getFlourOptions);
-router.get('/options/shapes', getShapeOptions);
-router.get('/options/sizes', getSizeOptions);
-router.get('/options/category-shapes', getCategoryShapes);
-router.get('/options/category-shape-sizes', getCategoryShapeSizes);
-router.get('/by-sku/:sku', getProductBySKU); //The colon indicates a parameter in the URL.')
-router.get('/subcategory/:id', getSubcategoryById);
-router.get("/constraints/", getProductConstraints);
+router.get('/all', productController.allProducts);
+router.get('/top', productController.topProducts);
+router.get('/new', productController.newProducts);
+router.get('/allCategories', productController.allCategories);
+router.get('/allSubCategories', productController.allSubCategories);
+router.get('/options/flavors', productController.getFlavorOptions);
+router.get('/options/flours', productController.getFlourOptions);
+router.get('/options/shapes', productController.getShapeOptions);
+router.get('/options/sizes', productController.getSizeOptions);
+router.get('/options/category-shapes', productController.getCategoryShapes);
+router.get('/options/category-shape-sizes', productController.getCategoryShapeSizes);
+router.get('/by-sku/:sku', productController.getProductBySKU); //The colon indicates a parameter in the URL.')
+router.get('/subcategory/:id', productController.getSubcategoryById);
+router.get("/constraints/", productController.getProductConstraints);
+router.get('/nutrition/:sku', productController.getNutritionImage);
 
-router.post('/sync', syncProducts);
-router.post('/add', addProduct);
-router.post('/edit', editProduct);
-router.post('/remove', removeProduct);
+router.post('/sync', productController.syncProducts);
+router.post('/add', productController.addProduct);
+router.post('/edit', productController.editProduct);
+router.post('/remove', productController.removeProduct);
 router.post('/destructSKU', testDSKU);
 
 module.exports = router;
