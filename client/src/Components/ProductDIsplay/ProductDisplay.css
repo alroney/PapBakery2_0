@@ -110,6 +110,7 @@
         flex-wrap: wrap;
         margin: 30px 0px;
         gap: 20px;
+        contain: content;
     }
 
     .productdisplay-right-options div {
@@ -131,17 +132,23 @@
         border: 1px solid #e0e0e0;
         border-radius: 4px;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: background-color 0.15s ease, border-color 0.15s ease;
+        will-change: transform, background-color;
+        transform: translateZ(0);
+        backface-visibility: hidden;
     }
     
     .option-item:hover:not(.disabled) {
-        background-color: #f5f5f5;
+        background-color: #e53935;
+        color: white;
+        transition: all 0.2s ease;
     }
     
     .option-item.selected {
         background-color: #FF4141;
         color: white;
         border-color: #FF4141;
+        z-index: 1;
     }
     
     .option-item.disabled {
@@ -169,6 +176,46 @@
     border: none;
     outline: none;
     cursor: pointer;
+    transition: background-color 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.productdisplay-right button:hover {
+    background: #e53935;
+}
+
+.productdisplay-right button:disabled {
+    background: #ff7b7b;
+    cursor: not-allowed;
+}
+
+/* This creates a more elegant loading effect */
+.productdisplay-right button::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,0.2) 50%,
+        rgba(255,255,255,0) 100%,
+    );
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+
+.productdisplay-right button.loading::after {
+    transform: translateX(100%);
+    animation: loading-shimmer 1.5s infinite;
+}
+
+@keyframes loading-shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
 }
 
 .productdisplay-right-category {

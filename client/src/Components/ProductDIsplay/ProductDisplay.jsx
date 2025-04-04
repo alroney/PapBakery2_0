@@ -6,6 +6,8 @@ import { CartContext } from '../../Context/CartContext'
 import { useLocation, useNavigate } from 'react-router'
 import apiUrl from '@config'
 
+
+
 export const ProductDisplay = (props) => {
     console.log("(ProductDisplay.jsx) Component Loaded.");
     const isMounted = useRef(true); //Reference to check if the component is mounted.
@@ -19,7 +21,8 @@ export const ProductDisplay = (props) => {
     const {product} = props;
     
     const [isLoading, setIsLoading] = useState(false); //State to track loading status.
-
+    const [productCache, setProductCache] = useState({}); //Cache for product data to prevent unnecessary re-fetching.
+    
     //State for options and constraints.
     const [options, setOptions] = useState({
         flavors: [],
@@ -39,11 +42,11 @@ export const ProductDisplay = (props) => {
     const parseSKU = useCallback((sku) => {
         if(!sku) return null;
         return {
-            subcategoryId: sku.charAt(0),
-            flourId: sku.charAt(1),
-            flavorId: sku.charAt(2),
-            shapeId: sku.charAt(4),
-            sizeId: sku.charAt(5)
+            subcategoryId: parseInt(sku.charAt(0)),
+            flourId: parseInt(sku.charAt(1)),
+            flavorId: parseInt(sku.charAt(2)),
+            shapeId: parseInt(sku.charAt(4)),
+            sizeId: parseInt(sku.charAt(5))
         };
     }, []);
 
@@ -62,7 +65,8 @@ export const ProductDisplay = (props) => {
     const [currentProduct, setCurrentProduct] = useState(product);
     const {name, image, description, rating, reviews, price} = currentProduct || {};
     const {handleAddToCart} = useContext(CartContext);
-
+    const [debouncedSelections, setDebouncedSelections] = useState(selections); //State for debounced selections to prevent rapid updates to the product display.
+    const debounceTimerRef = useRef(null); //Reference to store the debounce timer ID.
 
 
     //UseEffect: Fetch available options when component mounts.
@@ -105,9 +109,6 @@ export const ProductDisplay = (props) => {
                     constraintRes.json()
                 ]);
 
-                console.log("flavors.rows: ", flavors.rows);
-                console.log("shapes.rows: ", shapes.rows);
-
                 setOptions({
                     flavors: flavors.rows,
                     shapes: shapes.rows,
@@ -129,7 +130,6 @@ export const ProductDisplay = (props) => {
                     validSizesByShape.set(Number(shapeId), new Set(sizeIds.map(Number)));
                 });
 
-
                 //Store constraints in state for later use.
                 setConstraints({
                     validShapesByCategory,
@@ -144,7 +144,6 @@ export const ProductDisplay = (props) => {
                     validSizesByShape
                 );
 
-                console.log("Options fetched: ", options);
             }
             catch(error) {
                 console.error("Failed to fetch options: ", error);
@@ -168,7 +167,7 @@ export const ProductDisplay = (props) => {
         if(validShapes && !validShapes.has(shapeId)) {
             //Shape is invalid - pick first valid shape.
             const firstValidShape = Array.from(validShapes)[0];
-            newSelections.shapeId = firstValidShape.toString();
+            newSelections.shapeId = firstValidShape;
             needsUpdate = true;
         }
 
@@ -177,7 +176,7 @@ export const ProductDisplay = (props) => {
         if(validSizes && !validSizes.has(Number(sizeId))) {
             //Size is invalid - pick first valid size.
             const firstValidSize = Array.from(validSizes)[0];
-            newSelections.sizeId = firstValidSize.toString();
+            newSelections.sizeId = firstValidSize;
             needsUpdate = true;
         }
 
@@ -191,8 +190,8 @@ export const ProductDisplay = (props) => {
 
     //Function: Handle the selecting of a new option.
     const handleOptionSelect = useCallback((optionType, optionId) => {
-        console.log(`Selected ${optionType}: ${optionId}`);
-        setIsLoading(true); //Set loading to true when an option is selected.
+        //Don't do anything if the option is already selected.
+        if(selections[optionType] === optionId) return;
         
         const newSelections = { ...selections, [optionType]: optionId }; //Create new selections object for immutability.
 
@@ -202,14 +201,33 @@ export const ProductDisplay = (props) => {
             if(validSizes && !validSizes.has(Number(newSelections.sizeId))) {
                 //Current size is invalid for new shape - pick first valid size.
                 const firstValidSize = Array.from(validSizes)[0];
-                newSelections.sizeId = firstValidSize.toString();
-                console.log(`Updating size for new shape: ${firstValidSize}`)
+                newSelections.sizeId = firstValidSize;
             }
         }
 
         setSelections(newSelections);
-    }, [selections, constraints]);
+        const loadingTimer = setTimeout(() => {
+            if(isMounted.current) {
+                setIsLoading(true);
+            }
+        }, 50) //Small delay before showing loading indicator.)
 
+        if(debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current); //Clear the previous timer if it exists.
+        }
+
+        //Set a new timer to update the selections after a delay.
+        debounceTimerRef.current = setTimeout(() => {
+            clearTimeout(loadingTimer); //Clear the loading timer.
+
+            const finalSelections = { ...newSelections };
+            delete finalSelections._changing;
+            
+            if(isMounted.current) {
+                setDebouncedSelections(newSelections); //Update the debounced selections. isLoading will be set to false by the useEffect that handles product updates.
+            }
+        }, 300); //Delay of 300ms.
+    }, [selections, constraints]);
 
 
 
@@ -222,13 +240,32 @@ export const ProductDisplay = (props) => {
     }, [selections]);
 
 
+    //UseEffect: Synchronize debouncedSelections and selections.
+    useEffect(() => {
+    }, [debouncedSelections]);
 
     //UseEffect: Update the product when the selected options change.
     useEffect(() => {
-        if(!currentSKU || currentSKU === product.sku) return;
+        if(!currentSKU || currentSKU === product.sku) {
+            setIsLoading(false);
+            return;
+        };
 
         const updateProduct = async () => {
             try {
+                //Check cache first.
+                if(productCache[currentSKU]) {
+                    console.log("Using cached product data.");
+                    setCurrentProduct(productCache[currentSKU]);
+                    setIsLoading(false);
+
+                    //Still update the URL.
+                    const pathSegments = location.pathname.split('/');
+                    const newPath = pathSegments.slice(0, pathSegments.length - 1).join('/') + `/${currentSKU}`;
+                    navigate(newPath, { replace: true });
+                    return; //Don't fetch if we have cached data.
+                }
+
                 console.log("Fetching product with SKU: ", currentSKU);
                 const response = await fetch(`${apiUrl}/products/by-sku/${currentSKU}`);
                 
@@ -238,7 +275,6 @@ export const ProductDisplay = (props) => {
                 }
 
                 const data = await response.json();
-                console.log("Received product data: ", data);
 
                 if(!data.product) {
                     console.error("Product not found: ", currentSKU);
@@ -261,8 +297,19 @@ export const ProductDisplay = (props) => {
                 const pathSegments = location.pathname.split('/');
                 const newPath = pathSegments.slice(0, pathSegments.length - 1).join('/') + `/${currentSKU}`;
                 navigate(newPath, { replace: true });
-
                 setIsLoading(false); //Set loading to false when the product is updated.
+
+                //Add to cache when successful.
+                if(data.product) {
+                    setProductCache(prevCache => ({
+                        ...prevCache,
+                        [currentSKU]: data.product
+                    }));
+
+                    if(isMounted.current){
+                        setCurrentProduct(data.product);
+                    }
+                }
             }
             catch(error) {
                 console.error("Error updating product: ", error);
@@ -271,16 +318,58 @@ export const ProductDisplay = (props) => {
         };
 
         updateProduct();
-    }, [currentSKU, product.sku, location.pathname, navigate]); //Only run when the currentSKU changes.
+    }, [currentSKU]); //Only run when the currentSKU changes.
 
+    useEffect(() => {
+        //Only run this after initial product is loaded and options are fetched.
+        if (!product || !options.sizes.length || !options.flavors.length) return;
+        
+        const preloadCommonVariations = async () => {
+            //Get current selections
+            const { subcategoryId, flourId, flavorId, shapeId } = selections;
+            
+            //Preload all size variations for the current shape.
+            const validSizes = constraints.validSizesByShape.get(Number(shapeId)) || new Set();
+            
+            //Don't preload more than 3 variations to avoid excessive requests.
+            const sizesToPreload = Array.from(validSizes).slice(0, 3);
+            
+            //Create promises for preloading but don't wait for them.
+            sizesToPreload.forEach(sizeId => {
+                const skuToPreload = `${subcategoryId}${flourId}${flavorId}-${shapeId}${sizeId}`;
+                
+                // Skip if already in cache or current selection.
+                if (productCache[skuToPreload] || skuToPreload === currentSKU) return;
+                
+                // Preload in background.
+                fetch(`${apiUrl}/products/by-sku/${skuToPreload}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.product) {
+                            setProductCache(prev => ({
+                                ...prev,
+                                [skuToPreload]: data.product
+                            }));
+                            console.log(`Preloaded product: ${skuToPreload}`);
+                        }
+                    })
+                    .catch(err => console.log(`Preload error for ${skuToPreload}:`, err));
+            });
+        };
+        
+        //Only run preloading if not in loading state.
+        if (!isLoading) {
+            preloadCommonVariations();
+        }
+    }, [product, options, selections.shapeId, isLoading]);
 
     //DEBUG: Log the current selections and SKU.
-    useEffect(() => {
-        console.log("Selection state updated: ", selections);
-    }, [selections]);
-    useEffect(() => {
-        console.log("Current SKU updated: ", currentSKU);
-    }, [currentSKU]);
+    // useEffect(() => {
+    //     console.log("Selection state updated: ", selections);
+    // }, [selections]);
+    // useEffect(() => {
+    //     console.log("Current SKU updated: ", currentSKU);
+    // }, [currentSKU]);
 
 
 
@@ -296,14 +385,12 @@ export const ProductDisplay = (props) => {
                 //Shape must be valid for current category.
                 const categoryShapes = constraints.validShapesByCategory.get(Number(categoryId));
                 const isValid = categoryId && categoryShapes && categoryShapes.has(Number(optionId));
-                console.log(`Checking shape validity: ${optionId} for category ${categoryId} - ${isValid}`);
                 return isValid;
             case 'sizeId':
                 //Size must be valid for current shape.
                 const shapId = Number(selections.shapeId);
                 const validSizes = constraints.validSizesByShape.get(shapId);
                 const isValidSize = shapId && validSizes && validSizes.has(Number(optionId));
-                console.log(`Checking size validity: ${optionId} for shape ${shapId} - ${isValidSize}`);
                 return isValidSize;
             default:
                 return false;
@@ -311,7 +398,7 @@ export const ProductDisplay = (props) => {
     }, [categoryId, selections.shapeId, constraints]);
 
 
-
+    
     //Function: Render the stars based on the rating.
     const renderedStars = useMemo(() => {
         const validRating = typeof rating === 'number' ? rating : 0;
@@ -329,6 +416,34 @@ export const ProductDisplay = (props) => {
     }, [rating]);
 
 
+
+    const OptionItem = React.memo(({ id, name, type, isSelected, isValid, onSelect, isLoading }) => {
+        
+        const handleClick = React.useCallback(() => {
+            if(!isLoading && isValid) {
+                onSelect(type, id);
+            }
+        }, [id, isLoading, isValid, onSelect, type]);
+
+        return (
+            <div 
+                className={`option-item ${isSelected ? 'selected' : ''} ${!isValid ? 'disabled' : ''}`}
+                onClick={handleClick} //Use the callback here instead of an inline function.
+            >
+                {name}
+            </div>
+        );
+    }, (prevProps, nextProps) => {
+        return (
+            prevProps.isSelected === nextProps.isSelected &&
+            prevProps.isValid === nextProps.isValid &&
+            prevProps.isLoading === nextProps.isLoading
+        );
+    });
+
+
+
+
   return (
     <div className="productdisplay">
             {/* LEFT SIDE DISPLAY */}
@@ -344,7 +459,6 @@ export const ProductDisplay = (props) => {
 
 
             {/* RIGHT SIDE DISPLAY */}
-
             <div className="productdisplay-right">
                 <h1>{name}</h1>
                 <div className="productdisplay-right-stars" title={rating?.toFixed(1) || '0.0'}>
@@ -365,13 +479,16 @@ export const ProductDisplay = (props) => {
                     <h2>Select Flavor</h2>
                     <div className="productdisplay-right-flavors">
                         {options.flavors.map(flavor => (
-                            <div 
+                            <OptionItem
                                 key={flavor.FlavorID}
-                                className={`option-item ${selections.flavorId === flavor.FlavorID.toString() ? 'selected' : ''}`}
-                                onClick={() => handleOptionSelect('flavorId', flavor.FlavorID.toString())}
-                            >
-                                {flavor.FlavorName}
-                            </div>
+                                id={flavor.FlavorID}
+                                name={flavor.FlavorName}
+                                type="flavorId"
+                                isSelected={selections.flavorId === flavor.FlavorID}
+                                isValid={isOptionValid('flavorId', flavor.FlavorID)}
+                                onSelect={handleOptionSelect}
+                                isLoading={isLoading}
+                            />
                         ))}
                     </div>
                 </div>
@@ -380,16 +497,16 @@ export const ProductDisplay = (props) => {
                     <h2>Select Shape</h2>
                     <div className="productdisplay-right-shapes">
                         {options.shapes.map(shape => (
-                            <div 
+                            <OptionItem
                                 key={shape.ShapeID}
-                                className={`option-item 
-                                    ${selections.shapeId === shape.ShapeID?.toString() ? 'selected' : ''} 
-                                    ${!isOptionValid('shapeId', shape.ShapeID?.toString()) ? 'disabled' : ''}`}
-                                onClick={() => isOptionValid('shapeId', shape.ShapeID?.toString()) && 
-                                              handleOptionSelect('shapeId', shape.ShapeID?.toString())}
-                            >
-                                {shape.ShapeName}
-                            </div>
+                                id={shape.ShapeID}
+                                name={shape.ShapeName}
+                                type="shapeId"
+                                isSelected={selections.shapeId === shape.ShapeID}
+                                isValid={isOptionValid('shapeId', shape.ShapeID)}
+                                onSelect={handleOptionSelect}
+                                isLoading={isLoading}
+                            />
                         ))}
                     </div>
                 </div>
@@ -398,17 +515,16 @@ export const ProductDisplay = (props) => {
                     <h2>Select Size</h2>
                     <div className={`productdisplay-right-sizes ${isLoading ? 'loading' : ''}`}>
                         {options.sizes.map(size => (
-                            <div 
+                            <OptionItem
                                 key={size.SizeID}
-                                className={`option-item 
-                                    ${selections.sizeId === size.SizeID?.toString() ? 'selected' : ''} 
-                                    ${!isOptionValid('sizeId', size.SizeID?.toString()) ? 'disabled' : ''}
-                                    ${isLoading ? 'disabled' : ''} `}
-                                onClick={() => isOptionValid('sizeId', size.SizeID?.toString()) && 
-                                              handleOptionSelect('sizeId', size.SizeID?.toString())}
-                            >
-                                {size.SizeName}
-                            </div>
+                                id={size.SizeID}
+                                name={size.SizeName}
+                                type="sizeId"
+                                isSelected={selections.sizeId === size.SizeID}
+                                isValid={isOptionValid('sizeId', size.SizeID)}
+                                onSelect={handleOptionSelect}
+                                isLoading={isLoading}
+                            />
                         ))}
                     </div>
                 </div>
@@ -417,13 +533,16 @@ export const ProductDisplay = (props) => {
                     <h2>Select Flour</h2>
                     <div className="productdisplay-right-flours">
                         {options.flours.map(flour => (
-                            <div 
+                            <OptionItem
                                 key={flour.FlourID}
-                                className={`option-item ${selections.flourId === flour.FlourID?.toString() ? 'selected' : ''}`}
-                                onClick={() => handleOptionSelect('flourId', flour.FlourID?.toString())}
-                            >
-                                {flour.FlourName}
-                            </div>
+                                id={flour.FlourID}
+                                name={flour.FlourName}
+                                type="flourId"
+                                isSelected={Number(selections.flourId) === Number(flour.FlourID)}
+                                isValid={isOptionValid('flourId', flour.FlourID)}
+                                onSelect={handleOptionSelect}
+                                isLoading={isLoading}
+                            />
                         ))}
                     </div>
                 </div>
@@ -432,6 +551,7 @@ export const ProductDisplay = (props) => {
                 <button 
                     onClick={() => handleAddToCart(currentProduct)} 
                     disabled={isLoading}
+                    className={isLoading ? 'loading' : ''}
                 >
                     {isLoading ? 'UPDATING...' :'ADD TO CART'}
                 </button>
