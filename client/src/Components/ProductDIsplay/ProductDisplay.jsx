@@ -18,6 +18,8 @@ export const ProductDisplay = (props) => {
     const location = useLocation(); //Get the current location.
     const {product} = props;
     
+    const [isLoading, setIsLoading] = useState(false); //State to track loading status.
+
     //State for options and constraints.
     const [options, setOptions] = useState({
         flavors: [],
@@ -190,8 +192,9 @@ export const ProductDisplay = (props) => {
     //Function: Handle the selecting of a new option.
     const handleOptionSelect = useCallback((optionType, optionId) => {
         console.log(`Selected ${optionType}: ${optionId}`);
-        //Create new selections object for immutability.
-        const newSelections = { ...selections, [optionType]: optionId };
+        setIsLoading(true); //Set loading to true when an option is selected.
+        
+        const newSelections = { ...selections, [optionType]: optionId }; //Create new selections object for immutability.
 
         //Special case for shape - may need to update size.
         if(optionType === 'shapeId') {
@@ -258,9 +261,12 @@ export const ProductDisplay = (props) => {
                 const pathSegments = location.pathname.split('/');
                 const newPath = pathSegments.slice(0, pathSegments.length - 1).join('/') + `/${currentSKU}`;
                 navigate(newPath, { replace: true });
+
+                setIsLoading(false); //Set loading to false when the product is updated.
             }
             catch(error) {
                 console.error("Error updating product: ", error);
+                setIsLoading(false); //Set loading to false if an error occurs.
             }
         };
 
@@ -325,6 +331,7 @@ export const ProductDisplay = (props) => {
 
   return (
     <div className="productdisplay">
+            {/* LEFT SIDE DISPLAY */}
             <div className="productdisplay-left">
                 <div className="productdisplay-img-list">
                     <img src={image} alt="" />
@@ -333,6 +340,10 @@ export const ProductDisplay = (props) => {
                     <img src={image} alt="" className="productdisplay-main-img" loading="lazy" />
                 </div>
             </div>
+            {/* END LEFT SIDE DISPLAY */}
+
+
+            {/* RIGHT SIDE DISPLAY */}
 
             <div className="productdisplay-right">
                 <h1>{name}</h1>
@@ -385,13 +396,14 @@ export const ProductDisplay = (props) => {
 
                 <div className="productdisplay-right-options">
                     <h2>Select Size</h2>
-                    <div className="productdisplay-right-sizes">
+                    <div className={`productdisplay-right-sizes ${isLoading ? 'loading' : ''}`}>
                         {options.sizes.map(size => (
                             <div 
                                 key={size.SizeID}
                                 className={`option-item 
                                     ${selections.sizeId === size.SizeID?.toString() ? 'selected' : ''} 
-                                    ${!isOptionValid('sizeId', size.SizeID?.toString()) ? 'disabled' : ''}`}
+                                    ${!isOptionValid('sizeId', size.SizeID?.toString()) ? 'disabled' : ''}
+                                    ${isLoading ? 'disabled' : ''} `}
                                 onClick={() => isOptionValid('sizeId', size.SizeID?.toString()) && 
                                               handleOptionSelect('sizeId', size.SizeID?.toString())}
                             >
@@ -417,10 +429,16 @@ export const ProductDisplay = (props) => {
                 </div>
                 {/* END PRODUCT OPTIONS */}
 
-                <button onClick={() => handleAddToCart(currentProduct)}>ADD TO CART</button>
+                <button 
+                    onClick={() => handleAddToCart(currentProduct)} 
+                    disabled={isLoading}
+                >
+                    {isLoading ? 'UPDATING...' :'ADD TO CART'}
+                </button>
                 <p className="productdisplay-right-category"><span>Category: </span>{currentProduct?.category}</p>
                 <p className="productdisplay-right-category"><span>Tags: </span>{currentProduct?.flour}, {currentProduct?.flavor}, {currentProduct?.shape}, {currentProduct?.size}</p>
             </div>
+            {/* END RIGHT SIDE DISPLAY */}
         </div>
   )
 }
