@@ -23,7 +23,6 @@ export const Popular = memo(() => {
       return response.json(); //Convert the response into json format.
     }) //Then convert the response into json format.
     .then((data) => {
-      console.log("(Popular.jsx) Data: ", data);
       //Only call setTopProducts if the new data differs from the current state.
       if(JSON.stringify(data) !== JSON.stringify(topProducts)) {
         setTopProducts(data);
@@ -43,7 +42,6 @@ export const Popular = memo(() => {
         <div className="popular-item">
             {
               topProducts.map((item, i) => {
-                console.log("(Popular.jsx) Item: ", item);
                 return <Item key={i} id={item._id} scID={item.subCategoryID} scName={item.subCategory} catName={item.category} sku={item.sku} name={item.name} image={item.image} price={item.price} /> 
               })
             }

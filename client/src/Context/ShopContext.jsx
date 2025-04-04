@@ -19,7 +19,7 @@ const ShopContextProvider = (props) => {
     const [all_product, setAll_Product] = useState([]);
     const [loading, setLoading] = useState(true);
     
-    
+    //Fetch all is taking 1.08 - 1.53 seconds to load.
     //Function: asynchronously fetches all products from the server and updates the state.
     const fetchProducts = async () => {
         try {
@@ -33,6 +33,9 @@ const ShopContextProvider = (props) => {
             setLoading(false);
         }
     }
+
+
+    //TODO: Consider redoing the fetches for categories and subcategories to be more efficient. Currently each one is taking about 500ms to fetch.
 
 
     //Function: asynchronously fetches all categories from the server and updates the state.
@@ -80,9 +83,6 @@ const ShopContextProvider = (props) => {
         fetchProducts,
         loading,
     };
-
-
-    console.log("==(ShopContext) props: ", props);
 
     //Return the Provider component, passing the context value down to children components.
     return (
