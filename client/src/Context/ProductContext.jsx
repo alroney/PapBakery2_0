@@ -1,7 +1,8 @@
 /**
- * This context file (with use of `useReducer`) has the following purpose:
- *  - Store all product data (including reviews) in a centralized context.
- *  - Use `useReducer` to handle actions like adding a review or updating average ratings.
+ * This context file provides:
+ * - Centralized product data (products, categories, subcategories, etc.).
+ * - Loading states for each data type.
+ * - Functions for adding reviews and other product operations.
  */
 
 
@@ -11,13 +12,18 @@ import apiUrl from '@config';
 //Inital state.
 const initialState = {
     products: [],
-    loading: true, //Add loading state to track the fetch status.
-    currentUser: null,
+    categories: [],
+    subcategories: [],
+    productsLoading: true,
+    categoriesLoading: true,
+    subcategoriesLoading: true
 };
 
 //Action types.
-const ADD_REVIEW = 'ADD_REVIEW';
 const SET_PRODUCTS = 'SET_PRODUCTS';
+const SET_CATEGORIES = 'SET_CATEGORIES';
+const SET_SUBCATEGORIES = 'SET_SUBCATEGORIES';
+const ADD_REVIEW = 'ADD_REVIEW';
 
 //Reducer function to manage product state.
 const productReducer = (state, action) => {
@@ -27,6 +33,20 @@ const productReducer = (state, action) => {
                 ...state,
                 products: action.payload,
                 loading: false,
+            };
+        
+        case SET_CATEGORIES:
+            return {
+                ...state,
+                categories: action.payload,
+                categoriesLoading: false,
+            };
+
+        case SET_SUBCATEGORIES:
+            return {
+                ...state,
+                subcategories: action.payload,
+                subcategoriesLoading: false,
             };
 
         case ADD_REVIEW:
@@ -58,51 +78,63 @@ const productReducer = (state, action) => {
 //Context
 const ProductContext = createContext();
 
-//Provider component
+
+//Provider component.
 export const ProductProvider = ({ children }) => {
-    console.log("(ProductContex.jsx) -> (ProductProvider) Component Loaded.");
+    console.log("(ProductContext.jsx) -> (ProductProvider) Component Loaded.");
 
     const [state, dispatch] = useReducer(productReducer, initialState);
-
-
-
+    
+    //Fetch all data when component mounts.
     useEffect(() => {
-        //Fetch all products from the backend API when the provider is mounted.
-        const fetchProducts = async () => {
+        const fetchData = async () => {
             try {
-                const response = await fetch(`${apiUrl}/products/all`);
-                const data = await response.json();
-                dispatch({
-                    type: SET_PRODUCTS, 
-                    payload: data
-                });
+                //Use Promise.all to fetch data in parallel.
+                const [productRes, categoriesRes, subcategoriesRes] = await Promise.all([
+                    fetch(`${apiUrl}/products/all`),
+                    fetch(`${apiUrl}/products/allCategories`),
+                    fetch(`${apiUrl}/products/allSubCategories`)
+                ]);
+
+                const [products, categories, subcategories] = await Promise.all([
+                    productRes.json(),
+                    categoriesRes.json(),
+                    subcategoriesRes.json()
+                ]);
+
+                //Update state with all fetched data.
+                dispatch({ type: SET_PRODUCTS, payload: products });
+                dispatch({ type: SET_CATEGORIES, payload: categories });
+                dispatch({ type: SET_SUBCATEGORIES, payload: subcategories });
+
+                console.log("(ProductContext.jsx) -> (ProductProvider) All product data fetch successfully.");
             }
             catch(error) {
-                console.error("Failed to fetch products: ", error);
+                console.error("Error fetching data: ", error);
             }
-        }
-
-        fetchProducts();
-    }, []); //The empty dependency array ensures this runs only once when the provider mounts.
+        };
+        fetchData();
+    }, []);
 
     return (
-        <ProductContext.Provider value={{ state, dispatch }}>
+        <ProductContext.Provider value={{
+            products: state.products,
+            categories: state.categories,
+            subcategories: state.subcategories,
+            productsLoading: state.productsLoading,
+            categoriesLoading: state.categoriesLoading,
+            subcategoriesLoading: state.subcategoriesLoading,
+            dispatch, //Expose dispatch to allow components to update the state.
+        }}>
             {children}
         </ProductContext.Provider>
-    );
+    )
 };
 
-
-
-//Custom hook to use product context.
 export const useProduct = () => {
-    console.log("(ProductContext.jsx) -> (useProduct) Hook Activated.");
-
     const context = useContext(ProductContext);
-
-
     if(context === undefined) {
-        throw new Error('useProduct must be used within a ProductProvider');
+        throw new Error("useProduct must be used within a ProductProvider");
     }
     return context;
 }

@@ -10,7 +10,7 @@ import { Reviews } from '../Components/Reviews/Reviews';
 export const Product = () => {
   console.log("==(Product.jsx) Component Loaded.==");
 
-  const { state } = useProduct();
+  const { products } = useProduct();
   const { productSKU } = useParams(); //Get the product ID from the URL.
   const [product, setProduct] = useState(null);
 
@@ -19,12 +19,12 @@ export const Product = () => {
 
   useEffect(() => {
     //Find product by SKU
-    const foundProduct = state.products.find(
+    const foundProduct = products.find(
       (p) => p.sku === productSKU
     );
     
     setProduct(foundProduct);
-  }, [state.products, productSKU]);
+  }, [products, productSKU]);
 
 
 

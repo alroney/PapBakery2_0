@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import ShopContextProvider from './Context/ShopContext';
 import { ProductProvider } from './Context/ProductContext';
 import { UserProvider } from './Context/UserContext';
 import { CartProvider } from './Context/CartContext';
@@ -16,11 +15,9 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
     <UserProvider>
       <ProductProvider>
-        <ShopContextProvider>
           <CartProvider>
             <App/>
           </CartProvider>
-        </ShopContextProvider>
       </ProductProvider>
     </UserProvider>
 );

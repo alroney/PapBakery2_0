@@ -12,11 +12,12 @@ import Popular from './Components/Popular/Popular';
 import { useEffect, useState } from 'react';
 import { useUser } from './Context/UserContext';
 import apiUrl from '@config';
+import { useProduct } from './Context/ProductContext';
 
 function App() {
   console.log("========(App.js) Loaded.========");
   const { currentUser, setCurrentUser } = useUser();
-  const [all_category, setAll_Category] = useState([]);
+  const { categories } = useProduct();
   const [showDisclaimer, setShowDisclaimer] = useState(false); //TEMPORARY
 
   useEffect(() => {
@@ -43,17 +44,6 @@ function App() {
     fetchCurrentUser();
   }, [currentUser, setCurrentUser]);
 
-  useEffect(() => {
-    const fetchAllCategories = async () => {
-      const response = await fetch(`${apiUrl}/products/allCategories`);
-      const data = await response.json();
-      return data;
-    }
-
-    fetchAllCategories().then(data => {
-      setAll_Category(data);
-    });
-  }, [])
 
   return (
     <div>
@@ -83,7 +73,8 @@ function App() {
         <Routes>
           <Route path='/' element={<Home/>}/>
           {/* Dynamic creation of routes based on categories available. */}
-          {all_category.map(category => {
+          {categories.map(category => {
+            console.log("Category: ", category);
             return (
               <Route 
                 key={category.categoryID}

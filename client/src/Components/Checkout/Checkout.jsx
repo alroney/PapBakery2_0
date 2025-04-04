@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import './Checkout.css';
-import { ShopContext } from '../../Context/ShopContext';
+import { useProduct } from '../../Context/ProductContext';
 import { PayPalPayment } from '../PayPalPayment/PayPalPayment';
 import { CartContext } from '../../Context/CartContext';
 import apiURL from '@config';
@@ -10,7 +10,7 @@ import { CashPayment } from '../CashPayment/CashPayment';
 export const Checkout = () => {
     console.log("(Checkout.jsx) Component Loaded.");
 
-    const {all_product, loading} = useContext(ShopContext);
+    const {products, productsLoading} = useProduct();
     const {cart, getTotalCartItems, calculateSubtotal} = useContext(CartContext);
     const authToken = localStorage.getItem('auth-token');
     const [guestData, setGuestData] = useState({
@@ -44,15 +44,15 @@ export const Checkout = () => {
     
 
     useEffect(() => {
-        if(!loading) {
-            setSubtotal(calculateSubtotal(all_product));
+        if(!productsLoading) {
+            setSubtotal(calculateSubtotal(products));
         }
 
 
-    }, [cart, all_product, loading]);
+    }, [cart, products, productsLoading]);
 
     useEffect(() => {
-        if(!loading) {
+        if(!productsLoading) {
             calculateFees();
         }
     }, [subtotal])
