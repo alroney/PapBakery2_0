@@ -8,7 +8,6 @@ import { Product } from './Pages/Product';
 import { Cart } from './Pages/Cart';
 import { LoginSignup } from './Pages/LoginSignup';
 import { Footer } from './Components/Footer/Footer';
-import Popular from './Components/Popular/Popular';
 import { useEffect, useState } from 'react';
 import { useUser } from './Context/UserContext';
 import apiUrl from '@config';
