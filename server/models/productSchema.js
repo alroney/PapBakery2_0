@@ -18,11 +18,10 @@ const productSchema = new Mongoose.Schema(
             required: true,
             default: "product",
         },
-        image: {
-            type: String,
-            required: true,
-            default: "none",
-        },
+        productImages: [{
+            path: String,
+            isNutrition: Boolean,
+        }],
         description: {
             type: String,
             required: false, //CHANGE LATER TO TRUE

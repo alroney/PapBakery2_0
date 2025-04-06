@@ -20,6 +20,7 @@ const cartRoutes = require('./routes/cartRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const imageRoutes = require('./routes/imageRoutes');
 const seatableRoutes = require('./routes/seatableRoutes');
+const productImageRoutes = require('./routes/productImageRoutes');
 const Users = require('./models/userSchema');
 
 
@@ -103,6 +104,8 @@ app.use('/api/reviews', pReviewRoutes);
 app.use('/api/order', orderRoutes);
 app.use('/api/images', imageRoutes);
 app.use('/api/seatable', seatableRoutes);
+app.use('/api/product-images', productImageRoutes);
+
 
 
 app.use((err, req, res, next) => {

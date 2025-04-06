@@ -86,9 +86,9 @@ const AddProduct = () => {
         }
     }
 
-    const Destruct_SKU = async () => {
+    const updatePImages = async () => {
         try {
-            const response = await fetch(`${apiBase}/products/destructSKU`, {
+            const response = await fetch(`${apiBase}/product-images/update-all`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
@@ -96,16 +96,16 @@ const AddProduct = () => {
                 },
             });
             const data = await response.json();
-            data.success ? alert("SKU Destructed") : alert("Failed to Destruct SKU");
+            data.success ? alert("Product Images Updated") : alert("Failed to Update Product Images");
         }
         catch(error) {
-            console.error("Failed to destruct SKU: ", error);
+            console.error("Failed to update product images: ", error);
         }
     }
 
   return (
     <div className="add-product">
-        <button onClick={() => (Destruct_SKU())}>Destruct SKU</button>
+        <button className="addproduct-update-images" onClick={() => (updatePImages())}>Update Product Images</button>
         <button className="addproduct-sync-all" onClick={() => (Sync_Products())}>Sync All Products</button>
         <div className="addproduct-form">
             <div className="addproduct-itemfield">

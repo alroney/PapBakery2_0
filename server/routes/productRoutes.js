@@ -25,6 +25,5 @@ router.post('/sync', productController.syncProducts);
 router.post('/add', productController.addProduct);
 router.post('/edit', productController.editProduct);
 router.post('/remove', productController.removeProduct);
-router.post('/destructSKU', testDSKU);
 
 module.exports = router;
