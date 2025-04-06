@@ -16,32 +16,43 @@ import { useProduct } from './Context/ProductContext';
 
 function App() {
   console.log("========(App.js) Loaded.========");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const { currentUser, setCurrentUser } = useUser();
   const { categories } = useProduct();
   const [showDisclaimer, setShowDisclaimer] = useState(false); //TEMPORARY
 
   useEffect(() => {
-    const fetchCurrentUser = async () => {
-      const token = localStorage.getItem('auth-token');
-      if(token && !currentUser) {
-        const response = await fetch(`${apiUrl}/users/me`, {
-          headers: {
-            'auth-token': token,
-          },
-        });
-
-        const data = await response.json();
-
-        if(data.success) {
-          setCurrentUser(data.user); //Restore user.
+    try {
+      const fetchCurrentUser = async () => {
+        const token = localStorage.getItem('auth-token');
+        if(token && !currentUser) {
+          const response = await fetch(`${apiUrl}/users/me`, {
+            headers: {
+              'auth-token': token,
+            },
+          });
+  
+          const data = await response.json();
+  
+          if(data.success) {
+            setCurrentUser(data.user); //Restore user.
+          }
+          else {
+            console.log("Failed to fetch user.");
+          }
         }
-        else {
-          console.log("Failed to fetch user.");
-        }
-      }
-    };
-
-    fetchCurrentUser();
+      };
+  
+      fetchCurrentUser();
+      setLoading(false);
+    }
+    catch(error) {
+      console.error("Error fetching current user: ", error);
+      setError(error);
+      setLoading(false)
+    }
+    
   }, [currentUser, setCurrentUser]);
 
 

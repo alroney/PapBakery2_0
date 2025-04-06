@@ -1,4 +1,4 @@
-.popular {
+.popularItems {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -6,20 +6,20 @@
     margin-bottom: 100px;
 }
 
-.popular h1 {
+.popularItems h1 {
     color: #171717;
     font-weight: 600;
     font-size: 20px; /* Smallest screen default */
 }
 
-.popular hr {
+.popularItems hr {
     width: 100px; /* Smallest screen default */
     height: 3px; /* Smallest screen default */
     border-radius: 10px;
     background: #252525;
 }
 
-.popular-item {
+.popularItems-item {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
@@ -29,71 +29,71 @@
 
 /* Responsive styles */
 @media (min-width: 501px) {
-    .popular {
+    .popularItems {
         height: 100vh;
     }
 
-    .popular-item {
+    .popularItems-item {
         gap: 15px;
     }
 }
 
 @media (min-width: 801px) {
-    .popular {
+    .popularItems {
         height: 100vh;
         gap: 10px;
     }
 
-    .popular h1 {
+    .popularItems h1 {
         font-size: 25px;
     }
 
-    .popular hr {
+    .popularItems hr {
         width: 120px;
         height: 3px;
     }
 
-    .popular-item {
+    .popularItems-item {
         gap: 15px;
         margin-top: 20px;
     }
 }
 
 @media (min-width: 1025px) {
-    .popular {
+    .popularItems {
         height: 100vh;
     }
 
-    .popular h1 {
+    .popularItems h1 {
         font-size: 30px;
     }
 
-    .popular hr {
+    .popularItems hr {
         width: 160px;
         height: 4px;
     }
 
-    .popular-item {
+    .popularItems-item {
         gap: 20px;
         margin-top: 30px;
     }
 }
 
 @media (min-width: 1281px) {
-    .popular {
+    .popularItems {
         height: auto; /* Default for larger screens */
     }
 
-    .popular h1 {
+    .popularItems h1 {
         font-size: 50px;
     }
 
-    .popular hr {
+    .popularItems hr {
         width: 200px;
         height: 6px;
     }
 
-    .popular-item {
+    .popularItems-item {
         gap: 30px;
     }
 }
