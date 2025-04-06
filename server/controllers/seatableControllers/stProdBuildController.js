@@ -8,17 +8,6 @@ const { getTableDataDirectly, updateTableData, syncSeaTableData } = require('./s
 const fs = require('fs');
 const path = require('path');
 
-const testDSKU = async (req, res) => {
-    try {
-        destructureSKU('111-11');
-        res.status(200).json({ success: true, message: "SKU destructure test successful." });
-    }
-    catch(error) {
-        console.error("(stProdBuildController)(testDSKU) Error testing SKU destructure: ", error);
-        res.status(500).json({ success: false, message: "Internal server error." });
-    }
-}
-
 const convertFKeys = async (req, res) => {
     try {
         const map = await getMaps([(req.body.tableName)+'Map']);
@@ -843,4 +832,4 @@ const processForeignKeyConversion = async (tableName, columnName, input, cachedM
 
 
 
-module.exports = { updateProductTable, convertFKeys, getRecipeNutritionFacts, perProductFacts, buildRecipes, generateRecipeNutritionFacts, fullUpdate, testDSKU };
+module.exports = { updateProductTable, convertFKeys, getRecipeNutritionFacts, perProductFacts, buildRecipes, generateRecipeNutritionFacts, fullUpdate };
