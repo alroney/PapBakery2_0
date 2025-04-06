@@ -745,6 +745,12 @@ const allProducts = async (req,res) => {
     }
 };
 
+
+/**
+ * @TODO: Find a way to increase performance with find newest products and topProducts. Consider using a cache or a more efficient query.
+*/
+
+
 //API endpoint to fetch the newest items (last 8 added).
 const newProducts = async (req,res) => {
     try {
