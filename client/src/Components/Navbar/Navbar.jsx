@@ -9,15 +9,15 @@ import { NavLink, useLocation } from 'react-router';
 import { CartContext } from '../../Context/CartContext';
 import { useUser } from '../../Context/UserContext';
 import { useProduct } from '../../Context/ProductContext';
-import apiUrl from '@config';
+// import apiUrl from '@config';
 
-export const Navbar = () => {
+export const Navbar = React.memo(() => {
     console.log("(Navbar.jsx) Component Loaded.");
 
     const [menu, setMenu] = useState("home"); //Initialize the menu selection.
     const { getTotalCartItems } = useContext(CartContext); //Get the total cart items from the CartContext.
     const { categories } = useProduct(); //Get the categories from the ProductContext.
-    const { currentUser, setCurrentUser } = useUser(); //Get the current user and set the current user from the UserContext.
+    const { setCurrentUser } = useUser(); //Get the current user and set the current user from the UserContext.
     const navRef = useRef(); //Create a reference to the navRef.
     const location = useLocation(); //Get the current location.
 
@@ -69,7 +69,7 @@ export const Navbar = () => {
             localStorage.removeItem('auth-token');
             setCurrentUser(null);
         }
-    }, []);
+    }, [setCurrentUser]);
 
 
 
@@ -123,4 +123,4 @@ export const Navbar = () => {
         
     </div>
   )
-}
+});

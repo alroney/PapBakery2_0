@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState, useCallback } from 'react';
 import './Checkout.css';
 import { useProduct } from '../../Context/ProductContext';
 import { PayPalPayment } from '../PayPalPayment/PayPalPayment';
@@ -7,10 +7,10 @@ import apiURL from '@config';
 import { fetchFees } from '../../services/cartService';
 import { CashPayment } from '../CashPayment/CashPayment';
 
-export const Checkout = () => {
+export const Checkout = React.memo(() => {
     console.log("(Checkout.jsx) Component Loaded.");
 
-    const {products, productsLoading} = useProduct();
+    const { productsLoading } = useProduct();
     const {cart, getTotalCartItems, calculateSubtotal} = useContext(CartContext);
     const authToken = localStorage.getItem('auth-token');
     const [guestData, setGuestData] = useState({
@@ -21,14 +21,20 @@ export const Checkout = () => {
     const [subtotal, setSubtotal] = useState(0);
     const [state, setState] = useState('MD');
     const [shippingCost, setShippingCost] = useState(0.0);
-    const [taxRate, setTaxRate] = useState(0.0);
+    // const [taxRate, setTaxRate] = useState(0.0);
     const [couponCode, setCouponCode] = useState('');
     const [fees, setFees] = useState({ taxRate: 0, tax: 0, shipping: 0, discount: 0, total: 0})
     const [paymentType, setPaymentType] = useState('')
     const payRef = useRef();
     
 
-    const calculateFees = async () => {
+    useEffect(() => {
+        console.log("productsLoading state: ", productsLoading);
+    }, [productsLoading]);
+
+
+
+    const calculateFees = useCallback(async () => {
         try {
             const feesData = await fetchFees({ subtotal, state, shippingCost, couponCode });
             if(feesData) {
@@ -37,64 +43,67 @@ export const Checkout = () => {
         } 
         catch (error) {
             console.error("Error fetching fees: ", error);
-        }
-        
-    }
+        }   
+    }, [subtotal, state, shippingCost, couponCode]);
+
 
     
-
+    //UseEffect: update subtotal when cart changes.
     useEffect(() => {
-        if(!productsLoading) {
-            setSubtotal(calculateSubtotal(products));
-        }
+        const total = calculateSubtotal();
+        setSubtotal(parseFloat(total) || 0); //Set subtotal to 0 if NaN.
+        console.log("Setting subtotal: ", total);
+    }, [cart, calculateSubtotal]);
 
 
-    }, [cart, products, productsLoading]);
 
+    //UseEffect: update fees when subtotal changes.
     useEffect(() => {
-        if(!productsLoading) {
+        if(subtotal > 0) {
             calculateFees();
         }
-    }, [subtotal])
+    }, [calculateFees, subtotal])
 
     
 
-    const changeHandler = (e) => {
-        setGuestData({...guestData, [e.target.name]:e.target.value});
-        setEmailError(''); //Clear email error on input.
-    }
+    const changeHandler = useCallback((e) => {
+        setGuestData(prev => ({...prev, [e.target.name]: e.target.value}));
+        setEmailError(''); //Clear email error on input change.
+    }, [])
 
-    const handlePaymentChange = (e) => {
+
+
+    const handlePaymentChange = useCallback((e) => {
         setPaymentType(e.target.value);
-    }
+    }, [])
 
-    const isValidEmail = (email) => {
+
+
+    const isValidEmail = useCallback((email) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
-    }
-
-
-    const applyCouponCode = () => {
-        //Logic to verify and apply promo code, adjusting the total as necessary.
-    }
+    }, [])
 
     
     
-    const paynow_toggle = (e) => {
+    const paynow_toggle = useCallback((e) => {
         if(!authToken && !isValidEmail(guestData.guestEmail)) {
             setEmailError('Please enter a valid email address.');
             setIsPaynowVisible(false); //Hide paypal component if email is invalid.
         }
         else {
             setEmailError('');
-            setIsPaynowVisible(!isPaynowVisible);
+            setIsPaynowVisible(prev => !prev);
             e.target.classList.toggle('open');
         }
-    }
+    }, [authToken, guestData.guestEmail, isValidEmail])
+
+
+
 
   return (
     <div className="checkout">
-        {getTotalCartItems() > 0 
+        {Array.isArray(cart) && getTotalCartItems() > 0 
             ? (
                 <>
                 <div className="checkout-down">
@@ -103,7 +112,7 @@ export const Checkout = () => {
                         <div>
                             <div className="checkout-total-item">
                                 <p>Subtotal</p>
-                                <p>${subtotal.toFixed(2)}</p>
+                                <p>${subtotal}</p>
                             </div>
                             <hr />
                             <div className="checkout-total-item">
@@ -203,4 +212,4 @@ export const Checkout = () => {
         
     </div>
   )
-}
+});

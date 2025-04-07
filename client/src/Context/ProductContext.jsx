@@ -6,7 +6,7 @@
  */
 
 
-import React, { createContext, useReducer, useContext, useEffect } from 'react';
+import React, { createContext, useReducer, useContext, useEffect, useMemo } from 'react';
 import apiUrl from '@config';
 
 //Inital state.
@@ -84,6 +84,18 @@ export const ProductProvider = ({ children }) => {
     console.log("(ProductContext.jsx) -> (ProductProvider) Component Loaded.");
 
     const [state, dispatch] = useReducer(productReducer, initialState);
+
+    //Memoization to prevent unnecessary re-renders.
+    const value = useMemo(() => ({
+        products: state.products,
+        categories: state.categories,
+        subcategories: state.subcategories,
+        productsLoading: state.productsLoading,
+        categoriesLoading: state.categoriesLoading,
+        subcategoriesLoading: state.subcategoriesLoading,
+        dispatch, //Expose dispatch to allow components to update the state.
+
+    }), [state.products, state.categories, state.subcategories, state.productsLoading, state.categoriesLoading, state.subcategoriesLoading]);
     
     //Fetch all data when component mounts.
     useEffect(() => {
@@ -117,15 +129,7 @@ export const ProductProvider = ({ children }) => {
     }, []);
 
     return (
-        <ProductContext.Provider value={{
-            products: state.products,
-            categories: state.categories,
-            subcategories: state.subcategories,
-            productsLoading: state.productsLoading,
-            categoriesLoading: state.categoriesLoading,
-            subcategoriesLoading: state.subcategoriesLoading,
-            dispatch, //Expose dispatch to allow components to update the state.
-        }}>
+        <ProductContext.Provider value={value}>
             {children}
         </ProductContext.Provider>
     )

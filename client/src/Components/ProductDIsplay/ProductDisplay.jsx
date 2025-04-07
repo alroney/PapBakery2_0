@@ -36,7 +36,7 @@ const OptionItem = React.memo(({ id, name, type, isSelected, isValid, onSelect, 
 
 
 
-export const ProductDisplay = ({ product }) => {
+export const ProductDisplay = React.memo(({ product }) => {
     console.log("(ProductDisplay.jsx) Component Loaded.");
     const isMounted = useRef(true); //Reference to check if the component is mounted.
     const navigate = useNavigate(); //Get the navigate function from react-router.
@@ -625,4 +625,4 @@ export const ProductDisplay = ({ product }) => {
             {/* END RIGHT SIDE DISPLAY */}
         </div>
   )
-}
+});

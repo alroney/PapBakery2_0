@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import { useProduct } from '../Context/ProductContext';
 import { useParams } from 'react-router';
 import { Breadcrum } from '../Components/Breadcrums/Breadcrum';
@@ -8,39 +8,27 @@ import { RelatedProducts } from '../Components/RelatedProducts/RelatedProducts';
 // import { Reviews } from '../Components/Reviews/Reviews';
 
 export const Product = () => {
-  console.log("==(Product.jsx) Component Loaded.==");
+    console.log("==(Product.jsx) Component Loaded.==");
 
-  const { products } = useProduct();
-  const { productSKU } = useParams(); //Get the product ID from the URL.
-  const [product, setProduct] = useState(null);
+    const { products } = useProduct();
+    const { productSKU } = useParams();
 
-
-  /* MAJOR TODO: change this to find product from SKU possibly. */
-
-  useEffect(() => {
-    //Find product by SKU
-    const foundProduct = products.find(
-      (p) => p.sku === productSKU
+    const product = useMemo(() => 
+        products.find(p => p.sku === productSKU),
+        [products, productSKU]
     );
-    
-    setProduct(foundProduct);
-  }, [products, productSKU]);
 
+    if(!product) {
+        return <div>No product to display.</div>;
+    }
 
-
-  if(!product) {
-    return <div> No product to display.</div>
-  }
-
-
-  
-  return (
-    <div>
-      <Breadcrum product={product}/>
-      <ProductDisplay product={product}/>
-      <DescriptionBox/>
-      {/* <Reviews productSKU={productSKU}/> */} {/* DISABLED until rework of Reviews gathering is done. */}
-      <RelatedProducts/>
-    </div>
-  )
+    return (
+        <div>
+            <Breadcrum product={product} />
+            <ProductDisplay product={product} />
+            <DescriptionBox />
+            <RelatedProducts />
+            {/* <Reviews /> */}
+        </div>
+    )
 }

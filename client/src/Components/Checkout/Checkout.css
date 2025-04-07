@@ -78,67 +78,105 @@
     margin: 100px 0px;
 }
 
-.checkout-total {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    margin-right: 200px;
-    gap: 40px;
-}
 
-.checkout-total-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 15px 0px;
-}
+/* #region - CHECKOUT TOTAL */
+    .checkout-total {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        margin: auto;
+        gap: 40px;
+        max-width: 600px;
+    }
 
-.checkout-total button {
-    width: 262px;
-    height: 58px;
-    outline: none;
-    border: none;
-    background: #ff5a5a;
-    color: #fff;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-}
+    /* #region - CHECKOUT TOTAL ITEM */
+        .checkout-total-item {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
 
-.checkout-promocode {
-    flex: 1;
-    font-size: 16px;
-    font-weight: 500;
-}
+        .checkout-total-item > div:last-child { /* Last child of the checkout-total-item div */
+            margin-bottom: 0;
+        }
 
-.checkout-promocode p {
-    color: #555;
-}
+        .checkout-total-item > div:first-child + hr { /* First child of the checkout-total-item div */
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
 
-.checkout-promobox {
-    width: 504px;
-    margin-top: 15px;
-    padding-left: 20px;
-    height: 58px;
-    background: #eaeaea;
-}
+        .checkout-total-item h3 {
+            margin: 8px 0;
+        }
 
-.checkout-promobox input {
-    border: none;
-    outline: none;
-    background: transparent;
-    font-size: 16px;
-    width: 330px;
-    height: 50px;
-}
+        .checkout-total-item:last-child {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+        }
+    /* #endregion - CHECKOUT TOTAL ITEM */
 
-.checkout-promobox button {
-    width: 170px;
-    height: 58px;
-    font-size: 16px;
-    background: black;
-    color: white;
-    cursor: pointer;
-}
+    .checkout-total-fees {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        margin-bottom: 8px;
+    }
+
+    .checkout-total button {
+        width: 262px;
+        height: 58px;
+        outline: none;
+        border: none;
+        background: #ff5a5a;
+        color: #fff;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+/* #endregion - CHECKOUT TOTAL */
+
+
+/* #region - CHECKOUT PROMO */
+    .checkout-promocode {
+        flex: 1;
+        font-size: 16px;
+        font-weight: 500;
+    }
+
+    .checkout-promocode p {
+        color: #555;
+    }
+
+    .checkout-promobox {
+        width: 504px;
+        margin-top: 15px;
+        padding-left: 20px;
+        height: 58px;
+        background: #eaeaea;
+    }
+
+    .checkout-promobox input {
+        border: none;
+        outline: none;
+        background: transparent;
+        font-size: 16px;
+        width: 330px;
+        height: 50px;
+    }
+
+    .checkout-promobox button {
+        width: 170px;
+        height: 58px;
+        font-size: 16px;
+        background: black;
+        color: white;
+        cursor: pointer;
+    }
+/* #endregion - CHECKOUT PROMO */
 
 
 .guest-info-fields input {

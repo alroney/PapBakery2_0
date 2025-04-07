@@ -51,7 +51,7 @@ const addToCart = async (req, res) => {
                     name: product.name,
                     price: product.price,
                     quantity,
-                    image: product.image,
+                    image: product.images[0].path,
                 });
             }
         } 

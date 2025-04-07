@@ -8,7 +8,7 @@ export const CartItems = () => {
     console.log("(CartItems.jsx) Component Loaded.");
 
     const { cart, handleUpdateCartItem, handleClearCart } = useContext(CartContext);
-    const baseImageUrl = 'http://localhost:4000/images';
+    // const baseImageUrl = 'http://localhost:4000/images';
     return (
         <div className='cartitems'>
             <h2>Shopping Cart</h2>
@@ -29,15 +29,15 @@ export const CartItems = () => {
                     return (
                         <div key={item.productId} className="cartitems-item">
                             <div className="cartitems-main">
-                                <img src={`${baseImageUrl}/${item.image}`} alt="" className="cartitems-product-icon " />
+                                <img src={`${item.image}`} alt="" className="cartitems-product-icon " />
                                 <div className="cartitems-details">
                                     <p className="">{item.name}</p>
                                     <p className="">Price: ${item.price}</p>
                                     <div className="cartitems-quantity">
                                         <div className="cartitems-quantity-container">
-                                            <button className="cartitems-adjuster" onClick={() => handleUpdateCartItem(item.productId, item.quantity - 1)}>{item.quantity === 1 ? 'x':'\<'}</button>
+                                            <button className="cartitems-adjuster" onClick={() => handleUpdateCartItem(item.productId, item.quantity - 1)}>{item.quantity === 1 ? 'x':'<'}</button>
                                             <p className='cartitems-quantity-display'>{item.quantity}</p>
-                                            <button className="cartitems-adjuster" onClick={() => handleUpdateCartItem(item.productId, item.quantity + 1)}>{'\>'}</button>
+                                            <button className="cartitems-adjuster" onClick={() => handleUpdateCartItem(item.productId, item.quantity + 1)}>{'>'}</button>
                                         </div>
                                         
                                 <img className="caritems-remove-icon " src={remove_icon} alt="X" onClick={()=>{handleUpdateCartItem(item.productId, 0)}}/>
@@ -48,6 +48,9 @@ export const CartItems = () => {
                             <hr />
                         </div>
                     )
+                }
+                else {
+                    return <div key={item.productId} className="cartitems-item">Loading...</div>
                 }
             })}
         </div>

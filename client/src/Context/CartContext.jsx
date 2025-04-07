@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { getCart, addToCart, updateCartItem, clearCart } from '../services/cartService';
 
 export const CartContext = createContext();
@@ -7,6 +7,7 @@ export const CartProvider = ({ children }) => {
     console.log("(CartContext.jsx) -> (CartProvider) Component Loaded.");
 
     const [cart, setCart] = useState([]);
+    
 
     // Fetch the cart from the backend when the component mounts
     useEffect(() => {
@@ -46,23 +47,27 @@ export const CartProvider = ({ children }) => {
                 setCart(updatedCart.items);
             } 
             else {
-                const updatedGuestCart = [...cart];
-                const itemIndex = updatedGuestCart.findIndex((item) => item.productId === product._id);
-                if(itemIndex > -1) {
-                    updatedGuestCart[itemIndex].quantity += 1;
-                } 
-                else {
-                    updatedGuestCart.push({ productId: product._id, name: product.name, price: product.price, quantity: 1, image: product.image });
-                }
-                setCart(updatedGuestCart);
-                localStorage.setItem('guestCart', JSON.stringify(updatedGuestCart));
+                //Function updater pattern to avoid the dependency on cart.
+                setCart(currentCart => {
+                    const updatedGuestCart = [...currentCart];
+                    const itemIndex = updatedGuestCart.findIndex((item) => item.productId === product._id);
+                    if(itemIndex > -1) {
+                        updatedGuestCart[itemIndex].quantity += 1;
+                    } 
+                    else {
+                        updatedGuestCart.push({ productId: product._id, name: product.name, price: product.price, quantity: 1, image: product.image });
+                    }
+
+                    localStorage.setItem('guestCart', JSON.stringify(updatedGuestCart));
+                    return updatedGuestCart;
+                })
             }
         } 
         catch (error) {
             console.log("Error adding to cart: ", error);
         }
         
-    }, [cart]);
+    }, []);
 
     // Update item quantity in the cart
     const handleUpdateCartItem = useCallback(async (itemId, quantity) => {
@@ -72,21 +77,19 @@ export const CartProvider = ({ children }) => {
                 setCart(updatedCart.items);
             } 
             else {
-                //For guest users, modify the local cart.
-                const updatedGuestCart = cart.map((item) =>
-                    item.productId === itemId ? { ...item, quantity } : item
-                )
-                .filter((item) => item.quantity > 0); //Remove items with quantity 0.
-                
-                setCart(updatedGuestCart);
-                localStorage.setItem('guestCart', JSON.stringify(updatedGuestCart));
+                setCart(currentCart => {
+                    const updatedGuestCart = currentCart.map((item) => item.productId === itemId ? { ...item, quantity } : item).filter((item) => item.quantity > 0); //Remove items with quantity 0.
+
+                    localStorage.setItem('guestCart', JSON.stringify(updatedGuestCart));
+                    return updatedGuestCart;
+                });
             }
         } 
         catch (error) {
             console.log("Error in handleUpdateCartItem: ", error);
         }
         
-    }, [cart]);
+    }, []);
 
     // Clear the cart (auth or guest)
     const handleClearCart = useCallback(async () => {
@@ -106,27 +109,32 @@ export const CartProvider = ({ children }) => {
         
     }, []);
 
-    //Calculate total quantity of items in the cart
-    const getTotalCartItems = useCallback(() => {
-        return Array.isArray(cart) ? cart.reduce((total, item) => total + item.quantity, 0) : 0;
+    const totalCartItems = useMemo(() => {
+        if(!Array.isArray(cart) || cart.length === 0) return 0;
+        return cart.reduce((total, item) => total + (parseInt(item.quantity) || 0), 0);
     }, [cart]);
 
-    const calculateSubtotal = useCallback(() => {
-        const subtotal = cart.reduce((price, item) => price + item.price * item.quantity, 0) || 0;
-        return subtotal;
-    })
+    const subtotal = useMemo(() => {
+        console.log("(CartContext.jsx) -> (subtotal) Calculating subtotal with cart: ", cart);
+        if(!Array.isArray(cart) || cart.length === 0) return 0;
+        return cart.reduce((total, item) => {
+            const itemPrice = parseFloat(item.price) || 0;
+            const itemQuantity = parseInt(item.quantity) || 0;
+            return total + (itemPrice * itemQuantity);
+        }, 0).toFixed(2);
+    }, [cart]);
+
+    const value = useMemo(() => ({
+        cart,
+        handleAddToCart,
+        handleUpdateCartItem,
+        handleClearCart,
+        getTotalCartItems: () => totalCartItems,
+        calculateSubtotal: () => subtotal,
+    }), [cart, handleAddToCart, handleUpdateCartItem, handleClearCart, totalCartItems, subtotal]);
 
     return (
-        <CartContext.Provider
-            value={{
-                cart,
-                handleAddToCart,
-                handleUpdateCartItem,
-                handleClearCart,
-                getTotalCartItems,
-                calculateSubtotal,
-            }}
-        >
+        <CartContext.Provider value={value}>
             {children}
         </CartContext.Provider>
     );
