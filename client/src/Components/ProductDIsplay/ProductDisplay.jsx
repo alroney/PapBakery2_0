@@ -145,7 +145,119 @@ export const ProductDisplay = ({ product }) => {
         setSelectedImageIndex(index);
     }, []);
 
+
+
+    //Function (helper): Validate initial selections based on the fetched options and constraints.
+    const validateInitialSelections = useCallback((categoryId, selectionToValidate, validShapesByCategory, validSizesByShape) => {
+        if(!selectionToValidate || !categoryId) return;
+
+        const { shapeId, sizeId } = selectionToValidate
+        const newSelections = { ...selectionToValidate };
+        let needsUpdate = false;
+
+        //Check shape validity.
+        const validShapes = validShapesByCategory.get(Number(categoryId));
+        if(validShapes && !validShapes.has(Number(shapeId))) {
+            newSelections.shapeId = Array.from(validShapes)[0];
+            needsUpdate = true;
+        }
+
+        //Check if size is valid for this shape.
+        const validSizes = validSizesByShape.get(Number(newSelections.shapeId));
+        if(validSizes && !validSizes.has(Number(sizeId))) {
+            //Size is invalid - pick first valid size.
+            newSelections.sizeId = Array.from(validSizes)[0];
+            needsUpdate = true;
+        }
+
+        //Update if needed.
+        if(needsUpdate && isMounted.current) {
+            setSelections(newSelections);
+        }
+
+        return newSelections;
+    }, []); //End validateInitialSelections.
     
+
+
+    //Function: Update the URL without refreshing the page.
+    const updateProductUrl = useCallback((sku) => {
+        const pathSegments = location.pathname.split('/');
+        const newPath = pathSegments.slice(0, pathSegments.length - 1).join('/') + `/${sku}`;
+        navigate(newPath, { replace: true });
+    }, [location.pathname, navigate]);
+
+
+    
+    //Function: Fetch the product based on the current selections.
+    const fetchProductForSelections = useCallback(async (currentSelections) => {
+        const { subcategoryId, flourId, flavorId, shapeId, sizeId } = currentSelections;
+        if(!subcategoryId || !flourId || !flavorId || !shapeId || !sizeId) {
+            setIsLoading(false);
+            return;
+        }
+
+        const sku = `${subcategoryId}${flourId}${flavorId}-${shapeId}${sizeId}`;
+        if(sku === product?.sku) {
+            setIsLoading(false);
+            return;
+        }
+
+        try {
+            if(productCache[sku]) {
+                console.log("Using cached product data for ", sku);
+                setCurrentProduct(productCache[sku]);
+                setIsLoading(false);
+
+                fetchProductImages(sku); //Reset images for new product.
+                updateProductUrl(sku);
+                return;
+            }
+
+            console.log("Fetching product with SKU: ", sku);
+            const response = await fetch(`${apiUrl}/products/by-sku/${sku}`);
+
+            if(!response.ok) {
+                console.error("Failed to fetch product by SKU: ", response.statusText);
+                setIsLoading(false);
+                return;
+            }
+
+            const data = await response.json();
+            if(!data.product) {
+                console.error("Product not found: ", sku);
+                setIsLoading(false);
+                return;
+            }
+
+            //Validate product matches request.
+            const receivedSelections = parseSKU(data.product.sku);
+            if(receivedSelections.shapeId !== currentSelections.shapeId) {
+                console.error("Received product shape doesn't match request");
+                setIsLoading(false);
+                return;
+            }
+
+            setProductCache(prevCache => ({
+                ...prevCache,
+                [sku]: data.product
+            }));
+
+            //Update current product if still mounted.
+            if(isMounted.current) {
+                setCurrentProduct(data.product);
+                setIsLoading(false);
+                fetchProductImages(sku); //Fetch images for the new product.
+                updateProductUrl(sku);
+            }
+        }
+        catch(error) {
+            console.error("Error fetching product for selections: ", error);
+            setIsLoading(false);
+        }
+    }, [product?.sku, productCache, parseSKU, fetchProductImages, updateProductUrl]);
+
+
     //UseEffect: Fetch available options when component mounts.
     useEffect(() => {
         const fetchOptions = async () => {
@@ -217,40 +329,7 @@ export const ProductDisplay = ({ product }) => {
             }
         }
         fetchOptions();
-    }, [initialSelections]);
-
-
-
-    //Function (helper): Validate initial selections based on the fetched options and constraints.
-    const validateInitialSelections = useCallback((categoryId, selectionToValidate, validShapesByCategory, validSizesByShape) => {
-        if(!selectionToValidate || !categoryId) return;
-
-        const { shapeId, sizeId } = selectionToValidate
-        const newSelections = { ...selectionToValidate };
-        let needsUpdate = false;
-
-        //Check shape validity.
-        const validShapes = validShapesByCategory.get(Number(categoryId));
-        if(validShapes && !validShapes.has(Number(shapeId))) {
-            newSelections.shapeId = Array.from(validShapes)[0];
-            needsUpdate = true;
-        }
-
-        //Check if size is valid for this shape.
-        const validSizes = validSizesByShape.get(Number(newSelections.shapeId));
-        if(validSizes && !validSizes.has(Number(sizeId))) {
-            //Size is invalid - pick first valid size.
-            newSelections.sizeId = Array.from(validSizes)[0];
-            needsUpdate = true;
-        }
-
-        //Update if needed.
-        if(needsUpdate && isMounted.current) {
-            setSelections(newSelections);
-        }
-
-        return newSelections;
-    }, []); //End validateInitialSelections.
+    }, [initialSelections, validateInitialSelections]);
 
 
 
@@ -289,7 +368,7 @@ export const ProductDisplay = ({ product }) => {
             clearTimeout(loadingTimer); //Clear the loading timer.
             fetchProductForSelections(newSelections);
         }, 300); //Delay of 300ms.
-    }, [selections, constraints]);
+    }, [selections, constraints.validSizesByShape, fetchProductForSelections]);
 
 
 
@@ -304,91 +383,13 @@ export const ProductDisplay = ({ product }) => {
 
 
 
-    //Function: Fetch the product based on the current selections.
-    const fetchProductForSelections = useCallback(async (currentSelections) => {
-        const { subcategoryId, flourId, flavorId, shapeId, sizeId } = currentSelections;
-        if(!subcategoryId || !flourId || !flavorId || !shapeId || !sizeId) {
-            setIsLoading(false);
-            return;
-        }
-
-        const sku = `${subcategoryId}${flourId}${flavorId}-${shapeId}${sizeId}`;
-        if(sku === product?.sku) {
-            setIsLoading(false);
-            return;
-        }
-
-        try {
-            if(productCache[sku]) {
-                console.log("Using cached product data for ", sku);
-                setCurrentProduct(productCache[sku]);
-                setIsLoading(false);
-
-                fetchProductImages(sku); //Reset images for new product.
-                updateProductUrl(sku);
-                return;
-            }
-
-            console.log("Fetching product with SKU: ", sku);
-            const response = await fetch(`${apiUrl}/products/by-sku/${sku}`);
-
-            if(!response.ok) {
-                console.error("Failed to fetch product by SKU: ", response.statusText);
-                setIsLoading(false);
-                return;
-            }
-
-            const data = await response.json();
-            if(!data.product) {
-                console.error("Product not found: ", sku);
-                setIsLoading(false);
-                return;
-            }
-
-            //Validate product matches request.
-            const receivedSelections = parseSKU(data.product.sku);
-            if(receivedSelections.shapeId !== currentSelections.shapeId) {
-                console.error("Received product shape doesn't match request");
-                setIsLoading(false);
-                return;
-            }
-
-            setProductCache(prevCache => ({
-                ...prevCache,
-                [sku]: data.product
-            }));
-
-            //Update current product if still mounted.
-            if(isMounted.current) {
-                setCurrentProduct(data.product);
-                setIsLoading(false);
-                fetchProductImages(sku); //Fetch images for the new product.
-                updateProductUrl(sku);
-            }
-        }
-        catch(error) {
-            console.error("Error fetching product for selections: ", error);
-            setIsLoading(false);
-        }
-    }, [product?.sku, productCache, parseSKU]);
-
-
-
-    //Function: Update the URL without refreshing the page.
-    const updateProductUrl = useCallback((sku) => {
-        const pathSegments = location.pathname.split('/');
-        const newPath = pathSegments.slice(0, pathSegments.length - 1).join('/') + `/${sku}`;
-        navigate(newPath, { replace: true });
-    }, [location.pathname, navigate]);
-
-
 
     //UseEffect: Update the product when SKU changes.
     useEffect(() => {
         if(currentSKU) {
             fetchProductForSelections(selections);
         }
-    }, [currentSKU]);
+    }, [currentSKU, fetchProductForSelections, selections]);
 
 
 
@@ -427,7 +428,7 @@ export const ProductDisplay = ({ product }) => {
         };
 
         preloadCommonVariations();
-    }, [product, options, selections.shapeId, isLoading]);
+    }, [product, options, selections.shapeId, isLoading, selections, constraints.validSizesByShape, productCache, currentSKU]);
 
 
 

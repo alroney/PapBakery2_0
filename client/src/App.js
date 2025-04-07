@@ -15,8 +15,6 @@ import { useProduct } from './Context/ProductContext';
 
 function App() {
   console.log("========(App.js) Loaded.========");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const { currentUser, setCurrentUser } = useUser();
   const { categories } = useProduct();
   const [showDisclaimer, setShowDisclaimer] = useState(false); //TEMPORARY
@@ -44,12 +42,9 @@ function App() {
       };
   
       fetchCurrentUser();
-      setLoading(false);
     }
     catch(error) {
       console.error("Error fetching current user: ", error);
-      setError(error);
-      setLoading(false)
     }
     
   }, [currentUser, setCurrentUser]);

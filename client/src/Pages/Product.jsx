@@ -5,7 +5,7 @@ import { Breadcrum } from '../Components/Breadcrums/Breadcrum';
 import { ProductDisplay } from '../Components/ProductDIsplay/ProductDisplay';
 import { DescriptionBox } from '../Components/DescriptionBox/DescriptionBox';
 import { RelatedProducts } from '../Components/RelatedProducts/RelatedProducts';
-import { Reviews } from '../Components/Reviews/Reviews';
+// import { Reviews } from '../Components/Reviews/Reviews';
 
 export const Product = () => {
   console.log("==(Product.jsx) Component Loaded.==");
