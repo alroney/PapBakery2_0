@@ -477,7 +477,7 @@ export const ProductDisplay = ({ product }) => {
 
     //Function: Get the currently selected image.
     const selectedImage = useMemo(() => {
-        return productImages.length > 0 ? productImages[selectedImageIndex] : image;
+        return productImages.length > 0 ? productImages[selectedImageIndex].path : image;
     }, [productImages, selectedImageIndex, image]);
 
 
@@ -504,11 +504,11 @@ export const ProductDisplay = ({ product }) => {
                         </div>
                     ))}
                 </div>
-                <div className="productdisplay-image">
+                <div className="productdisplay-img">
                     <img
-                        src={selectedImage.path}
+                        src={selectedImage}
                         alt={productImages[selectedImageIndex]?.isNutrition ? "Nutrition Facts" : `Product Image ${selectedImageIndex + 1}`}
-                        className="productdisplay-main-img"
+                        className={`productdisplay-main-img ${productImages[selectedImageIndex]?.isNutrition ? 'nutrition-image' : 'product-image'}`}
                         loading="lazy"
                     />
                 </div>

@@ -26,9 +26,9 @@ const refreshImageCache = () => {
     try {
         const currentTime = new Date().getTime(); //Get current time in milliseconds.
         //Only refresh the cache every 10 minutes unless forced.
-        if(imageCache.lastUpdate && currentTime - imageCache.lastUpdate < 10 * 60 * 1000) {   
-            return;
-        }
+        // if(imageCache.lastUpdate && currentTime - imageCache.lastUpdate < 10 * 60 * 1000) {   
+        //     return;
+        // }
 
         console.log("Refreshing product image cache...");
 
@@ -39,7 +39,7 @@ const refreshImageCache = () => {
             //Create a map for product images by category, shape and size.
             const newProductImages = {};
             productFiles.forEach(file => {
-                if(!file.endsWith('.jpeg') && !file.endsWith('.png')) return; //Skip non-image files.
+                if(!file.endsWith('.jpeg') && !file.endsWith('.png') && !file.endsWith('.jpg')) return; //Skip non-image files.
 
                 //Format: [CategoryID]-[ShapeID][SizeID]_[ImageNumber].jpeg
                 const match = file.match(/^(\d+)-(\d)(\d)_(\d+)\.(jpeg|jpg|png)$/);
@@ -105,7 +105,6 @@ const refreshImageCache = () => {
 
 //Function: Get all available images for a product by SKU.
 const getProductImages = async (sku) => {
-    console.log("Getting product images for SKU: ", sku);
     try {
         if(!sku) return []; //Return empty array if SKU is not provided.
 
@@ -228,7 +227,6 @@ const updateProductImagesInDatabase = async () => {
 
             if(bulkOps.length) {
                 await Products.bulkWrite(bulkOps); //Execute bulk operations.
-                console.log(`Updated ${bulkOps.length} products in batch.`);
             }
         }
 
