@@ -49,6 +49,7 @@ export const ProductGrid = memo(({ title, endpoint, className = "product-grid" }
             <hr />
             <div className={`${className}-item`}>
                 {products.map((item, i) => {
+                    //Get the first product image from the array if available, but only if it's not a nutrition image.
                     return (
                         <Item
                             key={i}
@@ -58,7 +59,7 @@ export const ProductGrid = memo(({ title, endpoint, className = "product-grid" }
                             catName={item.category}
                             sku={item.sku}
                             name={item.name}
-                            image={item.image}
+                            image={item.images}
                             price={item.price}
                         />
                     )

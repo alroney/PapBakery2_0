@@ -18,7 +18,7 @@ const productSchema = new Mongoose.Schema(
             required: true,
             default: "product",
         },
-        productImages: [{
+        images: [{
             path: String,
             isNutrition: Boolean,
         }],

@@ -359,7 +359,7 @@ const getSubcategoryById = async (req, res) => {
                         price: { $first: '$price' },
                         category: { $first: '$category' },
                         subCategory: { $first: '$subcategory' },
-                        image: { $first: '$image' },
+                        images: { $first: '$images' },
                         rating: { $first: '$rating' },
                         reviewCount: { $first: '$reviewCount' },
                         reviews: { $push: '$reviews' },
@@ -370,7 +370,7 @@ const getSubcategoryById = async (req, res) => {
             //Construct the image URL for use in the response or front-end rendering.
             const productsWithImages = productsWithReviews.map((product) => ({
                 ...product, //Spread the product details.
-                image: `${baseImagePath}/${product.image}`, //Add the base path to the image name.
+                images: `${product.images[0].path}`, //Add the base path to the image name.
             }));
 
             return productsWithImages;

@@ -7,7 +7,6 @@ const Item = (props) => {
 
   const { scID, catName, scName, name, image, sku} = props; //Props passed from calling component.
 
-
 //Link affects APP.js Routes
 //TODO: Change this to represent subcategory.
   return (

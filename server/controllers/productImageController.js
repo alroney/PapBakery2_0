@@ -217,7 +217,7 @@ const updateProductImagesInDatabase = async () => {
                         filter: { _id: product._id },
                         update: {
                             $set: {
-                                productImages: images,
+                                images: images, //Set the images field to the new images.
                             }
                         }
                     }

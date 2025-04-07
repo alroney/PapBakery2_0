@@ -245,6 +245,10 @@ const updateProductTable = async () => {
                     column_name: 'Ingredients',
                     column_type: 'text',
                 },
+                {
+                    column_name: 'ProductImage',
+                    column_type: 'text',
+                }
             ]
             
             await createNewTable(table_name, columns);
@@ -510,6 +514,7 @@ const buildProducts = async () => {
                     const sku = `${recipeSKU}-${shapeID}${sizeID}`; //SKU = Stock Keeping Unit. (###-##)
                     const productName = `${size.SizeName} ${shape.ShapeName} ${recipeName}`;
                     const productDesc = `${recipeDesc} ${shape.Description} ${size.Description}`
+                    const productImage = `${cs_categoryID}-${shapeID}${sizeID}_000.jpg`; //First image in the list.
 
                     products.push({
                         ProductID: productID,
@@ -518,7 +523,8 @@ const buildProducts = async () => {
                         ProductName: productName,
                         RecipeCost: Number(recipeCost),
                         Description: productDesc,
-                        Ingredients: ingredientList
+                        Ingredients: ingredientList,
+                        ProductImage: productImage,
                     })
                 });
             }
