@@ -319,6 +319,7 @@ const getSubcategoryById = async (req, res) => {
 //#region - FETCH ALL FUNCTIONS
     //Function: Find and return all products in the MongoDB
     const fetchAllProducts = async () => {
+        //Possible TODO: Add a backup routine to use the cached data if the database is not available.
         try {
             //Aggregate the products with reviews and users.
             const productsWithReviews = await Products.aggregate([
@@ -770,10 +771,11 @@ const getSubcategoryById = async (req, res) => {
             }
         };
 
+
+        
         /**
          * @TODO Create algorithm that compares the likes of 1 product to other products and shows the 3 most popular.
          */
-
         //API endpoint to fetch popular flavors (first 4 items).
         const topProducts = async (req,res) => {
             try {
