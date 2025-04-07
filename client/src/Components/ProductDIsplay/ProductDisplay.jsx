@@ -10,7 +10,6 @@ import apiUrl from '@config'
 
 //Component: This is a memoized component that renders an option item (flavor, shape, size, or flour) in the product display. Separated from the main component to improve performance and readability and prevent unnecessary rerenders.
 const OptionItem = React.memo(({ id, name, type, isSelected, isValid, onSelect, isLoading }) => {
-        
     const handleClick = React.useCallback(() => {
         if(!isLoading && isValid) {
             onSelect(type, id);
@@ -49,6 +48,8 @@ export const ProductDisplay = ({ product }) => {
     const [productCache, setProductCache] = useState({}); //Cache for product data to prevent unnecessary re-fetching.
     const [categoryId, setCategoryId] = useState(null);
     const [currentProduct, setCurrentProduct] = useState(product);
+    const [productImages, setProductImages] = useState([]); //State to store product images.
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0); //State to track the currently selected image index.
 
     //State: Store the selected options in state. This will be used to update the product display.
     const [options, setOptions] = useState({
@@ -101,6 +102,48 @@ export const ProductDisplay = ({ product }) => {
     //Extract product details.
     const {name, image, description, rating, reviews, price} = currentProduct || {};
 
+
+    //Function: Fetch the product images based on the current selections.
+    const fetchProductImages = useCallback(async (sku) => {
+        if(!sku) return;
+        try {
+            const response = await fetch(`${apiUrl}/product-images/by-sku/${sku}`);
+            if(!response.ok) {
+                console.error("failed to fetch product images: ", response.statusText);
+                return;
+            }
+
+            const data = await response.json();
+            if(data.success && data.images && data.images.length > 0) {
+                if(isMounted.current) {
+                    setProductImages(data.images); //Set the product images in state.
+                    setSelectedImageIndex(0); //Reset the selected image index to 0.
+                }
+            }
+            else {
+                if(isMounted.current) {
+                    setProductImages([{ path: image, isNutrition: false }]); //Fallback to default image if no images are found.
+                    setSelectedImageIndex(0); //Reset the selected image index to 0.
+                }
+            }
+        }
+        catch(error) {
+            console.error("Error fetching product images: ", error);
+        }
+    }, [image]);
+
+
+    //UseEffect: Fetch product imagtes when the product changes.
+    useEffect(() => {
+        if(currentProduct?.sku) {
+            fetchProductImages(currentProduct.sku);
+        }
+    }, [currentProduct?.sku, fetchProductImages]);
+
+    //Function: Handle image selection.
+    const handleImageSelect = useCallback((index) => {
+        setSelectedImageIndex(index);
+    }, []);
 
     
     //UseEffect: Fetch available options when component mounts.
@@ -281,6 +324,7 @@ export const ProductDisplay = ({ product }) => {
                 setCurrentProduct(productCache[sku]);
                 setIsLoading(false);
 
+                fetchProductImages(sku); //Reset images for new product.
                 updateProductUrl(sku);
                 return;
             }
@@ -318,6 +362,7 @@ export const ProductDisplay = ({ product }) => {
             if(isMounted.current) {
                 setCurrentProduct(data.product);
                 setIsLoading(false);
+                fetchProductImages(sku); //Fetch images for the new product.
                 updateProductUrl(sku);
             }
         }
@@ -430,7 +475,10 @@ export const ProductDisplay = ({ product }) => {
 
 
 
-
+    //Function: Get the currently selected image.
+    const selectedImage = useMemo(() => {
+        return productImages.length > 0 ? productImages[selectedImageIndex] : image;
+    }, [productImages, selectedImageIndex, image]);
 
 
 
@@ -438,11 +486,31 @@ export const ProductDisplay = ({ product }) => {
     <div className="productdisplay">
             {/* LEFT SIDE DISPLAY */}
             <div className="productdisplay-left">
-                <div className="productdisplay-img-list">
-                    <img src={image} alt="" />
+                <div className="productdisplay-left-img-list">
+                    {productImages.map((img, index) => (
+                        <div
+                            key={index}
+                            className={`product-thumbnail ${selectedImageIndex === index ? 'active' : ''}`}
+                            onClick={() => handleImageSelect(index)} //Use the callback here instead of an inline function.
+                            // onMouseEnter={() => handleImageSelect(index)} //Change image on hover.
+                            title={img.isNutrition ? "Nutrition Facts" : `Image ${index + 1}`}
+                        >
+                            <img
+                                src={img.path}
+                                alt={img.isNutrition ? "Nutrition Facts" : `Product Thumbnail ${index + 1}`}
+                                loading="lazy"
+                            />
+                            {img.isNutrition && <span className="nutrition-badge">Nutrition</span>}
+                        </div>
+                    ))}
                 </div>
-                <div className="productdisplay-img">
-                    <img src={image} alt="" className="productdisplay-main-img" loading="lazy" />
+                <div className="productdisplay-image">
+                    <img
+                        src={selectedImage.path}
+                        alt={productImages[selectedImageIndex]?.isNutrition ? "Nutrition Facts" : `Product Image ${selectedImageIndex + 1}`}
+                        className="productdisplay-main-img"
+                        loading="lazy"
+                    />
                 </div>
             </div>
             {/* END LEFT SIDE DISPLAY */}
