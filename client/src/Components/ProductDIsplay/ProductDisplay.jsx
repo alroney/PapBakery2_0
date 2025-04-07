@@ -34,6 +34,39 @@ const OptionItem = React.memo(({ id, name, type, isSelected, isValid, onSelect, 
 
 
 
+//Component: This is a memoized component for option categories (flavors, shapes, sizes, flours) in the product display. It uses React.memo to prevent unnecessary re-renders and improve performance.
+const OptionCategory = React.memo(({ title, optionType, items, selections, isOptionValid, handleOptionSelect, isLoading, className }) => {
+    return (
+        <div className="productdisplay-right-options">
+            <h2> Select {title}</h2>
+            <div className={`productdisplay-right-${className || optionType.toLowerCase()} ${optionType === 'sizeId' && isLoading ? 'loading' : ''}`}>
+                {items.map(item => {
+                    //Extract properties dynamically based on naming convention.
+                    const id = item[`${title}ID`];
+                    const name = item[`${title}Name`];
+
+                    return (
+                        <OptionItem
+                            key={id}
+                            id={id}
+                            name={name}
+                            type={optionType}
+                            isSelected={optionType === 'flourId'
+                                ? Number(selections[optionType]) === Number(id)
+                                : selections[optionType] === id}
+                            isValid={isOptionValid(optionType, id)}
+                            onSelect={handleOptionSelect}
+                            isLoading={isLoading}
+                        />
+                    )
+                })}
+            </div>
+        </div>
+    )
+});
+
+
+
 
 
 export const ProductDisplay = React.memo(({ product }) => {
@@ -534,77 +567,24 @@ export const ProductDisplay = React.memo(({ product }) => {
                 </div>
 
                 {/* PRODUCT OPTIONS */}
-                <div className="productdisplay-right-options">
-                    <h2>Select Flavor</h2>
-                    <div className="productdisplay-right-flavors">
-                        {options.flavors.map(flavor => (
-                            <OptionItem
-                                key={flavor.FlavorID}
-                                id={flavor.FlavorID}
-                                name={flavor.FlavorName}
-                                type="flavorId"
-                                isSelected={selections.flavorId === flavor.FlavorID}
-                                isValid={isOptionValid('flavorId', flavor.FlavorID)}
-                                onSelect={handleOptionSelect}
-                                isLoading={isLoading}
-                            />
-                        ))}
-                    </div>
-                </div>
-
-                <div className="productdisplay-right-options">
-                    <h2>Select Shape</h2>
-                    <div className="productdisplay-right-shapes">
-                        {options.shapes.map(shape => (
-                            <OptionItem
-                                key={shape.ShapeID}
-                                id={shape.ShapeID}
-                                name={shape.ShapeName}
-                                type="shapeId"
-                                isSelected={selections.shapeId === shape.ShapeID}
-                                isValid={isOptionValid('shapeId', shape.ShapeID)}
-                                onSelect={handleOptionSelect}
-                                isLoading={isLoading}
-                            />
-                        ))}
-                    </div>
-                </div>
-
-                <div className="productdisplay-right-options">
-                    <h2>Select Size</h2>
-                    <div className={`productdisplay-right-sizes ${isLoading ? 'loading' : ''}`}>
-                        {options.sizes.map(size => (
-                            <OptionItem
-                                key={size.SizeID}
-                                id={size.SizeID}
-                                name={size.SizeName}
-                                type="sizeId"
-                                isSelected={selections.sizeId === size.SizeID}
-                                isValid={isOptionValid('sizeId', size.SizeID)}
-                                onSelect={handleOptionSelect}
-                                isLoading={isLoading}
-                            />
-                        ))}
-                    </div>
-                </div>
-
-                <div className="productdisplay-right-options">
-                    <h2>Select Flour</h2>
-                    <div className="productdisplay-right-flours">
-                        {options.flours.map(flour => (
-                            <OptionItem
-                                key={flour.FlourID}
-                                id={flour.FlourID}
-                                name={flour.FlourName}
-                                type="flourId"
-                                isSelected={Number(selections.flourId) === Number(flour.FlourID)}
-                                isValid={isOptionValid('flourId', flour.FlourID)}
-                                onSelect={handleOptionSelect}
-                                isLoading={isLoading}
-                            />
-                        ))}
-                    </div>
-                </div>
+                {[
+                    { title: 'Flavor', optionType: 'flavorId', items: options.flavors, className: 'flavors' },
+                    { title: 'Shape', optionType: 'shapeId', items: options.shapes, className: 'shapes' },
+                    { title: 'Size', optionType: 'sizeId', items: options.sizes, className: 'sizes' },
+                    { title: 'Flour', optionType: 'flourId', items: options.flours, className: 'flours' }
+                ].map((category, index) => (
+                    <OptionCategory
+                        key={index}
+                        title={category.title}
+                        optionType={category.optionType}
+                        items={category.items}
+                        selections={selections}
+                        isOptionValid={isOptionValid}
+                        handleOptionSelect={handleOptionSelect}
+                        isLoading={isLoading}
+                        className={category.className}
+                    />
+                ))}
                 {/* END PRODUCT OPTIONS */}
 
                 <button 
