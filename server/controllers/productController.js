@@ -355,11 +355,15 @@ const getSubcategoryById = async (req, res) => {
                     $group: {
                         _id: '$_id',
                         sku: { $first: '$sku' },
-                        name: { $first: '$name' },
+                        // name: { $first: '$name' },
                         description: { $first: '$description' },
                         price: { $first: '$price' },
                         category: { $first: '$category' },
                         subCategory: { $first: '$subcategory' },
+                        flour: { $first: '$flour' },
+                        flavor: { $first: '$flavor' },
+                        shape: { $first: '$shape' },
+                        size: { $first: '$size' },
                         images: { $first: '$images' },
                         rating: { $first: '$rating' },
                         reviewCount: { $first: '$reviewCount' },
@@ -371,7 +375,7 @@ const getSubcategoryById = async (req, res) => {
             //Construct the image URL for use in the response or front-end rendering.
             const productsWithImages = productsWithReviews.map((product) => ({
                 ...product, //Spread the product details.
-                images: `${product.images[0].path}`, //Add the base path to the image name.
+                images: `${product.images[0]}`, //Add the base path to the image name.
             }));
 
             return productsWithImages;

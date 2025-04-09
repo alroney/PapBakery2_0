@@ -229,10 +229,10 @@ const updateProductTable = async () => {
                     column_name: 'ProductAvailable',
                     column_type: 'checkbox',
                 },
-                {
-                    column_name: 'ProductName',
-                    column_type: 'text',
-                },
+                // {
+                //     column_name: 'ProductName',
+                //     column_type: 'text',
+                // },
                 {
                     column_name: 'RecipeCost',
                     column_type: 'number',
@@ -248,7 +248,23 @@ const updateProductTable = async () => {
                 {
                     column_name: 'ProductImage',
                     column_type: 'text',
-                }
+                },
+                {
+                    column_name: 'ProductFlour',
+                    column_type: 'text',
+                },
+                {
+                    column_name: 'ProductFlavor',
+                    column_type: 'text',
+                },
+                {
+                    column_name: 'ProductShape',
+                    column_type: 'text',
+                },
+                {
+                    column_name: 'ProductSize',
+                    column_type: 'text',
+                },
             ]
             
             await createNewTable(table_name, columns);
@@ -512,7 +528,7 @@ const buildProducts = async () => {
 
                     const productID = 0;
                     const sku = `${recipeSKU}-${shapeID}${sizeID}`; //SKU = Stock Keeping Unit. (###-##)
-                    const productName = `${size.SizeName} ${shape.ShapeName} ${recipeName}`;
+                    // const productName = `${size.SizeName} ${shape.ShapeName} ${recipeName}`;
                     const productDesc = `${recipeDesc} ${shape.Description} ${size.Description}`
                     const productImage = `${cs_categoryID}-${shapeID}${sizeID}_000.jpg`; //First image in the list.
 
@@ -520,12 +536,16 @@ const buildProducts = async () => {
                         ProductID: productID,
                         ProductSKU: String(sku),
                         ProductAvailable: productAvailable,
-                        ProductName: productName,
+                        // ProductName: productName,
                         RecipeCost: Number(recipeCost),
                         Description: productDesc,
                         Ingredients: ingredientList,
                         ProductImage: productImage,
-                    })
+                        ProductFlour: maps.FlourMap.find(fl => Number(fl.FlourID) === Number(ingCatIDs.flourID))?.FlourName || 'No Flour Name',
+                        ProductFlavor: maps.FlavorMap.find(fl => fl.FlavorID === ingCatIDs.flavorID)?.FlavorName || 'No Flavor Name',
+                        ProductShape: shape.ShapeName,
+                        ProductSize: size.SizeName
+                    });
                 });
             }
 

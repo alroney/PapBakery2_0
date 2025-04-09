@@ -6,7 +6,6 @@ const Item = (props) => {
   console.log("(Item.jsx) Component Loaded.");
 
   const { scID, catName, scName, name, image, sku} = props; //Props passed from calling component.
-
 //Link affects APP.js Routes
 //TODO: Change this to represent subcategory.
   return (

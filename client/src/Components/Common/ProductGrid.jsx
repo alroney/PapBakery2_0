@@ -36,7 +36,6 @@ export const ProductGrid = memo(({ title, endpoint, className = "product-grid" }
     }, [endpoint]);
 
 
-
     return (
         <div className={className}>
             {loading && <div className="loading">Loading...</div>}
@@ -58,7 +57,7 @@ export const ProductGrid = memo(({ title, endpoint, className = "product-grid" }
                             scName={item.subCategory}
                             catName={item.category}
                             sku={item.sku}
-                            name={item.name}
+                            name={item.size + " " + item.shape + " " + item.flavor + " " + item.subCategory + " " + item.category}
                             image={item.images}
                             price={item.price}
                         />

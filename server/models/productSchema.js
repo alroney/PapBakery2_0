@@ -13,18 +13,18 @@ const productSchema = new Mongoose.Schema(
             required: true,
             default: "000-00",
         },
-        name: {
-            type: String,
-            required: true,
-            default: "product",
-        },
+        // name: {
+        //     type: String,
+        //     required: true,
+        //     default: "product",
+        // },
         images: [{
             path: String,
             isNutrition: Boolean,
         }],
         description: {
             type: String,
-            required: false, //CHANGE LATER TO TRUE
+            required: true,
             default: `Product Description`,
         },
         category: {
@@ -34,7 +34,27 @@ const productSchema = new Mongoose.Schema(
         },
         subcategory: {
             type: String,
-            required: false, //CHANGE LATER TO TRUE
+            required: true,
+            default: "none",
+        },
+        flour: {
+            type: String,
+            required: true,
+            default: "none",
+        },
+        flavor: {
+            type: String,
+            required: true,
+            default: "none",
+        },
+        shape: {
+            type: String,
+            required: true,
+            default: "none",
+        },
+        size: {
+            type: String,
+            required: true,
             default: "none",
         },
         price: {

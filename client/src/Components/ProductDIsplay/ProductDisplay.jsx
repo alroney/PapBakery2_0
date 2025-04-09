@@ -68,7 +68,7 @@ const OptionCategory = React.memo(({ title, optionType, items, selections, isOpt
 
 
 
-
+//MAIN Component: This is the main component that displays the product details, images, and options. It uses React.memo to prevent unnecessary re-renders and improve performance.
 export const ProductDisplay = React.memo(({ product }) => {
     console.log("(ProductDisplay.jsx) Component Loaded.");
     const isMounted = useRef(true); //Reference to check if the component is mounted.
@@ -91,6 +91,7 @@ export const ProductDisplay = React.memo(({ product }) => {
         sizes: [],
         flours: []
     });
+
 
     //State: Store the constraints for valid shapes and sizes based on the selected category.
     const [constraints, setConstraints] = useState({
@@ -122,6 +123,13 @@ export const ProductDisplay = React.memo(({ product }) => {
         sizeId: initialSelections?.sizeId || null
     });
 
+    const selectedOptions = {
+        flavor: options.flavors.find(option => option.FlavorID === selections.flavorId)?.FlavorName,
+        shape: options.shapes.find(option => option.ShapeID === selections.shapeId)?.ShapeName,
+        size: options.sizes.find(option => option.SizeID === selections.sizeId)?.SizeName,
+        flour: options.flours.find(option => Number(option.FlourID) === Number(selections.flourId))?.FlourName
+    };
+
     //Unmount cleanup.
     useEffect(() => {
         return () => {
@@ -133,8 +141,8 @@ export const ProductDisplay = React.memo(({ product }) => {
     }, []);
 
     //Extract product details.
-    const {name, image, description, rating, reviews, price} = currentProduct || {};
-
+    const {image, description, rating, reviews, price, flour, flavor, shape, size} = currentProduct || {};
+    const name = `${size} ${shape} ${flavor} ${product?.subCategory} ${product?.category}`; //Construct the product name from the size, shape, flavor, subcategory, and category.
 
     //Function: Fetch the product images based on the current selections.
     const fetchProductImages = useCallback(async (sku) => {
@@ -183,7 +191,7 @@ export const ProductDisplay = React.memo(({ product }) => {
     //Function (helper): Validate initial selections based on the fetched options and constraints.
     const validateInitialSelections = useCallback((categoryId, selectionToValidate, validShapesByCategory, validSizesByShape) => {
         if(!selectionToValidate || !categoryId) return;
-
+        console.log("Initial Flour: ", selectionToValidate.flourId);
         const { shapeId, sizeId } = selectionToValidate
         const newSelections = { ...selectionToValidate };
         let needsUpdate = false;
@@ -289,6 +297,7 @@ export const ProductDisplay = React.memo(({ product }) => {
             setIsLoading(false);
         }
     }, [product?.sku, productCache, parseSKU, fetchProductImages, updateProductUrl]);
+
 
 
     //UseEffect: Fetch available options when component mounts.
@@ -599,7 +608,7 @@ export const ProductDisplay = React.memo(({ product }) => {
                     <span>Category: </span>{currentProduct?.category}
                 </p>
                 <p className="productdisplay-right-category">
-                    <span>Tags: </span>{currentProduct?.flour}, {currentProduct?.flavor}, {currentProduct?.shape}, {currentProduct?.size}
+                    <span>Tags: </span>{flour}, {flavor}, {shape}, {size}
                 </p>
             </div>
             {/* END RIGHT SIDE DISPLAY */}
