@@ -92,6 +92,10 @@ function formatNutritionLabel(facts) {
 
     //#region - Declare Variables
     const servingSize = (facts.ServingSize || 0).toFixed(1);
+    const servingsPerContainer = facts.ServingsPerContainer || 1;
+    const servingSizeUnit = facts.ServingSizeUnit || 'g';
+    const servingCount = facts.ServingCount || 1;
+    const servingSizeDescriptor = facts.ServingSizeDescription || 'pieces';
     const caloriesPerServing = (facts.CaloriesPerServing || 0).toFixed(1);
     const totalFat = (facts.TotalFat || 0).toFixed(1);
     const saturatedFat = (facts.SaturatedFat || 0).toFixed(1);
@@ -132,7 +136,7 @@ function formatNutritionLabel(facts) {
                     }
                     
                     .nutrition-facts {
-                        width: 280px;
+                        width: 290px;
                         border: 1px solid #000;
                         padding: 10px;
                         bod-sizing: border-box;
@@ -146,6 +150,22 @@ function formatNutritionLabel(facts) {
                         border-bottom: 7px solid #000;
                     }
 
+                    .nutrition-facts .title {
+                        text-align: center;
+                    }
+
+                    .servings-header {
+                        font-size: 15px;
+                        font-weight: normal;
+                        margin: 2px 0;
+                        padding: 5px 0;
+                        border-bottom: 10px solid #000;
+                    }
+                        .servings-header p {
+                            margin: 0;
+                            padding: 0;
+                        }
+
                     .calories-header {
                         font-size: 16px;
                         font-weight: 900;
@@ -153,14 +173,20 @@ function formatNutritionLabel(facts) {
                         padding: 5px 0;
                         border-bottom 1px solid #000;
                     }
+                        .calories-header p {
+                            font-size: 12px;
+                            font-wieght: 500;
+                            margin: 0;
+                            padding: 0;
+                        }
 
                     .calories-row {
                         display: flex;
                         justify-content: space-between;
                         font-size: 28px;
                         font-weight: 900;
-                        margin: 2px 0;
-                        padding: 5px 0;
+                        margin-bottom: 2px;
+                        padding-bottom: 5px;
                         border-bottom: 7px solid #000;
                     }
 
@@ -171,11 +197,38 @@ function formatNutritionLabel(facts) {
                         margin: 3px 0;
                     }
 
+                    .separator {
+                        border-top: 10px solid #000;
+                        margin-bottom: 3px;
+                    }
+
                     .nutrient-row {
                         display: flex;
                         justify-content: space-between;
                         border-bottom: 1px solid #000;
                         padding: 3px 0;
+                    }
+
+                    .nutrient-row:last-child {
+                        border-bottom: none;
+                        margin-bottom: 3px;
+                    }
+
+                    .nutrient-row span:first-child {
+                        flex: 2;
+                    }
+                    
+                    .nutrient-row span:nth-child(2) {
+                        flex: 1;
+                        text-align: right;
+                        padding-right: 10px;
+                        font-weight: normal;
+                    }
+
+                    .nutrient-row span:last-child {
+                        flex: 0.5;
+                        text-align: right;
+                        min-width: 40px;
                     }
 
                     .nutrient-row.bold {
@@ -194,108 +247,141 @@ function formatNutritionLabel(facts) {
             </head>
             <body>
                 <div class="nutrition-facts">
-                    <h1>Nutrition Facts</h1>
-                    <div class="calories-header">Serving Size ${facts.ServingSize} PRODUCT</div>
-                    <div class="calories-row">
-                        <span>Calories</span>
-                        <span>${caloriesPerServing}</span>
+                    <h1 class="title">Nutrition Facts</h1>
+                    <div class="servings-header">
+                        <p>About ${servingsPerContainer} servings per container</p>
+                        <p>Serving Size ${servingSize} ${servingSizeUnit} (about ${servingCount} ${servingSizeDescriptor})</p>
+                    </div>
+
+                    <div class="calories-header">
+                        <p>Amount per serving</p>
+                        <div class="calories-row">
+                            <span>Calories</span>
+                            <span>${caloriesPerServing}</span>
+                        </div>
                     </div>
 
                     <div class="daily-value-header">% Daily Value*</div>
 
                     <div class="nutrient-row bold">
-                        <span><strong>Total Fat</strong> ${totalFat}g</span>
+                        <span><strong>Total Fat</strong></span>
+                        <span>${totalFat}g</span>
                         <span>${Math.round((facts.TotalFat || 0) * 100 / 78)}%</span>
                     </div>
                         <div class="nutrient-row">
-                            <span class="sub-nutrient">Saturated Fat ${saturatedFat}g</span>
+                            <span class="sub-nutrient">Saturated Fat</span>
+                            <span>${saturatedFat}g</span>
                             <span>${Math.round((facts.SaturatedFat || 0) * 100 / 20)}%</span>
                         </div>
                         <div class="nutrient-row">
-                            <span class="sub-nutrient">Polyunsaturated Fat ${polyunsaturatedFat}g</span>
+                            <span class="sub-nutrient">Polyunsaturated Fat</span>
+                            <span>${polyunsaturatedFat}g</span>
                             <span></span>
                         </div>
                         <div class="nutrient-row">
-                            <span class="sub-nutrient">Monounsaturated Fat ${monounsaturatedFat}g</span>
+                            <span class="sub-nutrient">Monounsaturated Fat</span>
+                            <span>${monounsaturatedFat}g</span>
                             <span></span>
                         </div>
                         <div class="nutrient-row">
-                            <span class="sub-nutrient">Trans Fat ${transFat}g</span>
+                            <span class="sub-nutrient">Trans Fat</span>
+                            <span>${transFat}g</span>
                             <span></span>
                         </div>
 
                     <div class="nutrient-row bold">
-                        <span><strong>Cholesterol</strong> ${cholesterol}mg</span>
+                        <span><strong>Cholesterol</strong></span>
+                        <span>${cholesterol}mg</span>
                         <span>${Math.round((facts.Cholesterol || 0) * 100 / 300)}%</span>
                     </div>
 
                     <div class="nutrient-row bold">
-                        <span><strong>Sodium</strong> ${sodium}mg</span>
+                        <span><strong>Sodium</strong></span>
+                        <span>${sodium}mg</span>
                         <span>${Math.round((facts.Sodium || 0) * 100 / 2300)}%</span>
                     </div>
 
                     <div class="nutrient-row bold">
-                        <span><strong>Total Carbohydrates</strong> ${totalCarbohydrates}g</span>
+                        <span><strong>Total Carbohydrates</strong></span>
+                        <span>${totalCarbohydrates}g</span>
                         <span>${Math.round((facts.TotalCarbohydrates || 0) * 100 / 300)}%</span>
                     </div>
                         <div class="nutrient-row">
-                            <span class="sub-nutrient">Dietary Fiber ${dietaryFiber}g</span>
+                            <span class="sub-nutrient">Dietary Fiber</span>
+                            <span>${dietaryFiber}g</span>
                             <span>${Math.round((facts.DietaryFiber || 0) * 100 / 28)}%</span>
                         </div>
                         <div class="nutrient-row">
-                            <span class="sub-nutrient">Soluble Fiber ${solubleFiber}g</span>
+                            <span class="sub-nutrient">Soluble Fiber</span>
+                            <span>${solubleFiber}g</span>
                             <span></span>
                         </div>
                     
                     <div class="nutrient-row bold">
-                        <span><strong>Total Sugars</strong> ${sugar}g</span>
+                        <span><strong>Total Sugars</strong></span>
+                        <span>${sugar}g</span>
                         <span></span>
                     </div>
                         <div class="nutrient-row">
-                            <span class="sub-nutrient">Added Sugars ${addedSugar}g</span>
+                            <span class="sub-nutrient">Added Sugars</span>
+                            <span>${addedSugar}g</span>
                             <span>${Math.round((facts.AddedSugar || 0) * 100 / 50)}%</span>
                         </div>
                     
                     <div class="nutrient-row bold">
-                        <span><strong>Protein</strong> ${protein}g</span>
+                        <span><strong>Protein</strong></span>
+                        <span>${protein}g</span>
                         <span>${Math.round((facts.Protein || 0) * 100 / 50)}%</span>
                     </div>
 
+                    <div class="separator"></div>
+
                     <div class="nutrient-row bold">
-                        <span><strong>Vitamin A</strong> ${vitaminA}mcg</span>
+                        <span><strong>Vitamin A</strong></span>
+                        <span>${vitaminA}mcg</span>
                         <span>${Math.round((facts.VitaminA || 0) * 100 / 900)}%</span>
                     </div>
                     <div class="nutrient-row bold">
-                        <span><strong>Vitamin B</strong> ${vitaminB}mcg</span>
+                        <span><strong>Vitamin B</strong></span>
+                        <span>${vitaminB}mcg</span>
                         <span>${Math.round((facts.VitaminB || 0) * 100 / 1.3)}%</span>
                     </div>
                     <div class="nutrient-row bold">
-                        <span><strong>Vitamin C</strong> ${vitaminC}mcg</span>
+                        <span><strong>Vitamin C</strong></span>
+                        <span>${vitaminC}mg</span>
                         <span>${Math.round((facts.VitaminC || 0) * 100 / 90)}%</span>
                     </div>
                     <div class="nutrient-row bold">
-                        <span><strong>Vitamin D</strong> ${vitaminD}mcg</span>
+                        <span><strong>Vitamin D</strong></span>
+                        <span>${vitaminD}mcg</span>
                         <span>${Math.round((facts.VitaminD || 0) * 100 / 20)}%</span>
                     </div>
                     <div class="nutrient-row bold">
-                        <span><strong>Vitamin E</strong> ${vitaminE}mg</span>
+                        <span><strong>Vitamin E</strong></span>
+                        <span>${vitaminE}mcg</span>
                         <span>${Math.round((facts.VitaminE || 0) * 100 / 15)}%</span>
                     </div>
                     <div class="nutrient-row bold">
-                        <span><strong>Vitamin K</strong> ${vitaminK}mg</span>
+                        <span><strong>Vitamin K</strong></span>
+                        <span>${vitaminK}mcg</span>
                         <span>${Math.round((facts.VitaminK || 0) * 100 / 120)}%</span>
                     </div>
 
+                    <div class="separator"></div>
+
                     <div class="nutrient-row bold">
-                        <span><strong>Calcium</strong> ${calcium}mg</span>
+                        <span><strong>Calcium</strong></span>
+                        <span>${calcium}mg</span>
                         <span>${Math.round((facts.Calcium || 0) * 100 / 1300)}%</span>
                     </div>
                     <div class="nutrient-row bold">
-                        <span><strong>Potassium</strong> ${potassium}mg</span>
+                        <span><strong>Potassium</strong></span>
+                        <span>${potassium}mg</span>
                         <span>${Math.round((facts.Potassium || 0) * 100 / 4700)}%</span>
                     </div>
                     <div class="nutrient-row bold">
-                        <span><strong>Iron</strong> ${iron}mg</span>
+                        <span><strong>Iron</strong></span>
+                        <span>${iron}mg</span>
                         <span>${Math.round((facts.Iron || 0) * 100 / 18)}%</span>
                     </div>
 
@@ -314,7 +400,7 @@ function formatNutritionLabel(facts) {
 
 
 //Function: Generate nutrition fact, then take a screenshot of it and save it.
-async function generateNutritionImage(sku, forceRegenerate = false) {
+async function generateNutritionImage(sku, forceRegenerate = true) {
     try {
         const nutrition = getProductNutrition(sku);
         if(!nutrition) {

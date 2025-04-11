@@ -29,7 +29,7 @@ async function updateChangedLabels() {
             const nutritionFacts = nutritionData.facts[sku];
             const hash = crypto.createHash('md5').update(JSON.stringify(nutritionFacts)).digest('hex').substring(0, 8);
 
-            if(!versionMap[sku] || versionMapp[sku] !== hash) {
+            if(!versionMap[sku] || versionMap[sku] !== hash) {
                 changedSkus.push(sku);
             }
         }
