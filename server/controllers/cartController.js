@@ -47,7 +47,7 @@ const addToCart = async (req, res) => {
 
         let cart = await Cart.findOne({ userId: req.user.id }); //Set the userId to a string for reading. 
         const product = await Product.findById(itemId);
-        const name = product.size + " " + product.shape + " " + product.flavor + " " + product.subCategory + " " + product.category; //Get the name of the product.
+        const name = product.size + " " + product.shape + " " + product.flavor + " " + product.subcategory + " " + product.category; //Get the name of the product.
         const image = `${product.images[0].imgName}`; //Get the first image of the product.
         if(!product) return res.status(404).json({ message: "Product not found" });
 
