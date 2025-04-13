@@ -19,7 +19,7 @@ const productSchema = new Mongoose.Schema(
         //     default: "product",
         // },
         images: [{
-            path: String,
+            imgName: String,
             isNutrition: Boolean,
         }],
         description: {

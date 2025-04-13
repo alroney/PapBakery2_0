@@ -55,7 +55,7 @@ const refreshImageCache = () => {
                     }
 
                     newProductImages[key].push({ //Store image data in an array.
-                        path: `productsByCatShapeSize/${file}`,
+                        imgName: `${file}`,
                         order: imageNumber
                     });
                 }
@@ -86,7 +86,7 @@ const refreshImageCache = () => {
                         newNutritionImages[sku] = {};
                     }
 
-                    newNutritionImages[sku][format] = `nutrition/${file}`;
+                    newNutritionImages[sku][format] = `${file}`;
                 }
             });
 
@@ -134,7 +134,7 @@ const getProductImages = async (sku) => {
         //Combine images with product images first and nutrition images last.
         const allImages = [
             ...productImages.map(img => ({
-                path: `${baseImagePath}/${img.path}`,
+                imgName: `${img.imgName}`, 
                 isNutrition: false
             })),
         ];
@@ -142,7 +142,7 @@ const getProductImages = async (sku) => {
         //Add nutrition image if available.
         if(nutritionPath) {
             allImages.push({
-                path: `${baseImagePath}/${nutritionPath}`,
+                imgName: `${nutritionPath}`,
                 isNutrition: true,
             });
         }
@@ -170,6 +170,11 @@ const getProductImagesAPI = async (req, res) => {
         }
 
         const images = await getProductImages(sku);
+        const imagesPath = images.map(img => ({
+            ...img,
+            imgName: `${baseImagePath}/${img.isNutrition ? 'nutrition' : 'productsByCatShapeSize'}/${img.imgName}`
+        })); //Construct full image path.
+        
 
         //Set cache control headers for better performance.
         res.setHeader('Cache-Control', 'public, max-age=3600'); //Cache for 1 hour.
@@ -177,7 +182,7 @@ const getProductImagesAPI = async (req, res) => {
         res.json({
             success: true,
             sku,
-            images
+            images: imagesPath,
         });
     }
     catch(error) {

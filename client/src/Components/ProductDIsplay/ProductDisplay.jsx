@@ -163,7 +163,7 @@ export const ProductDisplay = React.memo(({ product }) => {
             }
             else {
                 if(isMounted.current) {
-                    setProductImages([{ path: image, isNutrition: false }]); //Fallback to default image if no images are found.
+                    setProductImages([{ imgName: image, isNutrition: false }]); //Fallback to default image if no images are found.
                     setSelectedImageIndex(0); //Reset the selected image index to 0.
                 }
             }
@@ -520,7 +520,7 @@ export const ProductDisplay = React.memo(({ product }) => {
 
     //Function: Get the currently selected image.
     const selectedImage = useMemo(() => {
-        return productImages.length > 0 ? productImages[selectedImageIndex].path : image;
+        return productImages.length > 0 ? productImages[selectedImageIndex].imgName : image;
     }, [productImages, selectedImageIndex, image]);
 
 
@@ -539,7 +539,7 @@ export const ProductDisplay = React.memo(({ product }) => {
                             title={img.isNutrition ? "Nutrition Facts" : `Image ${index + 1}`}
                         >
                             <img
-                                src={img.path}
+                                src={img.imgName}
                                 alt={img.isNutrition ? "Nutrition Facts" : `Product Thumbnail ${index + 1}`}
                                 loading="lazy"
                             />
