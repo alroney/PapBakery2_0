@@ -8,7 +8,6 @@ export const CartItems = () => {
     console.log("(CartItems.jsx) Component Loaded.");
 
     const { cart, handleUpdateCartItem, handleClearCart } = useContext(CartContext);
-    // const baseImageUrl = 'http://localhost:4000/images';
     return (
         <div className='cartitems'>
             <h2>Shopping Cart</h2>
@@ -29,6 +28,7 @@ export const CartItems = () => {
                     return (
                         <div key={item.productId} className="cartitems-item">
                             <div className="cartitems-main">
+                                <img className="caritems-remove-icon " src={remove_icon} alt="X" onClick={()=>{handleUpdateCartItem(item.productId, 0)}}/>
                                 <img src={`${item.image}`} alt="" className="cartitems-product-icon " />
                                 <div className="cartitems-details">
                                     <p className="">{item.name}</p>
@@ -39,8 +39,6 @@ export const CartItems = () => {
                                             <p className='cartitems-quantity-display'>{item.quantity}</p>
                                             <button className="cartitems-adjuster" onClick={() => handleUpdateCartItem(item.productId, item.quantity + 1)}>{'>'}</button>
                                         </div>
-                                        
-                                <img className="caritems-remove-icon " src={remove_icon} alt="X" onClick={()=>{handleUpdateCartItem(item.productId, 0)}}/>
                                     </div>
                                     <p className="">${item.price * item.quantity}</p>
                                 </div>

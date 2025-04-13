@@ -2,13 +2,27 @@ const Cart = require('../models/cartSchema');
 const Product = require('../models/productSchema');  // Assuming you need to fetch product details
 const mongoose = require('mongoose');
 const { getStateTaxRates } = require('../utils/helpers');
+const serverUrl = process.env.SERVER_URL;
+
+
+const baseImagePath = `${serverUrl}/public/images`; //Base path for images.
 
 // Get Cart - Retrieve the cart for the logged-in user
 const getCart = async (req, res) => {
     try {
         let cart = [];
+
+        console.log("Cart: ", cart);
         if(req.user) {
             cart = await Cart.findOne({ userId: req.user.id });
+        }
+
+        if (cart) {
+            // Update image paths to full URLs for each item
+            cart.items = cart.items.map(item => ({
+                ...item.toObject(),
+                image: `${baseImagePath}/productsByCatShapeSize/${item.image}`
+            }));
         }
         
         if(!cart) return res.status(404).json({ message: "Cart not found" });
@@ -33,7 +47,8 @@ const addToCart = async (req, res) => {
 
         let cart = await Cart.findOne({ userId: req.user.id }); //Set the userId to a string for reading. 
         const product = await Product.findById(itemId);
-
+        const name = product.size + " " + product.shape + " " + product.flavor + " " + product.subCategory + " " + product.category; //Get the name of the product.
+        const image = `${product.images[0].imgName}`; //Get the first image of the product.
         if(!product) return res.status(404).json({ message: "Product not found" });
 
         if(cart) {
@@ -48,10 +63,10 @@ const addToCart = async (req, res) => {
                 // Item does not exist, add to cart
                 cart.items.push({
                     productId: itemId,
-                    name: product.name,
+                    name: name,
                     price: product.price,
                     quantity,
-                    image: product.images[0].path,
+                    image: image,
                 });
             }
         } 
@@ -61,10 +76,10 @@ const addToCart = async (req, res) => {
                 userId: req.user.id,
                 items: [{
                     productId: itemId,
-                    name: product.name,
+                    name: name,
                     price: product.price,
                     quantity,
-                    image: product.image,
+                    image: image, // Assuming the first image is the main one
                 }]
             });
         }

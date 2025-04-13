@@ -7,6 +7,7 @@ export const CartProvider = ({ children }) => {
     console.log("(CartContext.jsx) -> (CartProvider) Component Loaded.");
 
     const [cart, setCart] = useState([]);
+    const [groupSKU, setGroupSKU] = useState([]);
     
 
     // Fetch the cart from the backend when the component mounts
