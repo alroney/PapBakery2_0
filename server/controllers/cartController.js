@@ -83,6 +83,7 @@ const addToCart = async (req, res) => {
                 // Item does not exist, add to cart
                 cart.items.push({
                     productId: itemId,
+                    sku: product.sku,
                     name: name,
                     price: product.price,
                     quantity,
@@ -96,6 +97,7 @@ const addToCart = async (req, res) => {
                 userId: req.user.id,
                 items: [{
                     productId: itemId,
+                    sku: product.sku,
                     name: name,
                     price: product.price,
                     quantity,

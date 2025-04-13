@@ -7,7 +7,6 @@ export const CartProvider = ({ children }) => {
     console.log("(CartContext.jsx) -> (CartProvider) Component Loaded.");
 
     const [cart, setCart] = useState([]);
-    const [groupSKU, setGroupSKU] = useState([]);
     
 
     // Fetch the cart from the backend when the component mounts
@@ -56,7 +55,7 @@ export const CartProvider = ({ children }) => {
                         updatedGuestCart[itemIndex].quantity += 1;
                     } 
                     else {
-                        updatedGuestCart.push({ productId: product._id, name: product.name, price: product.price, quantity: 1, image: product.image });
+                        updatedGuestCart.push({ productId: product._id, name: product.name, price: product.price, quantity: 1, image: product.images });
                     }
 
                     localStorage.setItem('guestCart', JSON.stringify(updatedGuestCart));
