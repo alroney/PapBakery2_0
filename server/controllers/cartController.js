@@ -7,6 +7,26 @@ const serverUrl = process.env.SERVER_URL;
 
 const baseImagePath = `${serverUrl}/public/images`; //Base path for images.
 
+
+const findCart = async (userId) => {
+    try {
+        let cart = await Cart.findOne({ userId });
+        
+        if (cart) {
+            cart.items = cart.items.map(item => ({
+                ...item.toObject(),
+                image: item.image.startsWith('http') ? item.image : `${baseImagePath}/productsByCatShapeSize/${item.image}`
+            }));
+        }
+
+        return cart;
+    } catch (error) {
+        console.error("Error finding cart: ", error);
+        throw error;
+    }
+}
+
+
 // Get Cart - Retrieve the cart for the logged-in user
 const getCart = async (req, res) => {
     try {
@@ -85,7 +105,9 @@ const addToCart = async (req, res) => {
         }
 
         await cart.save();
-        res.json(cart);
+
+        const cartWithFullUrls = await findCart(req.user.id);
+        res.json(cartWithFullUrls);
     } catch (error) {
         console.log("Error in addToCart: ", error);
         res.status(500).json({ error: error.message });
@@ -116,7 +138,9 @@ const updateCartItem = async (req, res) => {
         if(itemIndex === -1) return res.status(404).json({ message: "Item not found in cart" });
 
         await cart.save();
-        res.json(cart);
+
+        const cartWithFullUrls = await findCart(req.user.id);
+        res.json(cartWithFullUrls);
     } 
     catch (error) {
         console.log("(updateCartItem) Error: ", error);
