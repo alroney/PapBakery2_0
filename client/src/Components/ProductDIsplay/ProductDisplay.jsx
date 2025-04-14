@@ -4,8 +4,7 @@ import star_icon from '../Assets/img/icon/star_icon.png'
 import star_dull_icon from '../Assets/img/icon/star_dull_icon.png'
 import { CartContext } from '../../Context/CartContext'
 import { useLocation, useNavigate } from 'react-router'
-import apiUrl from '@config'
-
+import { apiUrl } from '@config'
 
 
 //Component: This is a memoized component that renders an option item (flavor, shape, size, or flour) in the product display. Separated from the main component to improve performance and readability and prevent unnecessary rerenders.
@@ -74,13 +73,13 @@ export const ProductDisplay = React.memo(({ product }) => {
     const isMounted = useRef(true); //Reference to check if the component is mounted.
     const navigate = useNavigate(); //Get the navigate function from react-router.
     const location = useLocation(); //Get the current location.
-    const {handleAddToCart} = useContext(CartContext);
+    const {addToCart} = useContext(CartContext);
     const debounceTimerRef = useRef(null); //Reference to store the debounce timer ID.
 
     const [isLoading, setIsLoading] = useState(false); //State to track loading status.
     const [productCache, setProductCache] = useState({}); //Cache for product data to prevent unnecessary re-fetching.
     const [categoryId, setCategoryId] = useState(null);
-    const [currentProduct, setCurrentProduct] = useState(product);
+    const [currentProduct, setCurrentProduct] = useState(product); //ProductDisplay.jsx <- Product.jsx <- ProductContext.jsx
     const [productImages, setProductImages] = useState([]); //State to store product images.
     const [selectedImageIndex, setSelectedImageIndex] = useState(0); //State to track the currently selected image index.
 
@@ -140,10 +139,14 @@ export const ProductDisplay = React.memo(({ product }) => {
         };
     }, []);
 
+
+
     //Extract product details.
     const {image, description, rating, reviews, price, flour, flavor, shape, size} = currentProduct || {};
-    const name = `${size} ${shape} ${flavor} ${product?.subCategory} ${product?.category}`; //Construct the product name from the size, shape, flavor, subcategory, and category.
+    const name = `${size} ${shape} ${flavor} ${product?.subcategory} ${product?.category}`; //Construct the product name from the size, shape, flavor, subcategory, and category.
 
+
+    
     //Function: Fetch the product images based on the current selections.
     const fetchProductImages = useCallback(async (sku) => {
         if(!sku) return;
@@ -174,7 +177,7 @@ export const ProductDisplay = React.memo(({ product }) => {
     }, [image]);
 
 
-    //UseEffect: Fetch product imagtes when the product changes.
+    //UseEffect: Fetch product images when the product changes.
     useEffect(() => {
         if(currentProduct?.sku) {
             fetchProductImages(currentProduct.sku);
@@ -523,8 +526,6 @@ export const ProductDisplay = React.memo(({ product }) => {
         return productImages.length > 0 ? productImages[selectedImageIndex].imgName : image;
     }, [productImages, selectedImageIndex, image]);
 
-
-
   return (
     <div className="productdisplay">
             {/* LEFT SIDE DISPLAY */}
@@ -597,7 +598,7 @@ export const ProductDisplay = React.memo(({ product }) => {
                 {/* END PRODUCT OPTIONS */}
 
                 <button 
-                    onClick={() => handleAddToCart(currentProduct)} 
+                    onClick={() => addToCart(currentProduct)} 
                     disabled={isLoading}
                     className={isLoading ? 'loading' : ''}
                 >

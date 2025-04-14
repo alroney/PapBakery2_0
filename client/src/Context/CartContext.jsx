@@ -7,115 +7,163 @@ export const CartProvider = ({ children }) => {
     console.log("(CartContext.jsx) -> (CartProvider) Component Loaded.");
 
     const [cart, setCart] = useState([]);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     
 
     // Fetch the cart from the backend when the component mounts
     useEffect(() => {
-        try {
-            const loadCart = async () => {
-                const lastFetched = localStorage.getItem('cartLastFetch');
-                const now = Date.now();
-                if(!lastFetched || now - lastFetched > 5 * 60 * 1000) { //5 minutes
-                    if(localStorage.getItem('auth-token')) {
+        //Check if user is authenticated.
+        const authToken = localStorage.getItem('auth-token');
+        setIsAuthenticated(!!authToken); //Boolean conversion. If token exists, user is authenticated. So instead of setting 'isAuthenticated' to the value of 'authToken', we set it to true or false.
+
+        const loadCart = async () => {
+            const lastFetched = localStorage.getItem('cartLastFetched');
+            const now = new Date().getTime();
+
+            if(!lastFetched || now - lastFetched > 5 * 60 * 1000) { //5 minutes in milliseconds.
+                if(authToken) {
+                    try {
                         const cartData = await getCart();
-                        setCart(cartData.items || []);
-                    } 
-                    else {
-                        const guestCart = JSON.parse(localStorage.getItem('guestCart')) || [];
-                        setCart(guestCart);
+                        setCart(cartData.items);
                     }
-                    localStorage.setItem('cartLastFetched', now);
+                    catch(error) {
+                        console.error("Error fetching cart: ", error);
+                        setCart([]); //Set cart to empty array if error occurs.
+                    }
                 }
                 else {
                     const guestCart = JSON.parse(localStorage.getItem('guestCart')) || [];
                     setCart(guestCart);
                 }
-            };
-            loadCart();
-        } 
-        catch (error) {
-            console.log("Error in initial cart loading: ", error);
+                localStorage.setItem('cartLastFetched', now); //Update last fetched time.
+            }
+            else {
+                if(!authToken) {
+                    const guestCart = JSON.parse(localStorage.getItem('guestCart')) || [];
+                    setCart(guestCart);
+                }
+            }
         }
-        
+
+        loadCart();
     }, []);
 
-    // Add item to the cart (auth or guest)
-    const handleAddToCart = useCallback(async (product) => {
-        try {
-            if(localStorage.getItem('auth-token')) {
-                const updatedCart = await addToCart(product._id, 1);
-                setCart(updatedCart.items);
-            } 
-            else {
-                //Function updater pattern to avoid the dependency on cart.
+    
+
+    //Object: Contains the different cart manipulation functions.
+    const cartOperations = {
+        //Function Property: Add to cart - handles both guest and authenticated users.
+        addItem: useCallback(async (product) => {
+        
+            console.log("Product being added to cart: ", product);
+            try {
+                if(isAuthenticated) {
+                    const updatedCart = await addToCart(product._id, 1);
+                    setCart(updatedCart.items);
+                }
+                // For guest users, ensure we have complete product data
+                // If product data is incomplete, we should fetch the complete product
+                if (!product.images || !Array.isArray(product.images) || !product.subcategory) {
+                    // We could add a product fetch here to get complete data
+                    console.warn("Incomplete product data when adding to cart:", product);
+                    // Potential solution: Fetch complete product data when missing
+                    // const completeProduct = await fetchProductById(product._id);
+                    // product = completeProduct;
+                }
+                
+                // Create a consistent product name
+                const productName = product.size && product.shape && product.flavor ? 
+                    `${product.size} ${product.shape} ${product.flavor} ${product.subcategory || ''} ${product.category}` : 
+                    product.name || '';
+                
+                // Get a consistent image path
+                const productImage = Array.isArray(product.images) && product.images.length > 0 ? 
+                    product.images[0]?.imgName : 
+                    product.image; // Assuming the first image is the main one
+                    
                 setCart(currentCart => {
                     const updatedGuestCart = [...currentCart];
-                    const itemIndex = updatedGuestCart.findIndex((item) => item.productId === product._id);
+                    const itemIndex = updatedGuestCart.findIndex(item => item.productId === product._id);
+                    
                     if(itemIndex > -1) {
                         updatedGuestCart[itemIndex].quantity += 1;
-                    } 
+                    }
                     else {
-                        updatedGuestCart.push({ productId: product._id, name: product.name, price: product.price, quantity: 1, image: product.images });
+                        updatedGuestCart.push({
+                            productId: product._id,
+                            name: productName,
+                            price: product.price,
+                            image: productImage,
+                            quantity: 1
+                        });
                     }
 
-                    localStorage.setItem('guestCart', JSON.stringify(updatedGuestCart));
-                    return updatedGuestCart;
-                })
-            }
-        } 
-        catch (error) {
-            console.log("Error adding to cart: ", error);
-        }
-        
-    }, []);
-
-    // Update item quantity in the cart
-    const handleUpdateCartItem = useCallback(async (itemId, quantity) => {
-        try {
-            if(localStorage.getItem('auth-token')) {
-                const updatedCart = await updateCartItem(itemId, quantity);
-                setCart(updatedCart.items);
-            } 
-            else {
-                setCart(currentCart => {
-                    const updatedGuestCart = currentCart.map((item) => item.productId === itemId ? { ...item, quantity } : item).filter((item) => item.quantity > 0); //Remove items with quantity 0.
-
-                    localStorage.setItem('guestCart', JSON.stringify(updatedGuestCart));
+                    console.log("productImage: ", productImage);
+                    localStorage.setItem('guestCart', JSON.stringify(updatedGuestCart)); //Update guest cart in local storage.
                     return updatedGuestCart;
                 });
             }
-        } 
-        catch (error) {
-            console.log("Error in handleUpdateCartItem: ", error);
-        }
-        
-    }, []);
-
-    // Clear the cart (auth or guest)
-    const handleClearCart = useCallback(async () => {
-        try {
-            if(localStorage.getItem('auth-token')) {
-                await clearCart();
-                setCart([]);
-            } 
-            else {
-                setCart([]);
-                localStorage.removeItem('guestCart');
+            catch(error) {
+                console.error("Error adding item to cart: ", error);
             }
-        } 
-        catch (error) {
-            console.log("Error in handleClearCart: ", error);
-        }
-        
-    }, []);
 
+        }, [isAuthenticated]),
+        //Function Property: Update cart item - handles both guest and authenticated users.
+        updateItem: useCallback(async (itemId, quantity) => {
+            try {
+                if(isAuthenticated) {
+                    const updatedCart = await updateCartItem(itemId, quantity);
+                    setCart(updatedCart.items);
+                }
+                else { //Guest user.
+                    setCart(currentCart => {
+                        const updatedGuestCart = [...currentCart];
+                        const itemIndex = updatedGuestCart.findIndex(item => item.productId === itemId);
+                        
+                        if(itemIndex > -1) {
+                            if (quantity <= 0) {
+                                //Remove the item if quantity is 0 or less.
+                                updatedGuestCart.splice(itemIndex, 1);
+                            } 
+                            else {
+                                updatedGuestCart[itemIndex].quantity = quantity;
+                            }
+                            localStorage.setItem('guestCart', JSON.stringify(updatedGuestCart)); //Update guest cart in local storage.
+                        }
+                        return updatedGuestCart;
+                    });
+                } //End of 'isAuthnenticated' check.
+            }
+            catch(error) {
+                console.error("Error updating item in cart: ", error);
+            }
+        }, [isAuthenticated]),
+        //Function Property: Clear cart - handles both guest and authenticated users.
+        clear: useCallback(async () => {
+            try {
+                if(isAuthenticated) {
+                    await clearCart();
+                }
+                setCart([]);
+                if(!isAuthenticated) {
+                    localStorage.removeItem('guestCart'); //Clear guest cart from local storage.
+                }
+            }
+            catch(error) {
+                console.error("Error clearing cart: ", error);
+            }
+        }, [isAuthenticated]),
+    } //End of cartOperations object.
+
+
+
+    //Cart Calculations.
     const totalCartItems = useMemo(() => {
         if(!Array.isArray(cart) || cart.length === 0) return 0;
         return cart.reduce((total, item) => total + (parseInt(item.quantity) || 0), 0);
     }, [cart]);
 
     const subtotal = useMemo(() => {
-        console.log("(CartContext.jsx) -> (subtotal) Calculating subtotal with cart: ", cart);
         if(!Array.isArray(cart) || cart.length === 0) return 0;
         return cart.reduce((total, item) => {
             const itemPrice = parseFloat(item.price) || 0;
@@ -124,14 +172,16 @@ export const CartProvider = ({ children }) => {
         }, 0).toFixed(2);
     }, [cart]);
 
-    const value = useMemo(() => ({
+
+
+    const value = {
         cart,
-        handleAddToCart,
-        handleUpdateCartItem,
-        handleClearCart,
+        addToCart: cartOperations.addItem,
+        updateCartItem: cartOperations.updateItem,
+        clearCart: cartOperations.clear,
         getTotalCartItems: () => totalCartItems,
         calculateSubtotal: () => subtotal,
-    }), [cart, handleAddToCart, handleUpdateCartItem, handleClearCart, totalCartItems, subtotal]);
+    };
 
     return (
         <CartContext.Provider value={value}>

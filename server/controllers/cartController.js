@@ -1,7 +1,7 @@
 const Cart = require('../models/cartSchema');
 const Product = require('../models/productSchema');  // Assuming you need to fetch product details
 const mongoose = require('mongoose');
-const { getStateTaxRates } = require('../utils/helpers');
+const { getStateTaxRates, standardizedProductData } = require('../utils/helpers');
 const serverUrl = process.env.SERVER_URL;
 
 
@@ -15,7 +15,7 @@ const findCart = async (userId) => {
         if (cart) {
             cart.items = cart.items.map(item => ({
                 ...item.toObject(),
-                image: item.image.startsWith('http') ? item.image : `${baseImagePath}/productsByCatShapeSize/${item.image}`
+                image: item.image.startsWith('http') ? item.image : `${item.image}`
             }));
         }
 
@@ -67,8 +67,9 @@ const addToCart = async (req, res) => {
 
         let cart = await Cart.findOne({ userId: req.user.id }); //Set the userId to a string for reading. 
         const product = await Product.findById(itemId);
-        const name = product.size + " " + product.shape + " " + product.flavor + " " + product.subcategory + " " + product.category; //Get the name of the product.
-        const image = `${product.images[0].imgName}`; //Get the first image of the product.
+        const standardizedProduct = standardizedProductData(product); //Standardize the product ID to a string.
+        const name = standardizedProduct.size + " " + standardizedProduct.shape + " " + standardizedProduct.flavor + " " + produstandardizedProductct.subcategory + " " + standardizedProduct.category; //Get the name of the product.
+        const image = `${standardizedProduct.images[0].imgName}`; //Get the first image of the product.
         if(!product) return res.status(404).json({ message: "Product not found" });
 
         if(cart) {
@@ -106,10 +107,10 @@ const addToCart = async (req, res) => {
             });
         }
 
-        await cart.save();
+        await cart.save(); // Save the cart to the database
 
         const cartWithFullUrls = await findCart(req.user.id);
-        res.json(cartWithFullUrls);
+        res.json(cart);
     } catch (error) {
         console.log("Error in addToCart: ", error);
         res.status(500).json({ error: error.message });
@@ -142,7 +143,7 @@ const updateCartItem = async (req, res) => {
         await cart.save();
 
         const cartWithFullUrls = await findCart(req.user.id);
-        res.json(cartWithFullUrls);
+        res.json(cart);
     } 
     catch (error) {
         console.log("(updateCartItem) Error: ", error);

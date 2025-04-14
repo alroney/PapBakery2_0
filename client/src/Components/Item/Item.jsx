@@ -7,7 +7,6 @@ const Item = (props) => {
 
   const { scID, catName, scName, name, image, sku} = props; //Props passed from calling component.
 //Link affects APP.js Routes
-//TODO: Change this to represent subcategory.
   return (
     <div className="item">
         <Link to={`/product/${(scName && catName) ? (scName+'-'+catName.split(' ').join('-')) : name.split(' ').join('-')}/${sku ?  sku : scID+'11-11'}`}>

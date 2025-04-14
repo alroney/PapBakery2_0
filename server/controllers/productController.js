@@ -5,7 +5,7 @@ const Users = require('../models/userSchema');
 const fs = require('fs');
 const path = require('path');
 const { getTableDataDirectly } = require('./seatableControllers/stDataController');
-const { destructureSKU } = require('../utils/helpers');
+const { destructureSKU, standardizedProductData } = require('../utils/helpers');
 const nutritionLabelService = require('../services/nutritionLabelService');
 require('dotenv').config({ path: __dirname + '/.env' }); //Allows access to environment variables.
 const serverUrl = process.env.SERVER_URL;
@@ -101,7 +101,10 @@ const getProductBySKU = async (req, res) => {
             product.nutritionFacts = nutritionFacts;
         }
 
-        res.json({ success: true, product });
+        //Standardize before sending the response.
+        const standardizedProduct = standardizedProductData(product);
+
+        res.json({ success: true, product: standardizedProduct });
     } 
     catch(error) {
         console.error("(getProductBySKU) Error fetching product by SKU: ", error);
@@ -301,13 +304,13 @@ const getSubcategoryById = async (req, res) => {
     try {
         const { id } = req.params;
         const subcategories = await getTableDataDirectly('SubCategory');
-        const subcategory = subcategories.rows.find(row => row.SubCategoryID === Number(id));
+        const subCategory = subcategories.rows.find(row => row.SubCategoryID === Number(id));
 
-        if(!subcategory) {
+        if(!subCategory) {
             return res.status(404).json({ success: false, message: 'Subcategory not found' });
         }
 
-        res.json(subcategory);
+        res.json(subCategory);
     }
     catch(error) {
         console.error("Error fetching subcategory by ID: ", error);
@@ -359,7 +362,7 @@ const getSubcategoryById = async (req, res) => {
                         description: { $first: '$description' },
                         price: { $first: '$price' },
                         category: { $first: '$category' },
-                        subCategory: { $first: '$subcategory' },
+                        subcategory: { $first: '$subcategory' },
                         flour: { $first: '$flour' },
                         flavor: { $first: '$flavor' },
                         shape: { $first: '$shape' },
@@ -375,7 +378,7 @@ const getSubcategoryById = async (req, res) => {
             //Construct the image URL for use in the response or front-end rendering.
             const productsWithImages = productsWithReviews.map((product) => ({
                 ...product, //Spread the product details.
-                images: `${baseImagePath}/productsByCatShapeSize/${product.images[0].imgName}`, //Add the base path to the image name.
+                images: `${product.images[0].imgName}`, //Add the base path to the image name.
             }));
 
             return productsWithImages;
@@ -419,7 +422,8 @@ const getSubcategoryById = async (req, res) => {
         const allProducts = async (req,res) => {
             try {
                 let products = await fetchAllProducts();
-                res.send(products); //Respond with list of all products.
+                const standardizedProducts = products.map(product => standardizedProductData(product)); //Standardize the product data.
+                res.send(standardizedProducts); //Respond with list of all products.
             }
             catch(error) {
                 console.log("Error while getting all products: ", error);

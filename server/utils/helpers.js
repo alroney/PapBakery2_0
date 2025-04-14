@@ -8,9 +8,55 @@ const paypal_endpoint_url = environment === 'development' ? 'https://api-m.sandb
 const axios = require('axios');
 const from_address = process.env.AUTO_EMAIL_ADR
 const from_pass = process.env.AUTO_EMAIL_PAS
-
 const Users = require('../models/userSchema');
 
+
+/**
+ * Standardizes product data structure before sending to client.
+ * Ensures consistent property names and data formats regardless of the source.
+ * @param {Object} product - Raw product data object.
+ * @return {Object} - Standardized product data object.
+ */
+const standardizedProductData = (product) => {
+    if(!product) return null;
+
+    //Create standardized product object with consistent naming.
+    const standardProduct = {
+        _id: product._id,
+        sku: product.sku,
+        description: product.description || '',
+        price: product.price || 0,
+        //Standardize naming (ensure consistent casing).
+        category: product.category || '',
+        subcategory: product.subcategory || product.subCategory || '',
+        //Product attributes.
+        flour: product.flour || '',
+        flavor: product.flavor || '',
+        shape: product.shape || '',
+        size: product.size || '',
+
+        //Standardize rating values.
+        rating: product.rating || 0,
+        reviewCount: product.reviewCount || 0,
+        available: product.available !== undefined ? product.available : true,
+
+        //Always ensure images is an array with consistent structure.
+        images: Array.isArray(product.images)
+            ? product.images.map(img => {
+                //If image is already in correct format, return it.
+                if(typeof img === 'object' && img.imgName) {
+                    return img;
+                }
+                //Convert string to object format.
+                return {imgName: img, isNutrition: false};
+            })
+            : product.images
+                ? [{imgName: product.images, isNutrition: false}]
+                : [], //Default to empty array if no images provided.
+    };
+
+    return standardProduct;
+};
 
 const rateLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, //15 minutes
@@ -180,4 +226,4 @@ const rateLimiter = rateLimit({
     }
 //#endregion - PRODUCT HELPERS
 
-module.exports = { sendConfirmationEmail, rateLimiter, generateCartSummary, getCartData, isValidJSON, getStateTaxRates, capitalize, decapitalize, destructureSKU };
+module.exports = { standardizedProductData, sendConfirmationEmail, rateLimiter, generateCartSummary, getCartData, isValidJSON, getStateTaxRates, capitalize, decapitalize, destructureSKU };

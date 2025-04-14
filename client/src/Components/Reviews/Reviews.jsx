@@ -4,7 +4,7 @@ import ReviewForm from './SubComponents/ReviewForm';
 import ReviewList from './SubComponents/ReviewList';
 import Pagination from './SubComponents/Pagination';
 import './Reviews.css';
-import apiUrl from '@config';
+import { apiUrl } from '@config';
 
 export const Reviews = React.memo(({ productId }) => {
     console.log("(Reviews.jsx) Component Loaded.");

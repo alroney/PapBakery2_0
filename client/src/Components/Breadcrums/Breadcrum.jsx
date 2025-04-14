@@ -10,7 +10,7 @@ export const Breadcrum = (props) => {
 
   return (
     <div className="breadcrum">
-        HOME {arrowImg} {product.category} {arrowImg} {product.subCategory}
+        HOME {arrowImg} {product.category} {arrowImg} {product.subcategory}
     </div>
   )
 }

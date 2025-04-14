@@ -1,7 +1,7 @@
 import React from 'react';
 import './CSS/LoginSignup.css';
 import { useState } from 'react';
-import apiUrl from '@config';
+import { apiUrl } from '@config';
 import { useUser } from '../Context/UserContext';
 
 export const LoginSignup = () => {

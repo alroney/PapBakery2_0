@@ -9,7 +9,7 @@ import { NavLink, useLocation } from 'react-router';
 import { CartContext } from '../../Context/CartContext';
 import { useUser } from '../../Context/UserContext';
 import { useProduct } from '../../Context/ProductContext';
-// import apiUrl from '@config';
+// import { apiUrl } from '@config';
 
 export const Navbar = React.memo(() => {
     console.log("(Navbar.jsx) Component Loaded.");

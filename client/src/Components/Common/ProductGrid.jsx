@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useState } from 'react';
 import Item from '../Item/Item';
-import apiUrl from '@config';
+import { apiUrl } from '@config';
 
 export const ProductGrid = memo(({ title, endpoint, className = "product-grid" }) => {
     console.log(`(${title}.jsx) Component Loaded.`);
@@ -54,11 +54,11 @@ export const ProductGrid = memo(({ title, endpoint, className = "product-grid" }
                             key={i}
                             id={item._id}
                             scID={item.subCategoryID}
-                            scName={item.subCategory}
+                            scName={item.subcategory}
                             catName={item.category}
                             sku={item.sku}
-                            name={item.size + " " + item.shape + " " + item.flavor + " " + item.subCategory + " " + item.category}
-                            image={item.images}
+                            name={item.size + " " + item.shape + " " + item.flavor + " " + item.subcategory + " " + item.category}
+                            image={item.image}
                             price={item.price}
                         />
                     )

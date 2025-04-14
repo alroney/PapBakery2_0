@@ -7,7 +7,7 @@
 
 
 import React, { createContext, useReducer, useContext, useEffect, useMemo } from 'react';
-import apiUrl from '@config';
+import { apiUrl } from '@config';
 
 //Inital state.
 const initialState = {

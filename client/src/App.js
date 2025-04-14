@@ -10,7 +10,7 @@ import { LoginSignup } from './Pages/LoginSignup';
 import { Footer } from './Components/Footer/Footer';
 import { useEffect, useState } from 'react';
 import { useUser } from './Context/UserContext';
-import apiUrl from '@config';
+import { apiUrl } from '@config';
 import { useProduct } from './Context/ProductContext';
 
 function App() {

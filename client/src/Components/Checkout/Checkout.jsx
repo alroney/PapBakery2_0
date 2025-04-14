@@ -3,7 +3,7 @@ import './Checkout.css';
 import { useProduct } from '../../Context/ProductContext';
 import { PayPalPayment } from '../PayPalPayment/PayPalPayment';
 import { CartContext } from '../../Context/CartContext';
-import apiURL from '@config';
+import { apiUrl } from '@config';
 import { fetchFees } from '../../services/cartService';
 import { CashPayment } from '../CashPayment/CashPayment';
 

@@ -1,4 +1,4 @@
-import apiUrl from '@config';
+import { apiUrl } from '@config';
 
 const authToken = localStorage.getItem('auth-token');
 const headers = {

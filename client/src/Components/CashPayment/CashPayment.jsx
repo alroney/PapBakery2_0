@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import apiUrl from '@config';
+import { apiUrl } from '@config';
 import { CartContext } from '../../Context/CartContext';
 import { Modal } from '../Modal/Modal';
 
