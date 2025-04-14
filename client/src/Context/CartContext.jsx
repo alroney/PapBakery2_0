@@ -91,9 +91,11 @@ export const CartProvider = ({ children }) => {
                     else {
                         updatedGuestCart.push({
                             productId: product._id,
+                            sku: product.sku,
                             name: productName,
                             price: product.price,
                             image: productImage,
+                            flour: product.flour,
                             quantity: 1
                         });
                     }
@@ -156,7 +158,6 @@ export const CartProvider = ({ children }) => {
     } //End of cartOperations object.
 
 
-
     //Cart Calculations.
     const totalCartItems = useMemo(() => {
         if(!Array.isArray(cart) || cart.length === 0) return 0;
@@ -174,8 +175,65 @@ export const CartProvider = ({ children }) => {
 
 
 
+    const groupedCartItems = useMemo(() => {
+        if(!Array.isArray(cart) || cart.length === 0) return [];
+
+        const groupedItems = {};
+
+        cart.forEach(item => {
+            //Extract shape and size from the name.
+            const nameParts = item.name.split(' ');
+            const size = nameParts[0]; //Assuming size is the first part of the name.
+            const shape = nameParts[1]; //Assuming shape is the second part of the name.
+            const subcategory = nameParts[3]; //Assuming subcategory is the fourth part of the name.
+            const category = nameParts.slice(4).join(' '); //Category may contain multiple words
+
+            //Create a unique key for each item based on size and shape.
+            const groupKey = `${size}${shape}${subcategory}${category}`; //Unique key for grouping.
+
+            if(!groupedItems[groupKey]) {
+                groupedItems[groupKey] = {
+                    baseItem: {
+                        productId: `group-${groupKey}`,
+                        name: `${size} ${subcategory} ${shape} ${category}`,
+                        image: item.image,
+                        variants: []
+                    },
+                    totalPrice: 0,
+                    totalQuantity: 0
+                };
+            }
+
+            const flavor = nameParts.length > 2 ? nameParts[2] : ''; //Assuming flavor is the third part of the name.
+
+            //Add item as a variant.
+            groupedItems[groupKey].baseItem.variants.push({
+                productId: item.productId,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+                flavor: flavor,
+                flour: item.flour,
+                sku: item.sku,
+            });
+
+            //Update total price and quantity for the group.
+            groupedItems[groupKey].totalPrice += parseFloat(item.price) * parseInt(item.quantity);
+            groupedItems[groupKey].totalQuantity += parseInt(item.quantity);
+        });
+
+        return Object.values(groupedItems).map(group => ({
+            ...group.baseItem,
+            totalPrice: group.totalPrice.toFixed(2),
+            totalQuantity: group.totalQuantity,
+        }));
+    }, [cart])
+
+
+
     const value = {
         cart,
+        groupedCartItems,
         addToCart: cartOperations.addItem,
         updateCartItem: cartOperations.updateItem,
         clearCart: cartOperations.clear,
