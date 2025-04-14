@@ -83,7 +83,7 @@ h2 {
                 display: block;
                 margin-bottom: 8px 0;
                 padding: 5px;
-                border-bottom: 1px solid #eee;
+                border-bottom: 1px solid #ccc;
             }
 
             .cartitems-variant:last-child {
@@ -162,12 +162,11 @@ h2 {
 
     .cartitems-product-icon {
         flex-shrink: 0;
-        width: 10rem;
+        width: auto;
         height: 10rem;
-        object-fit:scale-down;
         border: 1px solid #ccc;
         border-radius: 5px;
-        background-color: transparent;
+        background-color: remove;
         mix-blend-mode: multiply;
     }
 
@@ -210,8 +209,12 @@ h2 {
 
     hr {
         border: 0;
-        border-top: 1px solid #ddd;
+        border-top: 1px solid #ccc;
         margin: 10px 0;
+    }
+
+    .cartitems-item:last-child hr {
+        display: none;
     }
 /* #endregion - CART ITEMS */
 
@@ -229,8 +232,7 @@ h2 {
     }
 
     .cartitems-product-icon {
-        width: 10rem;
-        height: 10rem;
+        height: 7rem;
         margin-bottom: 10px;
     }
 
