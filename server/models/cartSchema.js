@@ -7,7 +7,15 @@ const cartItemSchema = new mongoose.Schema({
         ref: 'Product',  // Reference to Product model
         required: true,
     },
+    sku: {
+        type: String,
+        required: true,
+    },
     name: {
+        type: String,
+        required: true,
+    },
+    flour: {
         type: String,
         required: true,
     },
@@ -24,6 +32,8 @@ const cartItemSchema = new mongoose.Schema({
         type: String,
     }
 });
+
+
 
 // Define the Cart schema
 const cartSchema = new mongoose.Schema({
@@ -44,10 +54,14 @@ const cartSchema = new mongoose.Schema({
     }
 });
 
+
+
 // Automatically update `updatedAt` on document modification
 cartSchema.pre('save', function (next) {
     this.updatedAt = Date.now();
     next();
 });
+
+
 
 module.exports = mongoose.model('Cart', cartSchema);

@@ -8,6 +8,7 @@ export const CartProvider = ({ children }) => {
 
     const [cart, setCart] = useState([]);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isLoading, setIsLoading] = useState(true); //Loading state to show loading spinner or message.
     
 
     // Fetch the cart from the backend when the component mounts
@@ -17,31 +18,33 @@ export const CartProvider = ({ children }) => {
         setIsAuthenticated(!!authToken); //Boolean conversion. If token exists, user is authenticated. So instead of setting 'isAuthenticated' to the value of 'authToken', we set it to true or false.
 
         const loadCart = async () => {
-            const lastFetched = localStorage.getItem('cartLastFetched');
-            const now = new Date().getTime();
-
-            if(!lastFetched || now - lastFetched > 5 * 60 * 1000) { //5 minutes in milliseconds.
+            setIsLoading(true);
+            try {
                 if(authToken) {
-                    try {
-                        const cartData = await getCart();
-                        setCart(cartData.items);
-                    }
-                    catch(error) {
-                        console.error("Error fetching cart: ", error);
-                        setCart([]); //Set cart to empty array if error occurs.
-                    }
+                    //Always fetch fresh cart data for authenticated users.
+                    const cartData = await getCart();
+                    setCart(cartData.items);
+                    localStorage.setItem('cartLastFetched', new Date().getTime()); //Store the last fetched time in local storage.
                 }
                 else {
-                    const guestCart = JSON.parse(localStorage.getItem('guestCart')) || [];
+                    //For guest users, check if the cart is already in local storage.
+                    const guestCart = JSON.parse(localStorage.getItem('guestCart')) || []; //Get the guest cart from local storage.
                     setCart(guestCart);
                 }
-                localStorage.setItem('cartLastFetched', now); //Update last fetched time.
             }
-            else {
-                if(!authToken) {
+            catch(error) {
+                console.error("Error fetching cart: ", error);
+                if(!authToken) { //If user is not authenticated, we can assume they are a guest user.
+                    //Fallback to guest cart if API fails
                     const guestCart = JSON.parse(localStorage.getItem('guestCart')) || [];
                     setCart(guestCart);
                 }
+                else {
+                    setCart([]); //Set cart to empty if error occurs.
+                }
+            }
+            finally {
+                setIsLoading(false);
             }
         }
 
@@ -60,6 +63,7 @@ export const CartProvider = ({ children }) => {
                 if(isAuthenticated) {
                     const updatedCart = await addToCart(product._id, 1);
                     setCart(updatedCart.items);
+                    return; //Prevent from continuing to guest cart logic.
                 }
                 // For guest users, ensure we have complete product data
                 // If product data is incomplete, we should fetch the complete product
@@ -78,8 +82,7 @@ export const CartProvider = ({ children }) => {
                 
                 // Get a consistent image path
                 const productImage = Array.isArray(product.images) && product.images.length > 0 ? 
-                    product.images[0]?.imgName : 
-                    product.image; // Assuming the first image is the main one
+                    product.images[0]?.imgName : product.image; // Assuming the first image is the main one
                     
                 setCart(currentCart => {
                     const updatedGuestCart = [...currentCart];
