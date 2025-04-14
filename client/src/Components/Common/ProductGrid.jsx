@@ -58,7 +58,7 @@ export const ProductGrid = memo(({ title, endpoint, className = "product-grid" }
                             catName={item.category}
                             sku={item.sku}
                             name={item.size + " " + item.shape + " " + item.flavor + " " + item.subcategory + " " + item.category}
-                            image={item.image}
+                            image={item.images}
                             price={item.price}
                         />
                     )

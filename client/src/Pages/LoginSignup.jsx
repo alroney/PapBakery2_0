@@ -11,7 +11,7 @@ export const LoginSignup = () => {
   const [error, setError] = useState('');
   const [state, setState] = useState("Login");
   const [formData, setFormData] = useState({
-    username: "",
+    name: "",
     password: "",
     email: "",
   })
