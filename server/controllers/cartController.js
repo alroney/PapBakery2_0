@@ -17,14 +17,6 @@ const getCart = async (req, res) => {
         if(req.user) {
             cart = await Cart.findOne({ userId: req.user.id });
         }
-
-        if (cart) {
-            // Update image paths to full URLs for each item
-            cart.items = cart.items.map(item => ({
-                ...item.toObject(),
-                image: `${baseImagePath}/productsByCatShapeSize/${item.image}`
-            }));
-        }
         
         if(!cart) return res.status(404).json({ message: "Cart not found" });
 
