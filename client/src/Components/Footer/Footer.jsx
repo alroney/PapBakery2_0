@@ -26,7 +26,7 @@ export const Footer = () => {
         </div> */}
         <div className="footer-copyright">
             <hr />
-            <p>Created by Andrew Roney. Copyright @ 2024 - All Rights Reserved</p>
+            <p>Fully developed by Andrew Roney. Copyright 2025 Andrew's Paws & Palms Bakery. All Rights Reserved</p>
         </div>
     </div>
   )
