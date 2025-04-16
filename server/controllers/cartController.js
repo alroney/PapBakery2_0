@@ -125,7 +125,7 @@ const updateCartItem = async (req, res) => {
 
 
 
-// Clear Cart - Remove all items from the cart.
+//Clear Cart - Remove all items from the cart.
 const clearCart = async (req, res) => {
     try {
         const cart = await Cart.findOne({ userId: req.user.id });

@@ -122,13 +122,6 @@ export const ProductDisplay = React.memo(({ product }) => {
         sizeId: initialSelections?.sizeId || null
     });
 
-    const selectedOptions = {
-        flavor: options.flavors.find(option => option.FlavorID === selections.flavorId)?.FlavorName,
-        shape: options.shapes.find(option => option.ShapeID === selections.shapeId)?.ShapeName,
-        size: options.sizes.find(option => option.SizeID === selections.sizeId)?.SizeName,
-        flour: options.flours.find(option => Number(option.FlourID) === Number(selections.flourId))?.FlourName
-    };
-
     //Unmount cleanup.
     useEffect(() => {
         return () => {
@@ -142,9 +135,8 @@ export const ProductDisplay = React.memo(({ product }) => {
 
 
     //Extract product details.
-    const {image, description, rating, reviews, price, flour, flavor, shape, size} = currentProduct || {};
+    const {image, description, rating, reviews, price, flour, flavor, shape, size, ingredients} = currentProduct || {};
     const name = `${size} ${shape} ${flavor} ${product?.subcategory} ${product?.category}`; //Construct the product name from the size, shape, flavor, subcategory, and category.
-
 
     
     //Function: Fetch the product images based on the current selections.
@@ -574,6 +566,8 @@ export const ProductDisplay = React.memo(({ product }) => {
 
                 <div className="productdisplay-right-description">
                     <p>{description}</p>
+                    <br/>
+                    <p><strong>Ingredients:</strong> {ingredients}</p>
                 </div>
 
                 {/* PRODUCT OPTIONS */}

@@ -34,6 +34,7 @@ const standardizedProductData = (product) => {
         flavor: product.flavor || '',
         shape: product.shape || '',
         size: product.size || '',
+        ingredients: product.ingredients || '',
 
         //Standardize rating values.
         rating: product.rating || 0,

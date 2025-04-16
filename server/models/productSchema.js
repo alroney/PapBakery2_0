@@ -57,6 +57,11 @@ const productSchema = new Mongoose.Schema(
             required: true,
             default: "none",
         },
+        ingredients: {
+            type: String,
+            required: true,
+            default: "none",
+        },
         price: {
             type: Number,
             required: true,

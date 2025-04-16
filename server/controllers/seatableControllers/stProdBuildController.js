@@ -8,6 +8,9 @@ const { getTableDataDirectly, updateTableData, syncSeaTableData } = require('./s
 const fs = require('fs');
 const path = require('path');
 
+
+
+
 const convertFKeys = async (req, res) => {
     try {
         const map = await getMaps([(req.body.tableName)+'Map']);
@@ -441,8 +444,8 @@ const buildRecipes = async () => {
                     //Add subcategory ingredients.
                     Object.assign(newCombination, Object.fromEntries(subCatIngredients));
                     const ingredientCatIDs = baseCombination.RecipeMeta.ingCatIDs;
-                    const flvName = ingredientCatIDs.flavorID ? maps.FlavorMap.find(fl => fl.FlavorID === ingredientCatIDs.flavorID).FlavorName : 'No Flavor Name';
-                    const flvDesc = ingredientCatIDs.flavorID ? maps.FlavorMap.find(fl => fl.FlavorID === ingredientCatIDs.flavorID).Description : 'No Description for Flavor';
+                    const flvName = ingredientCatIDs.flavorID !== undefined ? maps.FlavorMap.find(fl => Number(fl.FlavorID) === Number(ingredientCatIDs.flavorID)).FlavorName : 'No Flavor Name';
+                    const flvDesc = ingredientCatIDs.flavorID !== undefined ? maps.FlavorMap.find(fl => Number(fl.FlavorID) === Number(ingredientCatIDs.flavorID)).Description : 'No Description for Flavor';
 
                     newCombination.RecipeMeta.recipeSKU = `${subCatID}${ingredientCatIDs.flourID}${ingredientCatIDs.flavorID}`;
                     const recipeName = `${flvName} ${subCatName} ${categoryName}`;
@@ -532,6 +535,7 @@ const buildProducts = async () => {
                     const productDesc = `${recipeDesc} ${shape.Description} ${size.Description}`
                     const productImage = `${cs_categoryID}-${shapeID}${sizeID}_000.jpg`; //First image in the list.
 
+
                     products.push({
                         ProductID: productID,
                         ProductSKU: String(sku),
@@ -542,7 +546,7 @@ const buildProducts = async () => {
                         Ingredients: ingredientList,
                         ProductImage: productImage,
                         ProductFlour: maps.FlourMap.find(fl => Number(fl.FlourID) === Number(ingCatIDs.flourID))?.FlourName || 'No Flour Name',
-                        ProductFlavor: maps.FlavorMap.find(fl => fl.FlavorID === ingCatIDs.flavorID)?.FlavorName || 'No Flavor Name',
+                        ProductFlavor: maps.FlavorMap.find(fl => Number(fl.FlavorID) === Number(ingCatIDs.flavorID))?.FlavorName.replace(/\([A-Za-z]+\)/, '') || 'No Flavor Name',
                         ProductShape: shape.ShapeName,
                         ProductSize: size.SizeName
                     });

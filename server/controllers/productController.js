@@ -367,6 +367,7 @@ const getSubcategoryById = async (req, res) => {
                         flavor: { $first: '$flavor' },
                         shape: { $first: '$shape' },
                         size: { $first: '$size' },
+                        ingredients: { $first: '$ingredients' },
                         images: { $first: '$images' },
                         rating: { $first: '$rating' },
                         reviewCount: { $first: '$reviewCount' },
@@ -724,6 +725,8 @@ const getSubcategoryById = async (req, res) => {
                                 updProduct.size = sizeMap.get(Number(deSKU.sizeID));
                             }
                         }
+
+                        
                     }
                     
                     return updProduct;
