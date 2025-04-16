@@ -546,7 +546,7 @@ const buildProducts = async () => {
                         Ingredients: ingredientList,
                         ProductImage: productImage,
                         ProductFlour: maps.FlourMap.find(fl => Number(fl.FlourID) === Number(ingCatIDs.flourID))?.FlourName || 'No Flour Name',
-                        ProductFlavor: maps.FlavorMap.find(fl => Number(fl.FlavorID) === Number(ingCatIDs.flavorID))?.FlavorName.replace(/\([A-Za-z]+\)/, '') || 'No Flavor Name',
+                        ProductFlavor: maps.FlavorMap.find(fl => Number(fl.FlavorID) === Number(ingCatIDs.flavorID))?.FlavorName.replace(/\s\([A-Za-z]+\)/, '') || 'No Flavor Name',
                         ProductShape: shape.ShapeName,
                         ProductSize: size.SizeName
                     });
