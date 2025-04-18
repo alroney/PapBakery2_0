@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { updateRows, calculate } = require('../controllers/seatableController');
-const { convertFKeys, updateProductTable, buildRecipes, perProductFacts, fullUpdate  } = require('../controllers/seatableControllers/stProdBuildController');
+const { updateRows, calculate, convertFKeys } = require('../controllers/seatableController');
+const { updateProductTable, buildRecipes, perProductFacts, fullUpdate  } = require('../controllers/seatableControllers/stProdBuildController');
 const { getTableData, getTables, syncSeaTableData } = require('../controllers/seatableControllers/stDataController');
 // const checkAuth = require('../middlewares/seatableMiddleware');
 

@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2025-04-16T12:35:08.827Z",
+  "lastUpdated": "2025-04-18T12:37:42.921Z",
   "tableList": [
     "Ingredient",
     "NutritionFact",
@@ -15,7 +15,8 @@
     "CategoryShape",
     "CategoryShapeSize",
     "SubCategoryAvgWeight",
-    "Product"
+    "Product",
+    "Supply"
   ],
   "tablesData": [
     {
@@ -6828,6 +6829,52 @@
             "ProductShape": "Dot",
             "ProductSize": "Tiny",
             "_id": "QQEHoj1dRo29MFgyF-_PQw"
+          }
+        ]
+      }
+    },
+    {
+      "tableName": "Supply",
+      "data": {
+        "rows": [
+          {
+            "_id": "NOcXh948T9K_VQ5pFWXH9w",
+            "ULineID": "S-13249",
+            "SubUnitType": "Bag",
+            "UnitType": "Carton",
+            "PricePerUnit": 52,
+            "SubUnitsPerUnit": 250,
+            "PricePerSubUnit": 0.208,
+            "Name": "Bakery Bag W",
+            "SupplyCategory": "Packaging",
+            "Size": 8,
+            "Color": "Kraft"
+          },
+          {
+            "_id": "bCphmNAsSGKTCBS-Y_PgqQ",
+            "ULineID": "S-9672",
+            "SubUnitType": "Bag",
+            "UnitType": "Carton",
+            "PricePerUnit": 56,
+            "SubUnitsPerUnit": 250,
+            "PricePerSubUnit": 0.224,
+            "Name": "Bakery Bag W",
+            "SupplyCategory": "Packaging",
+            "Size": 16,
+            "Color": "Kraft"
+          },
+          {
+            "_id": "TnLuqrmBQTuKlZ01LHdJtA",
+            "ULineID": "S-13250",
+            "SubUnitType": "Bag",
+            "UnitType": "Carton",
+            "Name": "Bakery Bag W",
+            "PricePerUnit": 64,
+            "SubUnitsPerUnit": 250,
+            "PricePerSubUnit": 0.256,
+            "SupplyCategory": "Packaging",
+            "Size": 24,
+            "Color": "Kraft"
           }
         ]
       }

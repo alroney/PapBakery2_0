@@ -3,8 +3,23 @@ const convertUnits = require('../utils/unitConversion'); //Converts units of mea
 const { fetchStoredToken, getBaseTokenAndUUID } = require('./seatableControllers/stTokenController'); //Import functions from tokenController.js.
 const { getTablesData, updateTableData } = require('./seatableControllers/stDataController'); //Import the cached tables data from stDataController.js.
 const { fullUpdate } = require('./seatableControllers/stProdBuildController');
+const { convertForeignKeys } = require('../utils/stUtils');
+const { getMaps } = require('../utils/stDataMapperService'); //Import the getMaps function from stDataMapperService.js.
 const urlBase = "https://cloud.seatable.io"; //SeaTable server.
 
+
+//Function: Change the foreign key names to the specified format (toName or toID).
+const convertFKeys = async (req, res) => {
+    try {
+        const map = await getMaps([(req.body.tableName) + 'Map']);
+        const updatedMap = await convertForeignKeys(map, req.body.isToName);
+        res.status(200).json({ success: true, result: updatedMap });
+    }
+    catch (error) {
+        console.error("(stProdBuildController)(convertFKeys) Error converting foreign keys: ", error);
+        res.status(500).json({ success: false, message: "Internal server error." });
+    }
+}
 
 //Function: Update the specified table's rows in the SeaTable base.
 const updateRows = async (req, res) => {
@@ -102,4 +117,4 @@ const calculate = async (req, res) => {
 
 
 
-module.exports = { updateRows, calculate };
+module.exports = { updateRows, calculate, convertFKeys };
