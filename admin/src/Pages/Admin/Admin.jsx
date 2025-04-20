@@ -5,6 +5,7 @@ import { Routes, Route } from 'react-router'
 import AddProduct from '../../Components/AddProduct/AddProduct'
 import ListProduct from '../../Components/ListProduct/ListProduct'
 import SeaTableManager from '../../Components/SeaTableManager/SeaTableManager'
+import MathTest from '../../Components/MathTest/MathTest'
 
 
 /**
@@ -19,6 +20,7 @@ const Admin = () => {
         <Route path='/addproduct' element={<AddProduct/>}/>
         <Route path='/listproduct' element={<ListProduct/>}/>
         <Route path='/seatableManager' element={<SeaTableManager/>}/>
+        <Route path='/mathTest' element={<MathTest/>}/>
       </Routes>
     </div>
   )

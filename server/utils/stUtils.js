@@ -100,6 +100,7 @@ const updateRowData = async (table_name, data) => {
 
 
 
+//#region - CONVERT FOREIGN KEYS
 //Function: Convert the foreign keys in the given map.
 const convertForeignKeys = async (map, idToName, cachedMaps = {}) => {
     try {
@@ -244,6 +245,11 @@ const processForeignKeyConversion = async (tableName, columnName, input, cachedM
         return { newColumnName: columnName, newValue: input };
     }
 }
+//#endregion - CONVERT FOREIGN KEYS
+
+
+
+
 
 module.exports = {
     deleteOldTable,

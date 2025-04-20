@@ -27,6 +27,13 @@ const Sidebar = () => {
               <p>SeaTable Manager</p>
             </div>
         </Link>
+
+        <Link to={'/mathTest'} style={{textDecoration: "none"}}>
+            <div className="sidebar-item">
+              <img src={list_product_icon} alt="" />
+              <p>Math Test</p>
+            </div>
+        </Link>
     </div>
   )
 }
