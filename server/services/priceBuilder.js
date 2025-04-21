@@ -5,7 +5,7 @@ const buildPrice = async (req, res) => {
     try {
         const shapeSizeSKU = req.body.shapeSizeSKU;
         const amount = req.body.amount; //Get the amount from the request body.}
-        getBagForTreats(shapeSizeSKU, amount);
+        findOptimalBagCombination(shapeSizeSKU, amount);
         res.status(200).json({ success: true, message: "Price build started." });
     }
     catch(error) {
@@ -117,6 +117,79 @@ const getAllMaxTreatsPerBag = async () => {
     }
     catch(error) {
         console.error("(stProdBuildController)(getAllMaxTreatsPerBag) Error getting treats per bag: ", error);
+        return null;
+    }
+}
+
+
+
+//Function: Find the optimal bag combination for a given treat size and amount.
+const findOptimalBagCombination = async (shapeSizeSKU, amount) => {
+    try {
+        const bagSizes = await getAllBagSizes();
+        const treatDimensions = await getAllTreatDimensions();
+        const packingEfficiency = 0.60;
+        
+        const treatVolume = treatDimensions[shapeSizeSKU] ? 
+            (treatDimensions[shapeSizeSKU].width * treatDimensions[shapeSizeSKU].depth * treatDimensions[shapeSizeSKU].height) : 0;
+        const treatWeight = treatDimensions[shapeSizeSKU]?.weight || 0;
+
+        let bestCombination = { bags: [], totalCost: Infinity };
+
+        //Sort bags by volume for efficiency.
+        const sortedBags = Object.entries(bagSizes).sort((a, b) => 
+            (a[1].width * a[1].depth * a[1].height) - (b[1].width * b[1].depth * b[1].height));
+
+        //Try each bag size as the primary bag.
+        for (const [bagSize, bag] of sortedBags) {
+            const bagVolume = bag.width * bag.depth * bag.height;
+            const maxTreatsPerBag = Math.min(
+                Math.floor((bagVolume * packingEfficiency) / treatVolume),
+                Math.floor(bag.maxWeight / treatWeight)
+            );
+
+            if (maxTreatsPerBag === 0) continue; //Skip bags that can't hold any treats.
+
+            const fullBags = Math.floor(amount / maxTreatsPerBag);
+            const remainingTreats = amount % maxTreatsPerBag; //The '%' symbol is the modulus operator, which gives the remainder of the division.
+
+            let combination = {
+                bags: Array(fullBags).fill({ size: bagSize, treats: maxTreatsPerBag, weight: maxTreatsPerBag * treatWeight }),
+                totalCost: fullBags * bag.cost,
+                totalWeight: fullBags * maxTreatsPerBag * treatWeight
+            };
+
+            if (remainingTreats > 0) {
+                const smallerBag = sortedBags.find(([_, b]) => {
+                    const bVolume = b.width * b.depth * b.height;
+                    return (bVolume * packingEfficiency) >= (treatVolume * remainingTreats) && 
+                           b.maxWeight >= (treatWeight * remainingTreats);
+                });
+
+                if (smallerBag) {
+                    combination.bags.push({ size: smallerBag[0], treats: remainingTreats, weight: remainingTreats * treatWeight });
+                    combination.totalCost += smallerBag[1].cost;
+                    combination.totalWeight += remainingTreats * treatWeight
+                } 
+                else {
+                    combination.bags.push({ size: bagSize, treats: remainingTreats, weight: remainingTreats * treatWeight });
+                    combination.totalCost += bag.cost;
+                    combination.totalWeight += remainingTreats * treatWeight;
+                }
+            }
+
+            if (combination.totalCost < bestCombination.totalCost) {
+                bestCombination = combination;
+            }
+        }
+
+
+        //Log the best combination to the console.
+        console.log(`Best combination for ${shapeSizeSKU} with amount ${amount}: `, bestCombination); //DEBUG - Log the best combination to the console.
+
+        return bestCombination;
+    } catch (error) {
+        console.error("(findOptimalBagCombination) Error finding optimal bag combination: ", error);
         return null;
     }
 }

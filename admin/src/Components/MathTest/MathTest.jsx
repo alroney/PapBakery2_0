@@ -29,7 +29,7 @@ const MathTest = () => {
     return (
         <div className="mathTest">
             <h1>Math Test</h1>
-            <input type="text" value={shapeSizeSKU} onChange={(e) => setShapeSizeSKU(e.target.value)} placeholder="Shape Size SKU" />
+            <input type="text" value={shapeSizeSKU} onChange={(e) => setShapeSizeSKU(e.target.value)} placeholder="1-11" />
             <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Amount" />
             <button onClick={() => test()}>Test</button>
         </div>
