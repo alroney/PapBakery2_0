@@ -144,6 +144,7 @@ const findOptimalBagCombination = async (shapeSizeSKU, amount) => {
             const fullBags = Math.floor(amount / bag.maxTreats);
             const remainingTreats = amount % bag.maxTreats;
 
+            //Object to store the combination of bags and their total cost and weight.
             let combination = {
                 bags: fullBags > 0 ? [{ 
                     size: bag.size, 
@@ -154,6 +155,7 @@ const findOptimalBagCombination = async (shapeSizeSKU, amount) => {
                 totalWeight: fullBags * bag.maxTreats * treatWeight
             };
 
+            //If there are remaining treats, find the best bag for them.
             if (remainingTreats > 0) {
                 const smallerBag = bagsWithMetrics.find(b => 
                     b.bagVolume * packingEfficiency >= treatVolume * remainingTreats &&
@@ -170,6 +172,7 @@ const findOptimalBagCombination = async (shapeSizeSKU, amount) => {
                 combination.totalWeight += remainingTreats * treatWeight;
             }
 
+            //Check if the current combination is better than the best one found so far.
             if (combination.totalCost < bestCombination.totalCost) {
                 bestCombination = combination;
             }
