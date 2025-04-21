@@ -161,12 +161,15 @@ export const CartProvider = ({ children }) => {
     } //End of cartOperations object.
 
 
-    //Cart Calculations.
+
+    //Function: Cart Calculations.
     const totalCartItems = useMemo(() => {
         if(!Array.isArray(cart) || cart.length === 0) return 0;
         return cart.reduce((total, item) => total + (parseInt(item.quantity) || 0), 0);
     }, [cart]);
 
+
+    //Function: Calculate subtotal of the cart.
     const subtotal = useMemo(() => {
         if(!Array.isArray(cart) || cart.length === 0) return 0;
         return cart.reduce((total, item) => {
@@ -177,7 +180,7 @@ export const CartProvider = ({ children }) => {
     }, [cart]);
 
 
-
+    //Function: Group cart items by size and shape.
     const groupedCartItems = useMemo(() => {
         if(!Array.isArray(cart) || cart.length === 0) return [];
 
@@ -233,7 +236,7 @@ export const CartProvider = ({ children }) => {
     }, [cart])
 
 
-
+    //Object: Value to be provided to the context.
     const value = {
         cart,
         groupedCartItems,
@@ -244,6 +247,8 @@ export const CartProvider = ({ children }) => {
         calculateSubtotal: () => subtotal,
     };
 
+
+    
     return (
         <CartContext.Provider value={value}>
             {children}

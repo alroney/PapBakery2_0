@@ -6,7 +6,7 @@ const MathTest = () => {
     const [amount, setAmount] = useState(1);
 
     const test = async () => {
-        const response = await fetch(`${apiBase}/seatable/buildPrice`, {
+        const response = await fetch(`${apiBase}/seatable/buildBag`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -6,7 +6,10 @@ const headers = {
     ...(authToken && { 'auth-token': authToken })
 };
 
-// Fetch cart for the logged-in user
+
+
+
+//Function: Fetch cart for the logged-in user.
 export const getCart = async () => {
     try {
         const response = await fetch(`${apiUrl}/cart`, { headers });
@@ -17,7 +20,9 @@ export const getCart = async () => {
     }
 };
 
-// Add an item to the cart
+
+
+//Function: Add an item to the cart.
 export const addToCart = async (itemId, quantity = 1) => {
     try {
         const response = await fetch(`${apiUrl}/cart/add`, {
@@ -32,7 +37,9 @@ export const addToCart = async (itemId, quantity = 1) => {
     }
 };
 
-// Update quantity of an item in the cart
+
+
+//Function: Update quantity of an item in the cart.
 export const updateCartItem = async (itemId, quantity) => {
     try {
         const response = await fetch(`${apiUrl}/cart/update`, {
@@ -47,7 +54,9 @@ export const updateCartItem = async (itemId, quantity) => {
     }
 };
 
-// Clear the cart
+
+
+//Function: Clear the cart.
 export const clearCart = async () => {
     try {
         const response = await fetch(`${apiUrl}/cart/clear`, {
@@ -61,6 +70,9 @@ export const clearCart = async () => {
     }
 };
 
+
+
+//Function: Fetches the fees for the cart based on subtotal, state, shipping cost, and coupon code.
 export const fetchFees = async ({ subtotal, state, shippingCost, couponCode }) => {
     try {
         const response = await fetch(`${apiUrl}/cart/fees`, {
