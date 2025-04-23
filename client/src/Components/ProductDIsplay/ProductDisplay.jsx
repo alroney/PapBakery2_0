@@ -1,12 +1,13 @@
-import React, { useCallback, useContext, useEffect, useState, useMemo, useRef } from 'react'
-import './ProductDisplay.css'
-import star_icon from '../Assets/img/icon/star_icon.png'
-import star_dull_icon from '../Assets/img/icon/star_dull_icon.png'
-import { CartContext } from '../../Context/CartContext'
-import { useLocation, useNavigate } from 'react-router'
-import { apiUrl } from '@config'
+import React, { useCallback, useContext, useEffect, useState, useMemo, useRef } from 'react';
+import './ProductDisplay.css';
+import star_icon from '../Assets/img/icon/star_icon.png';
+import star_dull_icon from '../Assets/img/icon/star_dull_icon.png';
+import { CartContext } from '../../Context/CartContext';
+import { useLocation, useNavigate } from 'react-router';
+import { getOptimalBag } from '../../services/bagService';
+import { apiUrl } from '@config';
 
-
+//#region - OPTION COMPONENTS
 //Component: This is a memoized component that renders an option item (flavor, shape, size, or flour) in the product display. Separated from the main component to improve performance and readability and prevent unnecessary rerenders.
 const OptionItem = React.memo(({ id, name, type, isSelected, isValid, onSelect, isLoading }) => {
     const handleClick = React.useCallback(() => {
@@ -63,7 +64,7 @@ const OptionCategory = React.memo(({ title, optionType, items, selections, isOpt
         </div>
     )
 });
-
+//#endregion - OPTION COMPONENTS
 
 
 
@@ -82,6 +83,8 @@ export const ProductDisplay = React.memo(({ product }) => {
     const [currentProduct, setCurrentProduct] = useState(product); //ProductDisplay.jsx <- Product.jsx <- ProductContext.jsx
     const [productImages, setProductImages] = useState([]); //State to store product images.
     const [selectedImageIndex, setSelectedImageIndex] = useState(0); //State to track the currently selected image index.
+    const [quantity, setQuantity] = useState(1); //State to track the quantity of the product.
+    const [bagInfo, setBagInfo] = useState(null); //State to store bag information.
 
     //State: Store the selected options in state. This will be used to update the product display.
     const [options, setOptions] = useState({
@@ -306,6 +309,7 @@ export const ProductDisplay = React.memo(({ product }) => {
                 const subcategoryRes = await fetch(`${apiUrl}/products/subcategory/${subcategoryId}`);
                 const subcategory = await subcategoryRes.json();
                 const catId = subcategory?.CategoryID;
+                console.log("Subcategory ID: ", subcategoryId, "Category ID: ", catId);
 
                 if(!isMounted.current) return;
                 setCategoryId(catId); //Set the category ID in state.
@@ -513,10 +517,83 @@ export const ProductDisplay = React.memo(({ product }) => {
 
 
 
+    //#region - BAG INFO
+
+    //Function: Update bag information when quanitty changes.
+    const updateBagInfo = useCallback(async (currentProduct, qty) => {
+        if(!currentProduct || !currentProduct.sku) return;
+
+        const [recipeSKU, shapeSizeSKU] = currentProduct.sku.split('-');
+        if(!recipeSKU || !shapeSizeSKU) return;
+
+        const treatDimensionKey = `${recipeSKU[0]}-${shapeSizeSKU}`;
+        const bagCombination = await getOptimalBag(treatDimensionKey, qty);
+        setBagInfo(bagCombination);
+    }, []);
+
+
+
+    //UseEffect: update bag info when quantity or product changes.
+    useEffect(() => {
+        if(currentProduct && quantity > 0) {
+            updateBagInfo(currentProduct, quantity);
+        }
+    }, [currentProduct, quantity, updateBagInfo]);
+
+
+
+    //Function: Display the bag info component.
+    const renderBagInfo = useCallback(() => {
+        console.log("Bag Info: ", bagInfo);
+        if(!bagInfo) return null;
+        return (
+            <div className="product-bag-info">
+                <h4>Packaging Information:</h4>
+                <div className="bag-details">
+                    {bagInfo.bags.map((bag, index) => (
+                        <div key={index} className="bag-item">
+                            <span>{bag.size} bag: {bag.treats} treats</span>
+                        </div>
+                    ))}
+                    <div className="packaging-cost">
+                        <small>Packaging Cost: ${bagInfo.totalCost.toFixed(2)}</small>
+                    </div>
+                </div>
+            </div>
+        );
+    }, [bagInfo]);
+    //#endregion - BAG INFO
+
+
+
+    //Function: Handle quantity change.
+    const handleQuantityChange = useCallback((newQty) => {
+        if(newQty >= 1) {
+            setQuantity(newQty);
+        }
+    }, []);
+
+
+
+    //Function: Quantity selector component.
+    const renderQuantitySelector = useCallback(() => {
+        return (
+            <div className="product-quanitty">
+                <button onClick={() => handleQuantityChange(quantity - 1)} disabled={quantity <= 1}>-</button>
+                <span>{quantity}</span>
+                <button onClick={() => handleQuantityChange(quantity + 1)}>+</button>
+            </div>
+        );
+    }, [quantity, handleQuantityChange]);
+
+
+
     //Function: Get the currently selected image.
     const selectedImage = useMemo(() => {
         return productImages.length > 0 ? productImages[selectedImageIndex].imgName : image;
     }, [productImages, selectedImageIndex, image]);
+
+
 
   return (
     <div className="productdisplay">
@@ -592,12 +669,15 @@ export const ProductDisplay = React.memo(({ product }) => {
                 {/* END PRODUCT OPTIONS */}
 
                 <button 
-                    onClick={() => addToCart(currentProduct)} 
+                    onClick={() => addToCart({...currentProduct, quantity: Number(quantity)})} 
                     disabled={isLoading}
                     className={isLoading ? 'loading' : ''}
                 >
                     {isLoading ? 'UPDATING...' :'ADD TO CART'}
                 </button>
+
+                {renderQuantitySelector()}
+                {renderBagInfo()}
                 
                 <p className="productdisplay-right-category">
                     <span>Category: </span>{currentProduct?.category}

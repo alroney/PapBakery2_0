@@ -100,7 +100,6 @@ export const Checkout = React.memo(() => {
 
 
 
-
   return (
     <div className="checkout">
         {Array.isArray(cart) && getTotalCartItems() > 0 

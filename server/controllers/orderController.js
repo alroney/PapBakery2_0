@@ -10,7 +10,7 @@ const Orders = require('../models/orderSchema');
 const Carts = require('../models/cartSchema');
 
 const {getCartData, generateCartSummary, sendConfirmationEmail, isValidJSON, getStateTaxRates} = require('../utils/helpers');
-
+const { getBestBagCombination } = require('../services/bagBuilder');
 
 
 
@@ -28,6 +28,23 @@ const getOrderDetails = async (req, isGuest) => {
     const productsInCart = await Products.find({ _id: { $in: cartItemIds } });
     console.log("(getOrderDtails) productsInCart: ", productsInCart);
     let taxRate = parseFloat(await (getStateTaxRates("MD"))).toFixed(2);
+
+    const bagInfo = [];
+    for(const item of cartData) {
+        if(item.quantity > 0 && item.sku) {
+            const [recipeSKU, shapeSizeSKU] = item.sku.split('-');
+            if(category && shapeSizeSKU) {
+                const treatDimensionKey = `${item.subcategoryId ?? category}-${shapeSizeSKU}`;
+                const bagCombination = await getBestBagCombination(treatDimensionKey, item.quantity);
+                if(bagCombination) {
+                    bagInfo.push({
+                        productId: item.productId,
+                        bagCombination
+                    })
+                }
+            }
+        }
+    }
 
     //Calculate the subtotal using the correct price of the item * the quantity. 
     let subtotal = cartData.reduce((sum, cartItem) => {
@@ -55,6 +72,7 @@ const getOrderDetails = async (req, isGuest) => {
         buyer: isGuest ? "guest" : req.user,
         email: email,
         cart: sanitizedCart,
+        bagInfo,
         subtotal,
         taxRate,
         tax,

@@ -7,13 +7,13 @@ const CACHE_EXPIRY = 24 * 60 * 60 * 1000; //24 hours in milliseconds.
 
 const buildBag = async (req, res) => {
     try {
-        const shapeSizeSKU = req.body.shapeSizeSKU;
+        const treatDimensionKey = req.body.treatDimensionKey;
         const amount = req.body.amount; //Get the amount from the request body.}
-        findOptimalBagCombination(shapeSizeSKU, amount);
+        findOptimalBagCombination(treatDimensionKey, amount);
         res.status(200).json({ success: true, message: "Price build started." });
     }
     catch(error) {
-        console.error("(stProdBuildController)(test) Error: ", error);
+        console.error("(bagBuilder)(test) Error: ", error);
         res.status(500).json({ success: false, message: "Internal server error." });
     }
 }
@@ -58,7 +58,7 @@ const getAllBagSizes = async () => {
         return bagSizes;
     }
     catch(error) {
-        console.error("(stProdBuildController)(getAllBagSizes) Error getting bag size: ", error);
+        console.error("(bagBuilder)(getAllBagSizes) Error getting bag size: ", error);
         return null;
     }
 }
@@ -66,13 +66,19 @@ const getAllBagSizes = async () => {
 
 
 //Function: Get treat dimensions for a specific SKU from the SeaTable base.
-const getTreatDimensions = async (shapeSizeSKU) => {
+const getTreatDimensions = async (treatDimensionKey) => {
     try {
-        const [categoryID, shapeSize] = shapeSizeSKU.split('-'); //Split the SKU into categoryID and shapeSize.
-        const shapeID = shapeSize.charAt(0);
-        const sizeID = shapeSize.charAt(1);
+        const [subcategoryID, shapeSizeSKU] = treatDimensionKey.split('-'); //Split the SKU into categoryID and shapeSizeSKU.
+        const shapeID = shapeSizeSKU.charAt(0);
+        const sizeID = shapeSizeSKU.charAt(1);
 
-        const map = await getMaps(['CategoryShapeSizeMap', 'CategoryShapeMap', 'SubCategoryAvgWeightMap']);
+        console.log(`Getting treat dimensions for SKU: ${treatDimensionKey} (subcategoryID: ${subcategoryID}, ShapeID: ${shapeID}, SizeID: ${sizeID})`);
+
+        const map = await getMaps(['CategoryShapeSizeMap', 'CategoryShapeMap', 'SubCategoryAvgWeightMap', 'SubCategoryMap']);
+
+        const categoryID = map.SubCategoryMap.find(sc => sc.SubCategoryID === Number(subcategoryID)).CategoryID; //Find the category ID from the subcategory ID.
+        if (!categoryID) return null; //If no category ID is found, return null.
+
 
         //Find the matching CategoryShape record. Otherwise, return null.
         const csID = map.CategoryShapeMap.find(cs => cs.CategoryID === Number(categoryID) && cs.ShapeID === Number(shapeID)).CategoryShapeID;
@@ -97,7 +103,7 @@ const getTreatDimensions = async (shapeSizeSKU) => {
         return treatDimensions;
     }
     catch(error) {
-        console.error("(stProdBuildController)(getAllTreatDimensions) Error getting treat dimensions: ", error);
+        console.error("(bagBuilder)(getTreatDimensions) Error getting treat dimensions: ", error);
         return null;
     }
 }
@@ -105,11 +111,11 @@ const getTreatDimensions = async (shapeSizeSKU) => {
 
 
 //Function: Find the optimal bag combination for a given treat size and amount.
-const findOptimalBagCombination = async (shapeSizeSKU, amount) => {
+const findOptimalBagCombination = async (treatDimensionKey, amount) => {
     try {
         const [bagSizes, treatDimensions] = await Promise.all([
             getAllBagSizes(),
-            getTreatDimensions(shapeSizeSKU)
+            getTreatDimensions(treatDimensionKey)
         ]);
 
         if (!treatDimensions || !bagSizes) {
@@ -178,7 +184,7 @@ const findOptimalBagCombination = async (shapeSizeSKU, amount) => {
             }
         }
 
-        console.log(`Best combination for ${shapeSizeSKU} (${amount}):`, bestCombination);
+        console.log(`Best combination for ${treatDimensionKey} (${amount}):`, bestCombination);
         return bestCombination;
 
     } catch (error) {
@@ -188,4 +194,39 @@ const findOptimalBagCombination = async (shapeSizeSKU, amount) => {
 }
 
 
-module.exports = { buildBag, invalidateBagSizeCache };
+
+//Function: Get the best bag combination without HTTP request/response handling.
+const getBestBagCombination = async (treatDimensionKey, amount) => {
+    try {
+        return await findOptimalBagCombination(treatDimensionKey, amount);
+    }
+    catch(error) {
+        console.error("(getBestBagCombination) Error:", error);
+        return null;
+    }
+}
+
+
+const getBestBag = async (req, res) => {
+    try {
+        const { treatDimensionKey, amount } = req.body;
+
+        if(!treatDimensionKey || !amount || isNaN(Number(amount)) || Number(amount) <= 0) {
+            return res.status(400).json({ success: false, message: "Missing required parameters." });
+        }
+
+        const bestCombination = await findOptimalBagCombination(treatDimensionKey, Number(amount));
+
+        if(!bestCombination) {
+            return res.status(500).json({ success: false, message: "Could not find suitable bag combination" });
+        }
+
+        res.status(200).json({ success: true, bagCombination: bestCombination });
+    }
+    catch(error) {
+        console.error("(getBestBag) Error:", error);
+        res.status(500).json({ success: false, message: "Internal server error.", error: error.message });
+    }
+}
+
+module.exports = { buildBag, invalidateBagSizeCache, getBestBag, getBestBagCombination };

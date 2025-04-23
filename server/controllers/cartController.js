@@ -61,13 +61,13 @@ const addToCart = async (req, res) => {
                     name: name,
                     flour: standardizedProduct.flour,
                     price: standardizedProduct.price,
-                    quantity,
+                    quantity: quantity || 1,
                     image: image,
                 });
             }
         } 
         else {
-            // No cart for user, create a new cart
+            //No cart for user, create a new cart.
             cart = new Cart({
                 userId: req.user.id,
                 items: [{
@@ -77,12 +77,12 @@ const addToCart = async (req, res) => {
                     flour: standardizedProduct.flour,
                     price: standardizedProduct.price,
                     quantity,
-                    image: image, // Assuming the first image is the main one
+                    image: image, //Assuming the first image is the main one.
                 }]
             });
         }
 
-        await cart.save(); // Save the cart to the database
+        await cart.save(); //Save the cart to the database.
 
         res.json(cart);
     } catch (error) {
@@ -93,7 +93,7 @@ const addToCart = async (req, res) => {
 
 
 
-// Update Cart Item - Modify the quantity of an item in the cart
+//Update Cart Item - Modify the quantity of an item in the cart.
 const updateCartItem = async (req, res) => {
     const { itemId, quantity } = req.body;
 
@@ -150,6 +150,8 @@ const validateCoupon = async (code) => {
     return validCoupons[code.toUpperCase()] || null;
 }
 
+
+
 const calculateFees = async (req, res) => {
     try {
 
@@ -189,6 +191,8 @@ const calculateFees = async (req, res) => {
         res.status(500).json({ message: 'Error calculating fees', error: error.message });
     }
 }
+
+
 
 module.exports = {
     getCart,

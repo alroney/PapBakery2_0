@@ -11,7 +11,7 @@ export const CartProvider = ({ children }) => {
     const [isLoading, setIsLoading] = useState(true); //Loading state to show loading spinner or message.
     
 
-    // Fetch the cart from the backend when the component mounts
+    //Fetch the cart from the backend when the component mounts.
     useEffect(() => {
         //Check if user is authenticated.
         const authToken = localStorage.getItem('auth-token');
@@ -57,11 +57,14 @@ export const CartProvider = ({ children }) => {
     const cartOperations = {
         //Function Property: Add to cart - handles both guest and authenticated users.
         addItem: useCallback(async (product) => {
-        
             console.log("Product being added to cart: ", product);
             try {
+                //Get the quantity from the product, defaulting to 1 if not provided.
+                const quantity = product.quantity || 1;
+                
+                //Check if user is authenticated.
                 if(isAuthenticated) {
-                    const updatedCart = await addToCart(product._id, 1);
+                    const updatedCart = await addToCart(product._id, quantity);
                     setCart(updatedCart.items);
                     return; //Prevent from continuing to guest cart logic.
                 }
@@ -99,7 +102,7 @@ export const CartProvider = ({ children }) => {
                             price: product.price,
                             image: productImage,
                             flour: product.flour,
-                            quantity: 1
+                            quantity: quantity,
                         });
                     }
 
@@ -248,7 +251,7 @@ export const CartProvider = ({ children }) => {
     };
 
 
-    
+
     return (
         <CartContext.Provider value={value}>
             {children}

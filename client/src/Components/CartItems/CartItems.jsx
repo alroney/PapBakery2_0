@@ -1,7 +1,8 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect, useCallback } from 'react';
 import './CartItems.css';
 import remove_icon from '../Assets/img/icon/cart_cross_icon.png';
 import { CartContext } from '../../Context/CartContext';
+import { getOptimalBag } from '../../services/bagService';
 import { imgUrl } from '@config';
 
 
@@ -10,6 +11,7 @@ export const CartItems = () => {
 
     const { cart, groupedCartItems, updateCartItem, clearCart } = useContext(CartContext);
     const [expandedGroups, setExpandedGroups] = useState({});
+    const [bagInfoMap, setBagInfoMap] = useState({}); //Map to store bag info for each productId.
 
     const toggleGroupExpand = (groupId) => {
         setExpandedGroups(prev => ({
@@ -17,6 +19,58 @@ export const CartItems = () => {
             [groupId]: !prev[groupId]
         }));
     };
+
+    const updateItemBagInfo = useCallback(async (item, quantity) => {
+        if(!item || !item.sku) return;
+
+        const [recipeSKU, shapeSizeSKU] = item.sku.split('-');
+        if(!recipeSKU || !shapeSizeSKU) return;
+        const subcategoryId = recipeSKU[0]; //Assuming the first character of SKU is the subcategory ID.
+        const treatDimensionKey = `${subcategoryId}-${shapeSizeSKU}`;
+        const bagCombination = await getOptimalBag(treatDimensionKey, quantity);
+
+        if(bagCombination) {
+            setBagInfoMap(prev => ({
+                ...prev,
+                [item.productId]: bagCombination
+            }));
+        }
+    }, []);
+
+
+
+    //UseEffect: Update bag info when cart changes.
+    useEffect(() => {
+        if(Array.isArray(cart) && cart.length > 0) {
+            cart.forEach(item => {
+                updateItemBagInfo(item, item.quantity);
+            })
+        }
+    }, [cart, updateItemBagInfo]);
+
+
+    //Function: Handle quantity change with bag update.
+    const handleUpdateCartItem = async (item, newQty) => {
+        await updateCartItem(item.productId, newQty);
+        if(newQty > 0) {
+            updateItemBagInfo(item, newQty);
+        }
+    };
+
+    //Function: Render bag info for a cart item.
+    const renderItemBagInfo = (itemId) => {
+        const bagInfo = bagInfoMap[itemId];
+        console.log("bagInfo: ", bagInfo);
+        if(!bagInfo) return null;
+
+        return (
+            <div className="cartitems-bag-info">
+                <div className="bag-details">
+                    <small>Packaging: {bagInfo?.bags?.map(b => `${b.size} Bag`).join(', ') || 'No packaging info'}</small>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className='cartitems'>
@@ -54,6 +108,7 @@ export const CartItems = () => {
                                                 <p className="cartitems-variant-name">{variant.flavor} <small>w/</small> {variant.flour}</p>
                                                 <p className="cartitems-variant-price">Price: ${variant.price}</p>
                                             </div>
+                                            {variant.quantity > 0 && renderItemBagInfo(variant.productId)}
                                             <div className="cartitems-variant-quantity">
                                                 <div className="cartitems-quantity">
                                                     <div className="cartitems-quantity-container">
@@ -65,7 +120,6 @@ export const CartItems = () => {
                                                 <p className="cartitems-variant-subtotal">${(parseFloat(variant.price) * parseInt(variant.quantity)).toFixed(2)}</p>
                                                 <img className="cartitems-remove-icon" src={remove_icon} alt="X" onClick={() => { updateCartItem(variant.productId, 0) }} />
                                             </div>
-                                            
                                         </div>
                                     ))}
                                 </div>
