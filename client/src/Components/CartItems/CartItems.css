@@ -134,7 +134,22 @@ h2 {
                 border-radius: 20px;
                 text-align: center;
                 min-width: 40px;
-        
+            }
+
+            .cartitems-quantity-input {
+                width: 30px;
+                border: none;
+                background: transparent;
+                text-align: center;
+                font-size: 16px;
+                outline: none;
+                -moz-appearance: textfield;
+            }
+
+            .cartitems-quantity-input::-webkit-outer-spin-button,
+            .cartitems-quantity-input::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
             }
         
             .cartitems-adjuster {

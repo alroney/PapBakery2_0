@@ -92,7 +92,7 @@ export const CartProvider = ({ children }) => {
                     const itemIndex = updatedGuestCart.findIndex(item => item.productId === product._id);
                     
                     if(itemIndex > -1) {
-                        updatedGuestCart[itemIndex].quantity += 1;
+                        updatedGuestCart[itemIndex].quantity += quantity;
                     }
                     else {
                         updatedGuestCart.push({
